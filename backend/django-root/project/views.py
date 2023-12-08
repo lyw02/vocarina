@@ -13,12 +13,15 @@ def project_api(request, project_id=None, user_id=None):
 
     if project_id is not None and request.method == 'GET':
         project = Project.objects.get(id=project_id)
-        project_serializer = ProjectSerializer(project, many=True)
+        project_serializer = ProjectSerializer(project)
         return JsonResponse(project_serializer.data, safe=False, status=201)
     elif user_id is not None and request.method == 'GET':
         # All projects from a user
-        projects = Project.objects.get(id=user_id)
-        projects_serializer = ProjectSerializer(projects)
+        projects = Project.objects.filter(user_id=user_id)
+        if len(projects) > 1:
+            projects_serializer = ProjectSerializer(projects, many=True)
+        else:
+            projects_serializer = ProjectSerializer(projects[0])
         return JsonResponse(projects_serializer.data, safe=False, status=201)
     elif request.method == 'GET':
         projects = Project.objects.all()

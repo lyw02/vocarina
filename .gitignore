@@ -12,10 +12,10 @@ db.sqlite3-journal
 media
 
 # Ignore everything in the migration folder
-/migration/*
+/migrations/*
 
 # But don't ignore __init__.py
-!/migration/__init__.py
+!/migrations/__init__.py
 
 # If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
 # in your Git repository. Update and uncomment the following line accordingly.
