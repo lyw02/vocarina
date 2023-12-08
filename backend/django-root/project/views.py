@@ -6,6 +6,8 @@ from rest_framework.parsers import JSONParser
 from .models import Project
 from .serializer import ProjectSerializer
 
+from .process.audioProcessor import AudioProcessor
+
 
 # Create your views here.
 @csrf_exempt
