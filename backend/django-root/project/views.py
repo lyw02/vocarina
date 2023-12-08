@@ -1,3 +1,6 @@
+import ast
+import json
+
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse
@@ -50,4 +53,35 @@ def project_api(request, project_id=None, user_id=None):
         project = Project.objects.get(id=project_id)
         project.delete()
         return JsonResponse(f"Project {project_id} deleted.", safe=False, status=201)
+
+
+@csrf_exempt
+def audio_process_api(request):
+
+    if request.method == 'POST':
+        try:
+            # bpm = request.POST.get('bpm')
+            # numerator = request.POST.get('numerator')
+            # denominator = request.POST.get('denominator')
+            # timebase = 60 / bpm  # time per beat
+
+            # lyrics = ast.literal_eval(request.POST.get('lyrics'))
+            # target_pitch_list = ast.literal_eval(request.POST.get('target_pitch_list'))
+            # target_duration_list = ast.literal_eval(request.POST.get('target_duration_list'))
+            data = json.loads(request.body)
+            lyrics = data.get('lyrics', [])
+            target_pitch_list = data.get('target_pitch_list', [])
+            target_duration_list = data.get('target_duration_list', [])
+
+            (AudioProcessor()
+             .generate(lyrics)
+             .set_pitch_to_avg()
+             .edit_pitch(target_pitch_list)
+             .edit_duration(target_duration_list)
+             .remove_silence()
+             .generate_final_audio())
+        except Exception as e:
+            return JsonResponse(f"Exception: {e}", safe=False, status=400)
+
+        return JsonResponse(f"Done.", safe=False, status=201)
 

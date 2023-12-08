@@ -2,8 +2,8 @@ import parselmouth
 
 from parselmouth.praat import call
 
-from pitchDetect import get_average_pitch
-from duration import get_duration
+from .pitchDetect import get_average_pitch
+from .duration import get_duration
 
 
 def change_pitch_to_average(file_path):

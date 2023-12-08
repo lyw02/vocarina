@@ -1,9 +1,13 @@
+import os
+
 import azure.cognitiveservices.speech as speechsdk
 
-from decouple import config
+from dotenv import load_dotenv
 
-SPEECH_KEY = config('SPEECH_KEY')
-SPEECH_REGION = config('SPEECH_REGION')
+load_dotenv()
+
+SPEECH_KEY = os.environ.get('MS_SPEECH_KEY')
+SPEECH_REGION = os.environ.get('MS_SPEECH_REGION')
 
 
 def tts(text, save_path):

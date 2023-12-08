@@ -4,11 +4,11 @@ import time
 import fnmatch
 import subprocess
 
-from util.synthesize import tts
-from util.pitchShifting import change_pitch_to_average, change_pitch
-from util.pitchDetect import get_average_pitch
-from util.duration import change_duration
-from util.trim import remove_silence_from_audio
+from .util.synthesize import tts
+from .util.pitchShifting import change_pitch_to_average, change_pitch
+from .util.pitchDetect import get_average_pitch
+from .util.duration import change_duration
+from .util.trim import remove_silence_from_audio
 
 working_dir = r"C:\Users\JERRY\Desktop\sampleMusic"
 
@@ -111,3 +111,12 @@ class AudioProcessor:
         print("[INFO] Done.")
         return self
 
+
+'''
+Sample data:
+{
+    "lyrics": ["should", "auld", "aquain", "tance", "be", "for", "got", "and", "nev", "ver", "brought", "to", "mind"],
+    "target_pitch_list": [261.6, 349.2, 349.2, 440, 392, 349.2, 392, 440, 349.2, 349.2, 440, 523.3, 587.3],
+    "target_duration_list": [2, 2, 2, 1.3, 2, 1.3, 1.3, 1.3, 2, 0.65, 1.3, 1.3, 2.6]
+}
+'''
