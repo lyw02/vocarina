@@ -1,3 +1,44 @@
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.http.response import JsonResponse
+from rest_framework.parsers import JSONParser
+
+from .models import Project
+from .serializer import ProjectSerializer
+
 
 # Create your views here.
+@csrf_exempt
+def project_api(request, project_id=None, user_id=None):
+
+    if project_id is not None and request.method == 'GET':
+        project = Project.objects.get(id=project_id)
+        project_serializer = ProjectSerializer(project, many=True)
+        return JsonResponse(project_serializer.data, safe=False, status=201)
+    elif user_id is not None and request.method == 'GET':
+        # All projects from a user
+        projects = Project.objects.get(id=user_id)
+        projects_serializer = ProjectSerializer(projects)
+        return JsonResponse(projects_serializer.data, safe=False, status=201)
+    elif request.method == 'POST':
+        project = JSONParser().parse(request)
+        project_serializer = ProjectSerializer(data=project)
+        if project_serializer.is_valid():
+            project_serializer.save()
+            return JsonResponse("Project created.", safe=False, status=201)
+        else:
+            print(project_serializer.errors)
+        return JsonResponse("Failed to create project.", safe=False, status=400)
+    elif request.method == 'PUT':
+        new_project = JSONParser().parse(request)
+        old_project = Project.objects.get(id=new_project['id'])
+        project_serializer = ProjectSerializer(old_project, data=new_project)
+        if project_serializer.is_valid():
+            project_serializer.save()
+            return JsonResponse(f"Project {new_project['id']} updated.", safe=False, status=201)
+        return JsonResponse(f"Failed to update project {new_project['id']}.", safe=False, status=400)
+    elif project_id is not None and request.method == 'DELETE':
+        project = Project.objects.get(id=project_id)
+        project.delete()
+        return JsonResponse(f"Project {project_id} deleted.", safe=False, status=201)
+
