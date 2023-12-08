@@ -20,6 +20,10 @@ def project_api(request, project_id=None, user_id=None):
         projects = Project.objects.get(id=user_id)
         projects_serializer = ProjectSerializer(projects)
         return JsonResponse(projects_serializer.data, safe=False, status=201)
+    elif request.method == 'GET':
+        projects = Project.objects.all()
+        projects_serializer = ProjectSerializer(projects, many=True)
+        return JsonResponse(projects_serializer.data, safe=False, status=201)
     elif request.method == 'POST':
         project = JSONParser().parse(request)
         project_serializer = ProjectSerializer(data=project)
