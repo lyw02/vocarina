@@ -1,23 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import SiteHeader from "./components/siteHeader";
+import PianoRoll from "./components/pianoRoll";
+import Toolbar from "./components/toolbar";
+import ParamaterBar from "./components/parameterBar";
+import { NotesContextProvider } from "./contexts/notesContext";
+import { ParamsContextProvider } from "./contexts/paramsContext";
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <SiteHeader />
+      <NotesContextProvider>
+        <ParamsContextProvider>
+          <Toolbar />
+          <ParamaterBar />
+          <PianoRoll />
+        </ParamsContextProvider>
+      </NotesContextProvider>
     </div>
   );
 }

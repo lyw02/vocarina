@@ -1,0 +1,28 @@
+.piano-roll-wrapper {
+  height: 550px;
+  border-radius: 15px;
+  /* background-image: linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%); */
+  background: white;
+  margin: 0 30px;
+  padding: 0 15px;
+  display: flex;
+  overflow-y: scroll;
+}
+
+.compose-area-and-canvas-component-wrapper {
+  position: relative;
+}
+
+.compose-area-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.canvas-component-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
