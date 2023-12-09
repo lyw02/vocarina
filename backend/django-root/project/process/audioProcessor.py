@@ -67,39 +67,45 @@ def generate_audio_files_txt(file_list, save_path):
 class AudioProcessor:
 
     def __init__(self):
+        self._process_index = 0
         self._file_pattern = None
 
     def generate(self, lyrics):
         generate_lyrics(lyrics)
-        self._file_pattern = "raw-*.wav"
+        self._process_index += 1
+        self._file_pattern = f"process-{self._process_index}-raw-*.wav"
         print("[INFO] Speech synthesize - Done.")
         return self
 
     def set_pitch_to_avg(self):
         files = get_matching_files(working_dir, self._file_pattern)
         set_pitch_to_average(files)
-        self._file_pattern = "edited-average-*.wav"
+        self._process_index += 1
+        self._file_pattern = f"process-{self._process_index}-edited-average-*.wav"
         print("[INFO] Set pitch to average - Done.")
         return self
 
     def edit_pitch(self, target_pitch_list):
         files = get_matching_files(working_dir, self._file_pattern)
         edit_pitch(files, target_pitch_list)
-        self._file_pattern = "edited-pitch-*.wav"
+        self._process_index += 1
+        self._file_pattern = f"process-{self._process_index}-edited-pitch-*.wav"
         print("[INFO] Edit pitch - Done.")
         return self
 
     def edit_duration(self, target_duration_list):
         files = get_matching_files(working_dir, self._file_pattern)
         edit_duration(files, target_duration_list)
-        self._file_pattern = "edited-duration-*.wav"
+        self._process_index += 1
+        self._file_pattern = f"process-{self._process_index}-edited-duration-*.wav"
         print("[INFO] Edit duration - Done.")
         return self
 
     def remove_silence(self):
         files = get_matching_files(working_dir, self._file_pattern)
         remove_silence(files)
-        self._file_pattern = "trimmed-*.wav"
+        self._process_index += 1
+        self._file_pattern = f"process-{self._process_index}-trimmed-*.wav"
         print("[INFO] Remove silence - Done.")
         return self
 
