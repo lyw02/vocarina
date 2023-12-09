@@ -77,6 +77,7 @@ def audio_process_api(request):
              .generate(lyrics)
              .set_pitch_to_avg()
              .edit_pitch(target_pitch_list)
+             .remove_silence()
              .edit_duration(target_duration_list)
              .remove_silence()
              .generate_final_audio())
