@@ -21,40 +21,42 @@ def get_matching_files(directory, pattern):
         for filename in fnmatch.filter(files, pattern):
             matching_files.append(os.path.join(root, filename))
 
-    matching_files.sort(key=lambda f: int(re.search(r'\d+', f).group()))
+    # matching_files.sort(key=lambda f: int(re.search(r'\d+', f).group()))
+    matching_files.sort(key=lambda f: int(re.findall(r'\d+', f)[-1]))
 
     return matching_files
 
 
-def generate_lyrics(lyrics):
+def generate_lyrics(lyrics, process_index):
 
     for i, word in enumerate(lyrics):
-        tts(word, rf"{working_dir}\raw-{i}.wav")
+        tts(word, rf"{working_dir}\process-{process_index}-raw-{i}.wav")
 
 
-def remove_silence(file_list):
-
-    for i, file in enumerate(file_list):
-        remove_silence_from_audio(file, rf"{working_dir}\trimmed-{i}.wav")
-
-
-def set_pitch_to_average(file_list):
+def remove_silence(file_list, process_index):
 
     for i, file in enumerate(file_list):
-        change_pitch_to_average(file).save(rf"{working_dir}\edited-average-{i}.wav", "WAV")
+        remove_silence_from_audio(file, rf"{working_dir}\process-{process_index}-trimmed-{i}.wav")
 
 
-def edit_pitch(file_list, target_pitch_list):
+def set_pitch_to_average(file_list, process_index):
+
+    for i, file in enumerate(file_list):
+        change_pitch_to_average(file).save(rf"{working_dir}\process-{process_index}-edited-average-{i}.wav", "WAV")
+
+
+def edit_pitch(file_list, target_pitch_list, process_index):
 
     for i, file in enumerate(file_list):
         change_pitch(file, target_pitch_list[i] / get_average_pitch(file))\
-            .save(rf"{working_dir}\edited-pitch-{i}.wav", "WAV")
+            .save(rf"{working_dir}\process-{process_index}-edited-pitch-{i}.wav", "WAV")
 
 
-def edit_duration(file_list, target_duration_list):
+def edit_duration(file_list, target_duration_list, process_index):
 
     for i, file in enumerate(file_list):
-        change_duration(file, rf"{working_dir}\edited-duration-{i}.wav", target_duration_list[i])
+        change_duration(file, rf"{working_dir}\process-{process_index}-edited-duration-{i}.wav",
+                        target_duration_list[i])
 
 
 def generate_audio_files_txt(file_list, save_path):
@@ -71,41 +73,41 @@ class AudioProcessor:
         self._file_pattern = None
 
     def generate(self, lyrics):
-        generate_lyrics(lyrics)
-        self._process_index += 1
+        generate_lyrics(lyrics, self._process_index)
         self._file_pattern = f"process-{self._process_index}-raw-*.wav"
+        self._process_index += 1
         print("[INFO] Speech synthesize - Done.")
         return self
 
     def set_pitch_to_avg(self):
         files = get_matching_files(working_dir, self._file_pattern)
-        set_pitch_to_average(files)
-        self._process_index += 1
+        set_pitch_to_average(files, self._process_index)
         self._file_pattern = f"process-{self._process_index}-edited-average-*.wav"
+        self._process_index += 1
         print("[INFO] Set pitch to average - Done.")
         return self
 
     def edit_pitch(self, target_pitch_list):
         files = get_matching_files(working_dir, self._file_pattern)
-        edit_pitch(files, target_pitch_list)
-        self._process_index += 1
+        edit_pitch(files, target_pitch_list, self._process_index)
         self._file_pattern = f"process-{self._process_index}-edited-pitch-*.wav"
+        self._process_index += 1
         print("[INFO] Edit pitch - Done.")
         return self
 
     def edit_duration(self, target_duration_list):
         files = get_matching_files(working_dir, self._file_pattern)
-        edit_duration(files, target_duration_list)
-        self._process_index += 1
+        edit_duration(files, target_duration_list, self._process_index)
         self._file_pattern = f"process-{self._process_index}-edited-duration-*.wav"
+        self._process_index += 1
         print("[INFO] Edit duration - Done.")
         return self
 
     def remove_silence(self):
         files = get_matching_files(working_dir, self._file_pattern)
-        remove_silence(files)
-        self._process_index += 1
+        remove_silence(files, self._process_index)
         self._file_pattern = f"process-{self._process_index}-trimmed-*.wav"
+        self._process_index += 1
         print("[INFO] Remove silence - Done.")
         return self
 
