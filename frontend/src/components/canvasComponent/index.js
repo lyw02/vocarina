@@ -97,7 +97,7 @@ function CanvasComponent() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
-    canvas.width = 1000;
+    canvas.width = 3000;
     canvas.height = 2700;
 
     const overlap = (note) => {
@@ -164,7 +164,7 @@ function CanvasComponent() {
           note.startY = startY + disY;
           note.endY = endY + disY;
         };
-        updateNotes(notes)
+        updateNotes(notes);
         console.log(notes);
       } else {
         // draw new note
@@ -208,12 +208,14 @@ function CanvasComponent() {
   };
 
   return (
-    <canvas
-      className="compose-area-canvas"
-      ref={canvasRef}
-      onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseDown}
-    />
+    // <div className="canvas-container">
+      <canvas
+        className="compose-area-canvas"
+        ref={canvasRef}
+        onMouseMove={handleMouseMove}
+        onMouseDown={handleMouseDown}
+      />
+    // </div>
   );
 }
 
