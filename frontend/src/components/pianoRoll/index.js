@@ -9,9 +9,7 @@ function PianoRoll() {
 
   useEffect(() => {
     const pianoRoll = pianoRollRef.current;
-
     const middleScroll = (pianoRoll.scrollHeight - pianoRoll.clientHeight) / 2;
-
     pianoRoll.scrollTop = middleScroll;
   }, []);
 
