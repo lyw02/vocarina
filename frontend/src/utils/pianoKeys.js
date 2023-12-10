@@ -37,6 +37,6 @@ export const pianoKeys = () => {
       KeyId++;
     }
   }
-  // console.log(pianoKeys);
+  console.log(pianoKeys);
   return pianoKeys;
 };
