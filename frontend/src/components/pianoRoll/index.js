@@ -1,11 +1,22 @@
-import "./index.css";
+import React, { useEffect, useRef } from 'react';
 import Piano from "../piano";
 import CanvasComponent from "../canvasComponent";
 import ComposeArea from "../composeArea";
+import "./index.css";
 
 function PianoRoll() {
+  const pianoRollRef = useRef(null);
+
+  useEffect(() => {
+    const pianoRoll = pianoRollRef.current;
+
+    const middleScroll = (pianoRoll.scrollHeight - pianoRoll.clientHeight) / 2;
+
+    pianoRoll.scrollTop = middleScroll;
+  }, []);
+
   return (
-    <div className="piano-roll-wrapper">
+    <div className="piano-roll-wrapper" ref={pianoRollRef}>
       <div className="piano-wrapper">
         <Piano />
       </div>
