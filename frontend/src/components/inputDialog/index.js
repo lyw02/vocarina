@@ -1,22 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Draggable from "react-draggable";
 import { useParameters } from "../../contexts/paramsContext";
 import "./index.css";
 
+/**
+ * TODO
+ */
 export default function InputDialog({ title, fields, isTimeSigDialogVisible }) {
   const [fieldsState, setFieldsState] = useState(fields);
-  const { setNumerator, setDenominator } = useParameters();
+  const [clickApply, setClickApply] = useState(false);
+  const { numerator, denominator, setNumerator, setDenominator } =
+    useParameters(); // TODO Needs refactoring to be more universal
 
-  const handleFieldChange = (key) => {
-    // setFieldsState()
-  }
+  const handleFieldChange = (key, value) => {
+    setFieldsState((prevState) => ({
+      ...prevState,
+      [key]: value,
+    }));
+  };
 
   const handleApply = () => {
-    isTimeSigDialogVisible(false);
-  }; // TODO
+    // TODO Needs refactoring to be more universal
+    // console.log(fieldsState);
+    // setNumerator(fieldsState["numerator"]);
+    // setDenominator(fieldsState["denominator"]);
+    // isTimeSigDialogVisible(false);
+    setClickApply(true);
+  };
+
+  useEffect(() => {
+    if (clickApply) {
+      setNumerator(fieldsState["numerator"]);
+      setDenominator(fieldsState["denominator"]);
+      isTimeSigDialogVisible(false);
+      setClickApply(false);
+    }
+  }, [clickApply]);
+
   const handleClose = () => {
     isTimeSigDialogVisible(false);
   };
+
   return (
     <div className="input-dialog-wrapper">
       <div className="card-overlay">
@@ -38,7 +62,9 @@ export default function InputDialog({ title, fields, isTimeSigDialogVisible }) {
                       id={k}
                       className="field-input"
                       placeholder={v}
-                      onChange={() => handleFieldChange(k)}
+                      onChange={(event) =>
+                        handleFieldChange(k, event.target.value)
+                      }
                     />
                   </li>
                 );

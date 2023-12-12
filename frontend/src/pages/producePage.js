@@ -11,17 +11,19 @@ function ProducePage() {
   const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] = useState(false);
 
   const handleIsTimeSigDialogVisible = (flag) => {
-    setIsTimeSigDialogVisible(flag)
-  }
+    setIsTimeSigDialogVisible(flag);
+  };
 
   return (
     <div>
       {isTimeSigDialogVisible && (
-        <InputDialog
-          title="Edit time signature"
-          fields={{ numerator: 4, denominator: 4 }}
-          isTimeSigDialogVisible={handleIsTimeSigDialogVisible}
-        />
+        <ParamsContextProvider>
+          <InputDialog
+            title="Edit time signature"
+            fields={{ numerator: 4, denominator: 4 }}
+            isTimeSigDialogVisible={handleIsTimeSigDialogVisible}
+          />
+        </ParamsContextProvider>
       )}
       <SiteHeader />
       <NotesContextProvider>
