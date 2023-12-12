@@ -64,9 +64,10 @@
 
 .title {
   user-select: none;
-  margin: 20px 30px 10px 30px;
 }
 
 .handle {
   cursor: pointer;
+  margin: 20px 30px 10px 30px;
+  box-sizing: border-box;
 }

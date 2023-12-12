@@ -8,7 +8,16 @@ export const ParamsContextProvider = (props) => {
   const [bpm, setBpm] = useState(120);
 
   return (
-    <ParamsContext.Provider value={{ numerator, denominator, bpm }}>
+    <ParamsContext.Provider
+      value={{
+        numerator,
+        denominator,
+        bpm,
+        setNumerator,
+        setDenominator,
+        setBpm,
+      }}
+    >
       {props.children}
     </ParamsContext.Provider>
   );

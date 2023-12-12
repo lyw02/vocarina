@@ -5,4 +5,6 @@
 
 .param-item {
   margin-right: 10px;
+  cursor: pointer;
+  user-select: none;
 }
