@@ -18,14 +18,14 @@ function ProducePage() {
 
   const [isDialogVisible, setIsDialogVisible] = useState({
     isTimeSigDialogVisible: false,
-    isBpmgDialogVisible: false,
+    isBpmDialogVisible: false,
   });
 
-  const handleIsDialogVisible = (isVisible, flag) => {
+  const handleIsDialogVisible = (visibleAlias, flag) => {
     setIsDialogVisible((prevState) => {
       return {
         ...prevState,
-        [isVisible]: flag,
+        [visibleAlias]: flag,
       };
     });
   };
@@ -44,13 +44,13 @@ function ProducePage() {
           visibleAlias="isTimeSigDialogVisible"
         />
       )}
-      {isDialogVisible["isBpmgDialogVisible"] && (
+      {isDialogVisible["isBpmDialogVisible"] && (
         <InputDialog
           title="Edit BPM"
           fields={{ bpm: bpm }}
           setters={{ bpm: handleSetBpm }}
           isDialogVisible={handleIsDialogVisible}
-          visibleAlias="isBpmgDialogVisible"
+          visibleAlias="isBpmDialogVisible"
         />
       )}
       <SiteHeader />

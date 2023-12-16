@@ -8,7 +8,7 @@ export default function ParamaterBar({ numerator, denominator, bpm, isDialogVisi
   };
 
   const handleIsBpmDialogVisible = (flag) => {
-    isDialogVisible("isBpmgDialogVisible", flag);
+    isDialogVisible("isBpmDialogVisible", flag);
   };
 
   return (
