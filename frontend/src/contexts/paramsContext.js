@@ -7,15 +7,27 @@ export const ParamsContextProvider = (props) => {
   const [denominator, setDenominator] = useState(4);
   const [bpm, setBpm] = useState(120);
 
+  const handleSetNumerator = (newValue) => {
+    setNumerator(newValue);
+  }
+
+  const handleSetDenominator = (newValue) => {
+    setDenominator(newValue);
+  }
+
+  const handleSetBpm = (newValue) => {
+    setBpm(newValue);
+  }
+
   return (
     <ParamsContext.Provider
       value={{
         numerator,
         denominator,
         bpm,
-        setNumerator,
-        setDenominator,
-        setBpm,
+        handleSetNumerator,
+        handleSetDenominator,
+        handleSetBpm,
       }}
     >
       {props.children}

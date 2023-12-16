@@ -1,16 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Draggable from "react-draggable";
-import { useParameters } from "../../contexts/paramsContext";
 import "./index.css";
 
-/**
- * TODO
- */
-export default function InputDialog({ title, fields, isTimeSigDialogVisible }) {
+export default function InputDialog({
+  title,
+  fields,
+  setters,
+  isDialogVisible,
+  visibleAlias,
+}) {
   const [fieldsState, setFieldsState] = useState(fields);
-  const [clickApply, setClickApply] = useState(false);
-  const { numerator, denominator, setNumerator, setDenominator } =
-    useParameters(); // TODO Needs refactoring to be more universal
 
   const handleFieldChange = (key, value) => {
     setFieldsState((prevState) => ({
@@ -20,25 +19,14 @@ export default function InputDialog({ title, fields, isTimeSigDialogVisible }) {
   };
 
   const handleApply = () => {
-    // TODO Needs refactoring to be more universal
-    // console.log(fieldsState);
-    // setNumerator(fieldsState["numerator"]);
-    // setDenominator(fieldsState["denominator"]);
-    // isTimeSigDialogVisible(false);
-    setClickApply(true);
+    Object.entries(fieldsState).forEach(([k, v]) => {
+      setters[k](v);
+    });
+    isDialogVisible(visibleAlias, false);
   };
 
-  useEffect(() => {
-    if (clickApply) {
-      setNumerator(fieldsState["numerator"]);
-      setDenominator(fieldsState["denominator"]);
-      isTimeSigDialogVisible(false);
-      setClickApply(false);
-    }
-  }, [clickApply]);
-
   const handleClose = () => {
-    isTimeSigDialogVisible(false);
+    isDialogVisible(visibleAlias, false);
   };
 
   return (
@@ -59,7 +47,7 @@ export default function InputDialog({ title, fields, isTimeSigDialogVisible }) {
                   <li key={k} className="field">
                     <h5 className="field-name">{k}</h5>
                     <input
-                      id={k}
+                      name={k}
                       className="field-input"
                       placeholder={v}
                       onChange={(event) =>

@@ -3,36 +3,65 @@ import SiteHeader from "../components/siteHeader";
 import PianoRoll from "../components/pianoRoll";
 import Toolbar from "../components/toolbar";
 import ParamaterBar from "../components/parameterBar";
-import { NotesContextProvider } from "../contexts/notesContext";
-import { ParamsContextProvider } from "../contexts/paramsContext";
 import InputDialog from "../components/inputDialog";
+import { useParameters } from "../contexts/paramsContext";
 
 function ProducePage() {
-  const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] = useState(false);
+  const {
+    numerator,
+    denominator,
+    bpm,
+    handleSetNumerator,
+    handleSetDenominator,
+    handleSetBpm,
+  } = useParameters();
 
-  const handleIsTimeSigDialogVisible = (flag) => {
-    setIsTimeSigDialogVisible(flag);
+  const [isDialogVisible, setIsDialogVisible] = useState({
+    isTimeSigDialogVisible: false,
+    isBpmgDialogVisible: false,
+  });
+
+  const handleIsDialogVisible = (isVisible, flag) => {
+    setIsDialogVisible((prevState) => {
+      return {
+        ...prevState,
+        [isVisible]: flag,
+      };
+    });
   };
 
   return (
     <div>
-      {isTimeSigDialogVisible && (
-        <ParamsContextProvider>
-          <InputDialog
-            title="Edit time signature"
-            fields={{ numerator: 4, denominator: 4 }}
-            isTimeSigDialogVisible={handleIsTimeSigDialogVisible}
-          />
-        </ParamsContextProvider>
+      {isDialogVisible["isTimeSigDialogVisible"] && (
+        <InputDialog
+          title="Edit time signature"
+          fields={{ numerator: numerator, denominator: denominator }}
+          setters={{
+            numerator: handleSetNumerator,
+            denominator: handleSetDenominator,
+          }}
+          isDialogVisible={handleIsDialogVisible}
+          visibleAlias="isTimeSigDialogVisible"
+        />
+      )}
+      {isDialogVisible["isBpmgDialogVisible"] && (
+        <InputDialog
+          title="Edit BPM"
+          fields={{ bpm: bpm }}
+          setters={{ bpm: handleSetBpm }}
+          isDialogVisible={handleIsDialogVisible}
+          visibleAlias="isBpmgDialogVisible"
+        />
       )}
       <SiteHeader />
-      <NotesContextProvider>
-        <ParamsContextProvider>
-          <Toolbar />
-          <ParamaterBar isTimeSigDialogVisible={handleIsTimeSigDialogVisible} />
-          <PianoRoll />
-        </ParamsContextProvider>
-      </NotesContextProvider>
+      <Toolbar />
+      <ParamaterBar
+        numerator={numerator}
+        denominator={denominator}
+        bpm={bpm}
+        isDialogVisible={handleIsDialogVisible}
+      />
+      <PianoRoll />
     </div>
   );
 }

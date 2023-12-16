@@ -1,20 +1,22 @@
 import React from "react";
-import { useParameters } from "../../contexts/paramsContext";
 import "./index.css";
 
-export default function ParamaterBar({ isTimeSigDialogVisible }) {
-  const { numerator, denominator, bpm } = useParameters();
+export default function ParamaterBar({ numerator, denominator, bpm, isDialogVisible }) {
 
   const handleIsTimeSigDialogVisible = (flag) => {
-    isTimeSigDialogVisible(flag);
+    isDialogVisible("isTimeSigDialogVisible", flag);
   };
-  
+
+  const handleIsBpmDialogVisible = (flag) => {
+    isDialogVisible("isBpmgDialogVisible", flag);
+  };
+
   return (
     <div className="param-wrapper">
       <span className="param-item" onClick={() => handleIsTimeSigDialogVisible(true)}>
         {numerator}/{denominator}
       </span>
-      <span className="param-item">BPM: {bpm}</span>
+      <span className="param-item" onClick={() => handleIsBpmDialogVisible(true)}>BPM: {bpm}</span>
     </div>
   );
 }
