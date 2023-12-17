@@ -5,6 +5,8 @@ import Toolbar from "../components/toolbar";
 import ParamaterBar from "../components/parameterBar";
 import InputDialog from "../components/inputDialog";
 import { useParameters } from "../contexts/paramsContext";
+import { useNotes } from "../contexts/notesContext";
+import InputDialogLyrics from "../components/inputDialog/inputDialogLyrics";
 
 function ProducePage() {
   const {
@@ -15,6 +17,8 @@ function ProducePage() {
     handleSetDenominator,
     handleSetBpm,
   } = useParameters();
+
+  const { notes, updateNotes } = useNotes();
 
   const [isDialogVisible, setIsDialogVisible] = useState({
     isTimeSigDialogVisible: false,
@@ -53,8 +57,17 @@ function ProducePage() {
           visibleAlias="isBpmDialogVisible"
         />
       )}
+      {isDialogVisible["isLyricsDialogVisible"] && (
+        <InputDialogLyrics
+          title="Edit Lyrics"
+          notes={notes}
+          updateNotes={updateNotes}
+          isDialogVisible={handleIsDialogVisible}
+          visibleAlias="isLyricsDialogVisible"
+        />
+      )}
       <SiteHeader />
-      <Toolbar />
+      <Toolbar isDialogVisible={handleIsDialogVisible} />
       <ParamaterBar
         numerator={numerator}
         denominator={denominator}
