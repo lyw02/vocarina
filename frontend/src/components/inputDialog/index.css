@@ -67,7 +67,7 @@
 }
 
 .handle {
-  cursor: pointer;
+  cursor: all-scroll;
   margin: 20px 30px 10px 30px;
   box-sizing: border-box;
 }
