@@ -2,6 +2,10 @@ export const noteStyle = {
   color: "#ff8fab",
   overlapColor: "#ffe5ec",
   borderColor: "#fff",
+  textColor: "#fff",
+  font: "15px sans-serif",
+  textAlign: "start",
+  textBaseline: "middle",
   borderWidth: 3,
   lineCap: "square",
   noteHeight: 25,
@@ -66,6 +70,16 @@ export class Note {
     ctx.lineWidth = noteStyle.borderWidth;
     ctx.lineCap = noteStyle.lineCap;
     ctx.stroke();
+    ctx.font = noteStyle.font;
+    ctx.textAlign = noteStyle.textAlign;
+    ctx.textBaseline = noteStyle.textBaseline;
+    ctx.fillStyle = noteStyle.textColor;
+    ctx.fillText(
+      this.lyrics,
+      this.minX + 3,
+      (this.maxY + this.minY) / 2 + 3,
+      this.noteLength - 6
+    );
   }
 
   isInside(x, y) {

@@ -21,13 +21,14 @@ export default function InputDialogLyrics({
   const currentLyricsDisplay = () => {
     return lyricsState
       .join(" ")
-      .replace(/^\s+/, "") // remove leading spaces
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, '') // remove control characters
-      .replace(/\s+/g, " "); // collapse multi spaces
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // remove control characters
+      .replace(/^\s+/, ""); // remove leading spaces
   };
 
   const handleFieldChange = (value) => {
-    setLyricsState(value.split(" "));
+    setLyricsState(
+      value.split(/\s+/) // space with any length
+    );
   };
 
   const handleApply = () => {
@@ -51,20 +52,18 @@ export default function InputDialogLyrics({
           bounds=".card-overlay"
           onDrag={(e) => e.stopPropagation()}
         >
-          <div className="card">
+          <div className="card-lyrics">
             <div className="handle">
               <h2 className="title">{title}</h2>
             </div>
-            <ul className="field-list">
-              <li key="lyrics" className="field">
-                <textarea
-                  name="lyrics"
-                  className="field-input"
-                  value={currentLyricsDisplay()}
-                  onChange={(event) => handleFieldChange(event.target.value)}
-                />
-              </li>
-            </ul>
+            <div className="field-input-lyrics-container">
+              <textarea
+                name="lyrics"
+                className="field-input-lyrics"
+                value={currentLyricsDisplay()}
+                onChange={(event) => handleFieldChange(event.target.value)}
+              />
+            </div>
             <div className="button-group">
               <span className="button apply-button" onClick={handleApply}>
                 Apply
