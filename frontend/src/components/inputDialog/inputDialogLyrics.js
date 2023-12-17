@@ -32,16 +32,9 @@ export default function InputDialogLyrics({
 
   const handleApply = () => {
     let length = Math.min(notes.length, lyricsState.length);
-    // let updatedNotes = [];
     for (let i = 0; i < length; i++) {
       notes[i].lyrics = lyricsState[i];
-    //   updatedNotes.push(notes[i]);
     }
-    // if (notes.length > lyricsState.length) {
-    //   for (let i = lyricsState.length; i < notes.length; i++) {
-    //     updatedNotes.push(notes[i]);
-    //   }
-    // }
     updateNotes(notes);
     isDialogVisible(visibleAlias, false);
   };

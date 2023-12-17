@@ -1,11 +1,14 @@
 import React, { useRef, useEffect } from "react";
 import { useNotes } from "../../contexts/notesContext";
+import { useParameters } from "../../contexts/paramsContext";
+import { parsePitch, parseDuration } from "../../utils/parseNote";
 import { noteStyle, Note } from "../../utils/note";
 import "./index.css";
 
 function CanvasComponent() {
   const canvasRef = useRef(null);
   const { notes, updateNotes } = useNotes();
+  const { numerator, denominator, bpm } = useParameters();
   let noteId = 0;
 
   function getNote(x, y) {
@@ -113,6 +116,8 @@ function CanvasComponent() {
         // When mouse up, cancel move event
         window.onmousemove = null;
         window.onmouseup = null;
+        parsePitch(notes, updateNotes);
+        parseDuration(notes, updateNotes, bpm);
       };
     }
   };
