@@ -4,9 +4,17 @@
   /* background-image: linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%); */
   background: white;
   margin: 0 30px;
-  padding: 0 15px;
+  padding: 0;
   display: flex;
-  overflow-y: scroll;
+  /* overflow-y: scroll; */
+  overflow: auto;
+  box-shadow: 5px 5px 5px 0px rgba(0, 0, 0, 0.25);
+}
+
+.piano-wrapper {
+  position: sticky;
+  left: 0;
+  z-index: 3;
 }
 
 .compose-area-and-canvas-component-wrapper {
@@ -25,4 +33,29 @@
   top: 0;
   left: 0;
   z-index: 2;
+}
+
+/* Webkit browser（Chrome, Safari） */
+/* vertical scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: #ffbbd6;
+}
+
+/* horizontal scrollbar */
+::-webkit-scrollbar:horizontal {
+  height: 12px;
+}
+
+::-webkit-scrollbar-thumb:horizontal {
+  border-radius: 8px;
+  background-color: #ffbbd6;
+}
+
+::-webkit-scrollbar-corner {
+  border-radius: 15px;
 }
