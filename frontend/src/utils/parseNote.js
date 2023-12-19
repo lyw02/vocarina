@@ -21,3 +21,19 @@ export const parseDuration = (notes, updateNotes, bpm) => {
   }
   updateNotes(notes);
 };
+
+export const parsePostData = (notes) => {
+  let lyrics = [];
+  let targetPitchList = [];
+  let targetDuraionList = [];
+  notes.forEach((note) => {
+    lyrics.push(note.lyrics);
+    targetPitchList.push(note.frequency);
+    targetDuraionList.push(note.duration);
+  });
+  return {
+    lyrics: lyrics,
+    target_pitch_list: targetPitchList,
+    target_duration_list: targetDuraionList,
+  };
+};

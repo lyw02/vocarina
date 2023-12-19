@@ -10,3 +10,14 @@
   padding: 10px;
   cursor: pointer;
 }
+
+.play-button .playable {
+  border: 1px solid pink;
+  cursor: pointer;
+}
+
+.play-button {
+  border: 1px solid lightgray;
+  color: lightgray;
+  cursor: default;
+}
