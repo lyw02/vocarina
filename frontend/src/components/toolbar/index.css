@@ -8,16 +8,22 @@
   border: 1px solid black;
   border-radius: 5px;
   padding: 10px;
+  user-select: none;
   cursor: pointer;
 }
 
-.play-button .playable {
-  border: 1px solid pink;
+.play-button.playable {
+  border: 1px solid #ffbbd6;
+  color: #ffbbd6;
   cursor: pointer;
 }
 
-.play-button {
+.play-button:not(.playable) {
   border: 1px solid lightgray;
   color: lightgray;
   cursor: default;
+}
+
+.audio {
+  visibility: hidden;
 }

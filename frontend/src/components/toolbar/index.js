@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef } from "react";
 import { useNotes } from "../../contexts/notesContext";
 import { useParameters } from "../../contexts/paramsContext";
 import { useGenerate } from "../../contexts/generateContext";
@@ -11,6 +11,9 @@ function Toolbar({ isDialogVisible }) {
   const { notes, updateNotes } = useNotes();
   const { numerator, denominator, bpm } = useParameters();
   const { hasGenerated, handleSetHasGenerated } = useGenerate();
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
 
   const handleEditLyrics = (flag) => {
     isDialogVisible("isLyricsDialogVisible", flag);
@@ -29,7 +32,22 @@ function Toolbar({ isDialogVisible }) {
     ).then(handleSetHasGenerated(true));
   };
 
-  const handlePlay = () => {};
+  // const handlePlay = () => {
+  //   if (hasGenerated) {
+  //     setIsPlaying(true);
+  //   }
+  //   console.log(isPlaying);
+  // };
+
+  const handleToggle = () => {
+    if (audioRef.current.paused) {
+      audioRef.current.play();
+      setIsPlaying(true);
+    } else {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
 
   return (
     <div className="toolbar-wrapper">
@@ -46,9 +64,15 @@ function Toolbar({ isDialogVisible }) {
         className={classNames("button", "play-button", {
           playable: hasGenerated,
         })}
-        onClick={handlePlay}
+        // onClick={handlePlay}
+        onClick={handleToggle}
       >
-        Play
+        {isPlaying ? "Pause" : "Play"}
+      </span>
+      <span>
+        <audio ref={audioRef} className="audio" controls>
+          <source src="../temp/final_audio.wav" type="audio/wav" />
+        </audio>
       </span>
     </div>
   );
