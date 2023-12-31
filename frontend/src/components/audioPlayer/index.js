@@ -1,11 +1,11 @@
-import React from "react";
+import React, { forwardRef } from "react";
 
-export default function AudioPlayer() {
+const AudioPlayer = forwardRef((props, ref) => {
   return (
     <div>
-      <audio className="audio-player" controls>
-        <source src="C:\\Users\\JERRY\\Desktop\\sampleMusic\\final_audio.wav" type="audio/wav" />
-      </audio>
+      <audio className="audio-player" ref={ref} controls />
     </div>
   );
-}
+})
+
+export default AudioPlayer;

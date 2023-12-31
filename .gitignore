@@ -292,4 +292,6 @@ fabric.properties
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 .idea/**/azureSettings.xml
 
+backend/django-root/project/process/temp/
+
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,django

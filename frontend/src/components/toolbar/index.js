@@ -15,6 +15,8 @@ function Toolbar({ isDialogVisible }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(null);
 
+  let audioSrc;
+
   const handleEditLyrics = (flag) => {
     isDialogVisible("isLyricsDialogVisible", flag);
   };
@@ -25,11 +27,7 @@ function Toolbar({ isDialogVisible }) {
     console.log(notes);
     // call api
     // processAudio("../../../public/temp/", "final_audio.wav", notes);
-    processAudio(
-      "C:\\Users\\JERRY\\Desktop\\sampleMusic",
-      "final_audio.wav",
-      notes
-    ).then(handleSetHasGenerated(true));
+    audioSrc = processAudio(notes);
   };
 
   // const handlePlay = () => {
@@ -69,11 +67,9 @@ function Toolbar({ isDialogVisible }) {
       >
         {isPlaying ? "Pause" : "Play"}
       </span>
-      <span>
-        <audio ref={audioRef} className="audio" controls>
-          <source src="../temp/final_audio.wav" type="audio/wav" />
-        </audio>
-      </span>
+      {/* <span>
+        <audio ref={audioRef} className="audio" src={audioSrc} controls></audio>
+      </span> */}
     </div>
   );
 }
