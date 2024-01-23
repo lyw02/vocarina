@@ -1,5 +1,7 @@
+import SiteHeader from "./components/SiteHeader";
+
 function App() {
-  return <>App</>;
+  return <SiteHeader />;
 }
 
 export default App;
