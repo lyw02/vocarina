@@ -1,10 +1,10 @@
-import { SxProps } from "@mui/system";
+import { SxProps, SystemStyleObject } from "@mui/system";
 
 const container: SxProps = {
   marginTop: "5px",
 } as const;
 
-const card = {
+const card: SystemStyleObject = {
   padding: "10px",
 } as const;
 
