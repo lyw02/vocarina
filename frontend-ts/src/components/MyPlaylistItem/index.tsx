@@ -9,7 +9,7 @@ const MyPlaylistItem = () => {
         <img
           src="https://images.unsplash.com/photo-1551963831-b3b1ca40c98e"
           loading="lazy"
-          style={{ width: "60px", height: "60px", borderRadius: "5px" }}
+          style={{ width: "60px", height: "60px" }}
         />
         <Stack direction="column" spacing={0}>
           <Typography variant="body1">Playlist Name</Typography>

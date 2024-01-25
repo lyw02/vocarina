@@ -4,12 +4,12 @@ import { Link } from "react-router-dom";
 import classnames from "classnames";
 import "./index.css";
 
-interface navOption {
+interface NavOption {
   name: string;
   path: string;
 }
 
-const navOptions: navOption[] = [
+const navOptions: NavOption[] = [
   {
     name: "Produce",
     path: "/",

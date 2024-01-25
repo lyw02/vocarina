@@ -11,7 +11,7 @@ import MyPlaylistItem from "../MyPlaylistItem";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { Dispatch, SetStateAction, useState } from "react";
 
-interface subList {
+interface SubList {
   id: number;
   text: string;
   listItems: object[] | number[];
@@ -19,11 +19,19 @@ interface subList {
   flagSetter: Dispatch<SetStateAction<boolean>>;
 }
 
+// interface ListItem {
+//   id: number;
+//   playlistName: string;
+//   songCount: number;
+//   lastUpdate: string;
+//   creater: string | number;
+// }
+
 const MyPlaylist = () => {
   const [isCreatedListOpen, setIsCreatedListOpen] = useState<boolean>(true);
   const [isSavedListOpen, setIsSavedListOpen] = useState<boolean>(true);
 
-  const subLists: subList[] = [
+  const subLists: SubList[] = [
     {
       id: 0,
       text: "Created",

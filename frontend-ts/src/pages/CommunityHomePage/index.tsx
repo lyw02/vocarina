@@ -15,6 +15,7 @@ import {
 import HomeIcon from "@mui/icons-material/Home";
 import { container, card } from "./style";
 import MyPlaylist from "@/components/MyPlaylist";
+import MyMusic from "@/components/MyMusic";
 
 interface TabPanelProps {
   children?: ReactNode;
@@ -110,7 +111,7 @@ const CommunityHomePage = () => {
               onChangeIndex={handleChangeTabPanelIndex}
             > */}
             <TabPanel value={tabValue} index={0} dir={theme.direction}>
-              Item One
+              <MyMusic />
             </TabPanel>
             <TabPanel value={tabValue} index={1} dir={theme.direction}>
               <MyPlaylist />
