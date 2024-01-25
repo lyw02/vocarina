@@ -1,28 +1,81 @@
-import { SyntheticEvent, useState } from "react";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Box from "@mui/material/Box";
+import {
+  Collapse,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  ListSubheader,
+  Stack,
+} from "@mui/material";
+import MyPlaylistItem from "../MyPlaylistItem";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { Dispatch, SetStateAction, useState } from "react";
 
-export default function ColorTabs() {
-  const [value, setValue] = useState("one");
+interface subList {
+  id: number;
+  text: string;
+  listItems: object[] | number[];
+  flag: boolean;
+  flagSetter: Dispatch<SetStateAction<boolean>>;
+}
 
-  const handleChange = (event: SyntheticEvent, newValue: string) => {
-    setValue(newValue);
-  };
+const MyPlaylist = () => {
+  const [isCreatedListOpen, setIsCreatedListOpen] = useState<boolean>(true);
+  const [isSavedListOpen, setIsSavedListOpen] = useState<boolean>(true);
+
+  const subLists: subList[] = [
+    {
+      id: 0,
+      text: "Created",
+      listItems: [0, 1, 2, 3, 4],
+      flag: isCreatedListOpen,
+      flagSetter: setIsCreatedListOpen,
+    },
+    {
+      id: 1,
+      text: "Saved",
+      listItems: [0, 1, 2],
+      flag: isSavedListOpen,
+      flagSetter: setIsSavedListOpen,
+    },
+  ];
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Tabs
-        value={value}
-        onChange={handleChange}
-        textColor="secondary"
-        indicatorColor="secondary"
-        aria-label="secondary tabs example"
-      >
-        <Tab value="one" label="Item One" />
-        <Tab value="two" label="Item Two" />
-        <Tab value="three" label="Item Three" />
-      </Tabs>
-    </Box>
+    <List
+      sx={{
+        width: "100%",
+        position: "relative",
+        overflow: "auto",
+        maxHeight: 500,
+        "& ul": { padding: 0 },
+      }}
+      subheader={<li />}
+    >
+      {subLists.map((item) => {
+        return (
+          <div key={item.id}>
+            <ListSubheader>
+              <Stack direction="row">
+                <ListItemText primary={item.text} />
+                <IconButton onClick={() => item.flagSetter(!item.flag)}>
+                  {item.flag ? <ExpandLess /> : <ExpandMore />}
+                </IconButton>
+              </Stack>
+            </ListSubheader>
+            <Collapse in={item.flag} timeout="auto" unmountOnExit>
+              {item.listItems.map((i) => {
+                return (
+                  <ListItem key={`item-${i}`}>
+                    <MyPlaylistItem />
+                  </ListItem>
+                );
+              })}
+            </Collapse>
+          </div>
+        );
+      })}
+    </List>
   );
-}
+};
+
+export default MyPlaylist;

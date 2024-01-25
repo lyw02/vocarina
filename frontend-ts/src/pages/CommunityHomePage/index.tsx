@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import { container, card } from "./style";
+import MyPlaylist from "@/components/MyPlaylist";
 
 interface TabPanelProps {
   children?: ReactNode;
@@ -112,7 +113,7 @@ const CommunityHomePage = () => {
               Item One
             </TabPanel>
             <TabPanel value={tabValue} index={1} dir={theme.direction}>
-              Item Two
+              <MyPlaylist />
             </TabPanel>
             {/* </SwipeableViews> */}
           </Box>
