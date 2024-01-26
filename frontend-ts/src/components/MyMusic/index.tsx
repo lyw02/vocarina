@@ -13,7 +13,7 @@ const MyMusic = () => {
   const musicList: MusicItem[] = [
     {
       id: 0,
-      title: "TitleTitleTitleTitleTitleTitle",
+      title: "Title",
       artist: "Someone",
       cover: "https://images.unsplash.com/photo-1522770179533-24471fcdba45",
     },

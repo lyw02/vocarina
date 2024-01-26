@@ -23,10 +23,10 @@ const MyMusicItem = ({ title, artist, cover }: MyMusicItemProps) => {
           <Typography variant="caption">{artist}</Typography>
         </Stack>
         <Stack direction="row" spacing={1}>
-          <IconButton>
+          <IconButton sx={{width: "60px", height: "60px"}}>
             <PlayCircleOutline />
           </IconButton>
-          <IconButton>
+          <IconButton sx={{width: "60px", height: "60px"}}>
             <Share />
           </IconButton>
         </Stack>
