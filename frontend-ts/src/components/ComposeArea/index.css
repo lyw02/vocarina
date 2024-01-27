@@ -1,0 +1,21 @@
+.compose-area-wrapper {
+  width: 3000px;
+  height: 2000px;
+}
+
+.compose-area-rows {
+  list-style-type: none;
+}
+
+.key-row.white {
+  width: 100%;
+  background: #e9ecef;
+  height: 25px;
+  border-bottom: 1px solid #ced4da;
+}
+
+.key-row.black {
+  width: 100%;
+  background: #ced4da;
+  height: 25px;
+}

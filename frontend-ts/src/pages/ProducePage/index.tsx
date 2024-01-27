@@ -1,7 +1,10 @@
-import { InputDialog } from "@/components/InputDialog";
+import PianoRoll from "@/components/PianoRoll";
+import { Fragment } from "react";
 
 const ProducePage = () => {
-  return <InputDialog />;
+  return <Fragment>
+    <PianoRoll />
+  </Fragment>;
 };
 
 export default ProducePage;
