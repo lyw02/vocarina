@@ -1,7 +1,7 @@
-import { Button } from "@mui/material";
+import { InputDialog } from "@/components/InputDialog";
 
 const ProducePage = () => {
-  return <div>ProducePage<Button variant="contained">Primary</Button></div>;
+  return <InputDialog />;
 };
 
 export default ProducePage;
