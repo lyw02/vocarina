@@ -1,12 +1,15 @@
+import { ParamsState } from "@/types";
 import { createSlice } from "@reduxjs/toolkit";
+
+const initialState: ParamsState = {
+  numerator: 4,
+  denominator: 4,
+  bpm: 120,
+};
 
 const paramsStore = createSlice({
   name: "params",
-  initialState: {
-    numerator: 4,
-    denominator: 4,
-    bpm: 120,
-  },
+  initialState: initialState,
   reducers: {
     setNumerator(state, action) {
       state.numerator = action.payload;

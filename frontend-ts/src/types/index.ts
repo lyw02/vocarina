@@ -15,3 +15,18 @@ export interface Note {
   noteLength: number;
   lyrics: string;
 }
+
+export interface RootState {
+  notes: NotesState;
+  params: ParamsState;
+}
+
+export interface NotesState {
+  count: number;
+}
+
+export interface ParamsState {
+  numerator: number;
+  denominator: number;
+  bpm: number;
+}

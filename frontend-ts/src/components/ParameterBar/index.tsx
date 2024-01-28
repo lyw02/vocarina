@@ -1,17 +1,28 @@
-import "./index.css"
+import { useSelector } from "react-redux";
+import { RootState } from "@/types";
+
+import "./index.css";
 
 const ParameterBar = () => {
+  const { numerator, denominator, bpm } = useSelector(
+    (state: RootState) => state.params
+  );
   return (
     <div className="param-wrapper">
-      <span className="param-item" 
-    //   onClick={() => handleIsTimeSigDialogVisible(true)}
+      <span
+        className="param-item"
+        //   onClick={() => handleIsTimeSigDialogVisible(true)}
       >
-        {/* {numerator}/{denominator} */}
-        4/4
+        {numerator}/{denominator}
       </span>
-      {/* <span className="param-item" onClick={() => handleIsBpmDialogVisible(true)}>BPM: {bpm}</span> */}
+      <span
+        className="param-item"
+        //   onClick={() => handleIsBpmDialogVisible(true)}
+      >
+        BPM: {bpm}
+      </span>
     </div>
-  )
-}
+  );
+};
 
-export default ParameterBar
+export default ParameterBar;
