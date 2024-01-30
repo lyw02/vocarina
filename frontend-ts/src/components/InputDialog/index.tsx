@@ -1,3 +1,4 @@
+import { Fragment, useState } from "react";
 import {
   Button,
   Dialog,
@@ -7,11 +8,11 @@ import {
   Paper,
   PaperProps,
 } from "@mui/material";
-import { Fragment, useState } from "react";
 import Draggable from "react-draggable";
-import EditTimeSignatureForm from "./EditTimeSignatureForm";
 import { useDispatch } from "react-redux";
-import { setDenominator, setNumerator } from "@/store/modules/params";
+import { setBpm, setDenominator, setNumerator } from "@/store/modules/params";
+import EditTimeSignatureForm from "./EditTimeSignatureForm";
+import EditBpmForm from "./EditBpmForm";
 
 const PaperComponent = (props: PaperProps) => {
   return (
@@ -26,7 +27,7 @@ const PaperComponent = (props: PaperProps) => {
 
 interface InputDialogProps {
   title: string;
-  formType: "EditTimeSignatureForm";
+  formType: "EditTimeSignatureForm" | "EditBpmForm";
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -34,9 +35,15 @@ interface InputDialogProps {
 export interface FormValues {
   numerator?: number;
   denominator?: number;
+  bpm?: number;
 }
 
-const InputDialog = ({ title, formType, isOpen, setIsOpen }: InputDialogProps) => {
+const InputDialog = ({
+  title,
+  formType,
+  isOpen,
+  setIsOpen,
+}: InputDialogProps) => {
   const [values, setValues] = useState<FormValues>({});
 
   const dispatch = useDispatch();
@@ -50,6 +57,13 @@ const InputDialog = ({ title, formType, isOpen, setIsOpen }: InputDialogProps) =
         ],
         formComponent: (
           <EditTimeSignatureForm values={values} setValues={handleSetValues} />
+        ),
+      };
+    } else if (formType === "EditBpmForm") {
+      return {
+        dispatchFunctions: [() => dispatch(setBpm(values.bpm || 120))],
+        formComponent: (
+          <EditBpmForm values={values} setValues={handleSetValues} />
         ),
       };
     }
@@ -80,9 +94,7 @@ const InputDialog = ({ title, formType, isOpen, setIsOpen }: InputDialogProps) =
         <DialogTitle style={{ cursor: "move" }} id="draggable-dialog-title">
           {title}
         </DialogTitle>
-        <DialogContent>
-          {getForm()?.formComponent}
-        </DialogContent>
+        <DialogContent>{getForm()?.formComponent}</DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose}>
             Cancel

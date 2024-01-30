@@ -5,10 +5,10 @@ import InputDialog from "../InputDialog";
 
 import "./index.css";
 
-
 const ParameterBar = () => {
-  const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] = useState<boolean>(false)
-  const [isBpmDialogVisible, setIsBpmDialogVisible] = useState<boolean>(false)
+  const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] =
+    useState<boolean>(false);
+  const [isBpmDialogVisible, setIsBpmDialogVisible] = useState<boolean>(false);
 
   const { numerator, denominator, bpm } = useSelector(
     (state: RootState) => state.params
@@ -22,10 +22,7 @@ const ParameterBar = () => {
       >
         {numerator}/{denominator}
       </span>
-      <span
-        className="param-item"
-        //   onClick={() => handleIsBpmDialogVisible(true)}
-      >
+      <span className="param-item" onClick={() => setIsBpmDialogVisible(true)}>
         BPM: {bpm}
       </span>
       <InputDialog
@@ -33,6 +30,12 @@ const ParameterBar = () => {
         formType="EditTimeSignatureForm"
         isOpen={isTimeSigDialogVisible}
         setIsOpen={setIsTimeSigDialogVisible}
+      />
+      <InputDialog
+        title="Edit BPM"
+        formType="EditBpmForm"
+        isOpen={isBpmDialogVisible}
+        setIsOpen={setIsBpmDialogVisible}
       />
     </div>
   );
