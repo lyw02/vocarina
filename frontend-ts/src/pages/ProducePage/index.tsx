@@ -4,11 +4,13 @@ import Toolbar from "@/components/Toolbar";
 import { Fragment } from "react";
 
 const ProducePage = () => {
-  return <Fragment>
-    <Toolbar />
-    <ParameterBar />
-    <PianoRoll />
-  </Fragment>;
+  return (
+    <Fragment>
+      <Toolbar />
+      <ParameterBar />
+      <PianoRoll />
+    </Fragment>
+  );
 };
 
 export default ProducePage;
