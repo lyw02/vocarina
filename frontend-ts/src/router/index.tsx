@@ -1,3 +1,5 @@
+import LoginPage from "@/pages/AuthPages/LoginPage";
+import RegisterPage from "@/pages/AuthPages/RegisterPage";
 import CommunityHomePage from "@/pages/CommunityHomePage";
 import HomePage from "@/pages/HomePage";
 import ProducePage from "@/pages/ProducePage";
@@ -17,6 +19,14 @@ const router = createBrowserRouter([
         element: <CommunityHomePage />,
       },
     ],
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/register",
+    element: <RegisterPage />,
   },
 ]);
 
