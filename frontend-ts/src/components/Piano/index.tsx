@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { pianoKeys } from "@/utils/PianoKeys";
+import { pianoKeys } from "@/utils/pianoKeys";
 import classNames from "classnames";
 import "./index.css"
 
