@@ -12,5 +12,5 @@ class Project(models.Model):
     params = models.JSONField(encoder=DjangoJSONEncoder, blank=True, null=True)
     create_date = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
-    description = models.CharField(max_length=100, blank=True)
+    # description = models.CharField(max_length=100, blank=True)
     is_deleted = models.BooleanField(default=False)
