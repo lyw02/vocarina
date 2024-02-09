@@ -1,0 +1,166 @@
+import { useState, useRef } from "react";
+import {
+  Button,
+  Slider,
+  Grid,
+  useTheme,
+  Box,
+  Typography,
+  IconButton,
+  Stack,
+} from "@mui/material";
+import {
+  FastForwardRounded,
+  FastRewindRounded,
+  PauseRounded,
+  PlayArrowRounded,
+  VolumeDownRounded,
+  VolumeUpRounded,
+} from "@mui/icons-material";
+import {
+  CoverImage,
+  timeSliderSx,
+  TinyText,
+  volumeSliderSx,
+  Widget,
+} from "./style";
+
+interface MusicPlayerBannerProps {
+  initialVolume?: number;
+  initialPlaying?: boolean;
+  title: string;
+  artist: string;
+  cover_url: string;
+  audio_url: string;
+}
+
+const MusicPlayerBanner = ({
+  title,
+  artist,
+  cover_url,
+  audio_url,
+}: MusicPlayerBannerProps) => {
+  const theme = useTheme();
+  const duration = 200; // seconds
+  const [position, setPosition] = useState(32);
+  const [paused, setPaused] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playMusic = () => {
+    if (audioRef.current) {
+      audioRef.current.play();
+    }
+    setPaused(false);
+  };
+
+  const pauseMusic = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setPaused(true);
+  };
+
+  const handlePlayPause = () => {
+    paused ? playMusic() : pauseMusic();
+  };
+
+  function formatDuration(value: number) {
+    const minute = Math.floor(value / 60);
+    const secondLeft = value - minute * 60;
+    return `${minute}:${secondLeft < 10 ? `0${secondLeft}` : secondLeft}`;
+  }
+
+  const mainIconColor = theme.palette.mode === "dark" ? "#fff" : "#000";
+
+  const lightIconColor =
+    theme.palette.mode === "dark" ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)";
+
+  return (
+    <Box sx={{ width: "100%", overflow: "hidden" }}>
+      <audio ref={audioRef} src={audio_url} />
+      <Widget>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <CoverImage>
+            <img alt="can't win - Chilling Sunday" src={cover_url} />
+          </CoverImage>
+          <Box sx={{ ml: 1.5, minWidth: 0 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              fontWeight={500}
+            >
+              {artist}
+            </Typography>
+            <Typography noWrap>
+              <b>{title}</b>
+            </Typography>
+          </Box>
+        </Box>
+        <Slider
+          aria-label="time-indicator"
+          size="small"
+          value={position}
+          min={0}
+          step={1}
+          max={duration}
+          onChange={(_, value) => setPosition(value as number)}
+          sx={timeSliderSx}
+        />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mt: -2,
+          }}
+        >
+          <TinyText>{formatDuration(position)}</TinyText>
+          <TinyText>-{formatDuration(duration - position)}</TinyText>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mt: -1,
+          }}
+        >
+          <IconButton aria-label="previous song">
+            <FastRewindRounded fontSize="large" htmlColor={mainIconColor} />
+          </IconButton>
+          <IconButton
+            aria-label={paused ? "play" : "pause"}
+            onClick={handlePlayPause}
+          >
+            {paused ? (
+              <PlayArrowRounded
+                sx={{ fontSize: "3rem" }}
+                htmlColor={mainIconColor}
+              />
+            ) : (
+              <PauseRounded
+                sx={{ fontSize: "3rem" }}
+                htmlColor={mainIconColor}
+              />
+            )}
+          </IconButton>
+          <IconButton aria-label="next song">
+            <FastForwardRounded fontSize="large" htmlColor={mainIconColor} />
+          </IconButton>
+        </Box>
+        <Stack
+          spacing={2}
+          direction="row"
+          sx={{ mb: 1, px: 1 }}
+          alignItems="center"
+        >
+          <VolumeDownRounded htmlColor={lightIconColor} />
+          <Slider aria-label="Volume" defaultValue={30} sx={volumeSliderSx} />
+          <VolumeUpRounded htmlColor={lightIconColor} />
+        </Stack>
+      </Widget>
+    </Box>
+  );
+};
+
+export default MusicPlayerBanner;
