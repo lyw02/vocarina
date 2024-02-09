@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Button,
   Slider,
@@ -41,10 +41,11 @@ const MusicPlayerBanner = ({
   audio_url,
 }: MusicPlayerBannerProps) => {
   const theme = useTheme();
-  const duration = 200; // seconds
-  const [position, setPosition] = useState(32);
-  const [paused, setPaused] = useState(false);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [totalDuration, setTotalDuration] = useState<number>(0);
+  const [paused, setPaused] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   const playMusic = () => {
     if (audioRef.current) {
@@ -64,16 +65,63 @@ const MusicPlayerBanner = ({
     paused ? playMusic() : pauseMusic();
   };
 
-  function formatDuration(value: number) {
+  const formatDuration = (value: number) => {
     const minute = Math.floor(value / 60);
-    const secondLeft = value - minute * 60;
+    const secondLeft = Math.floor(value - minute * 60);
     return `${minute}:${secondLeft < 10 ? `0${secondLeft}` : secondLeft}`;
-  }
+  };
+
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleTimeSliderChange = (_: any, value: number) => {
+    setIsDragging(true);
+    setCurrentTime(value as number);
+  };
+
+  const handleTimeSliderChangeCommit = (_: any, value: number) => {
+    setIsDragging(false);
+    audioRef.current!.currentTime = value;
+  };
 
   const mainIconColor = theme.palette.mode === "dark" ? "#fff" : "#000";
 
   const lightIconColor =
     theme.palette.mode === "dark" ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)";
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) {
+      return;
+    }
+
+    audio.onloadedmetadata = () => {
+      setTotalDuration(audio.duration);
+    };
+
+    audio.ontimeupdate = () => {
+      if (!isDragging) {
+        setCurrentTime(audio.currentTime);
+      }
+    };
+
+    // audio.ontimeupdate = () => {
+    //   if (timeoutRef.current) {
+    //     clearTimeout(timeoutRef.current);
+    //   }
+
+    //   timeoutRef.current = window.setTimeout(() => {
+    //     setCurrentTime(audio.currentTime);
+    //   }, 100); // 100ms 防抖动处理
+
+    //   return () => {
+    //     clearTimeout(timeoutRef.current!);
+    //   };
+    // };
+
+    return () => {
+      audio.pause();
+    };
+  }, [audio_url]);
 
   return (
     <Box sx={{ width: "100%", overflow: "hidden" }}>
@@ -99,11 +147,14 @@ const MusicPlayerBanner = ({
         <Slider
           aria-label="time-indicator"
           size="small"
-          value={position}
+          value={isDragging ? currentTime : currentTime}
           min={0}
           step={1}
-          max={duration}
-          onChange={(_, value) => setPosition(value as number)}
+          max={totalDuration}
+          onChange={(_, value) => handleTimeSliderChange(_, value as number)}
+          onChangeCommitted={(_, value) =>
+            handleTimeSliderChangeCommit(_, value as number)
+          }
           sx={timeSliderSx}
         />
         <Box
@@ -114,8 +165,8 @@ const MusicPlayerBanner = ({
             mt: -2,
           }}
         >
-          <TinyText>{formatDuration(position)}</TinyText>
-          <TinyText>-{formatDuration(duration - position)}</TinyText>
+          <TinyText>{formatDuration(currentTime)}</TinyText>
+          <TinyText>-{formatDuration(totalDuration - currentTime)}</TinyText>
         </Box>
         <Box
           sx={{
