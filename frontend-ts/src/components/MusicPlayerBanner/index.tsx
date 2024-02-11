@@ -24,21 +24,23 @@ import {
   volumeSliderSx,
   Widget,
 } from "./style";
+import AudioContainer from "../AudioContainer";
+import MusicVisualizer from "../MusicVisualizer";
 
 interface MusicPlayerBannerProps {
   initialVolume?: number;
   initialPlaying?: boolean;
   title: string;
   artist: string;
-  cover_url: string;
-  audio_url: string;
+  coverUrl: string;
+  audioUrl: string;
 }
 
 const MusicPlayerBanner = ({
   title,
   artist,
-  cover_url,
-  audio_url,
+  coverUrl,
+  audioUrl,
 }: MusicPlayerBannerProps) => {
   const theme = useTheme();
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -121,27 +123,32 @@ const MusicPlayerBanner = ({
     return () => {
       audio.pause();
     };
-  }, [audio_url]);
+  }, [audioUrl]);
 
   return (
     <Box sx={{ width: "100%", overflow: "hidden" }}>
-      <audio ref={audioRef} src={audio_url} />
+      <AudioContainer audioRef={audioRef} audioSrc={audioUrl} />
       <Widget>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <CoverImage>
-            <img alt="can't win - Chilling Sunday" src={cover_url} />
-          </CoverImage>
-          <Box sx={{ ml: 1.5, minWidth: 0 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              fontWeight={500}
-            >
-              {artist}
-            </Typography>
-            <Typography noWrap>
-              <b>{title}</b>
-            </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Box>
+            <CoverImage>
+              <img alt="can't win - Chilling Sunday" src={coverUrl} />
+            </CoverImage>
+            <Box sx={{ ml: 1.5, minWidth: 0 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                fontWeight={500}
+              >
+                {artist}
+              </Typography>
+              <Typography noWrap>
+                <b>{title}</b>
+              </Typography>
+            </Box>
+          </Box>
+          <Box>
+            <MusicVisualizer audioElement={audioRef.current} />
           </Box>
         </Box>
         <Slider

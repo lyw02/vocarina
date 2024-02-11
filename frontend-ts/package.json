@@ -22,7 +22,8 @@
     "react-draggable": "^4.4.6",
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.21.3",
-    "react-swipeable-views": "^0.14.0"
+    "react-swipeable-views": "^0.14.0",
+    "web-audio-api": "^0.2.2"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",

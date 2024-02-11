@@ -11,8 +11,8 @@ const HomePage = () => {
       <MusicPlayerBanner
         title="Title"
         artist="Artist"
-        cover_url="https://images.unsplash.com/photo-1522770179533-24471fcdba45"
-        audio_url={musicFile}
+        coverUrl="https://images.unsplash.com/photo-1522770179533-24471fcdba45"
+        audioUrl={musicFile}
       />
     </div>
   );
