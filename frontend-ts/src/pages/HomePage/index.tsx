@@ -8,12 +8,12 @@ const HomePage = () => {
     <div>
       <SiteHeader />
       <Outlet />
-      <MusicPlayerBanner
+      {/* <MusicPlayerBanner
         title="Title"
         artist="Artist"
         coverUrl="https://images.unsplash.com/photo-1522770179533-24471fcdba45"
         audioUrl={musicFile}
-      />
+      /> */}
     </div>
   );
 };

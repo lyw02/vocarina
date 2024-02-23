@@ -1,4 +1,4 @@
-import { pianoKeys } from '@/utils/pianoKeys'
+import { pianoKeys } from '@/utils/PianoKeys'
 import classNames from "classnames";
 import "./index.css"
 

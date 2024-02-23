@@ -12,6 +12,8 @@ export const noteStyle = {
   minNoteWidth: 20,
 } as const;
 
+type boundary = "left" | "right";
+
 export class Note {
   id: number;
   startX: number;
@@ -66,17 +68,17 @@ export class Note {
   drawNote(ctx: CanvasRenderingContext2D) {
     this.noteLength = Math.abs(this.minX - this.maxX);
     ctx.beginPath();
-    ctx.moveTo(this.minX, this.minY);
-    ctx.lineTo(this.maxX, this.minY);
-    ctx.lineTo(this.maxX, this.maxY);
-    ctx.lineTo(this.minX, this.maxY);
-    ctx.lineTo(this.minX, this.minY);
+    ctx.moveTo(this.minX * devicePixelRatio, this.minY * devicePixelRatio);
+    ctx.lineTo(this.maxX * devicePixelRatio, this.minY * devicePixelRatio);
+    ctx.lineTo(this.maxX * devicePixelRatio, this.maxY * devicePixelRatio);
+    ctx.lineTo(this.minX * devicePixelRatio, this.maxY * devicePixelRatio);
+    ctx.lineTo(this.minX * devicePixelRatio, this.minY * devicePixelRatio);
     this.isOverlap
       ? (ctx.fillStyle = noteStyle.overlapColor)
       : (ctx.fillStyle = noteStyle.color);
     ctx.fill();
     ctx.strokeStyle = noteStyle.borderColor;
-    ctx.lineWidth = noteStyle.borderWidth;
+    ctx.lineWidth = noteStyle.borderWidth * devicePixelRatio;
     ctx.lineCap = noteStyle.lineCap;
     ctx.stroke();
     ctx.font = noteStyle.font;
@@ -94,5 +96,15 @@ export class Note {
   isInside(x: number, y: number) {
     // whether position (x, y) is inside a note
     return x > this.minX && x < this.maxX && y > this.minY && y < this.maxY;
+  }
+
+  isBoundary(x: number, y: number): boundary | undefined{
+    // whether position (x, y) is on the left/right boundary of a note
+    if (!(y < this.maxY && y > this.minY)) return undefined;
+    if (x > this.minX - 2 && x < this.minX + 3) {
+      return "left";
+    } else if (x > this.maxX - 3 && x < this.maxX + 2) {
+      return "right";
+    }
   }
 }
