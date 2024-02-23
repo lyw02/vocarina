@@ -68,17 +68,17 @@ export class Note {
   drawNote(ctx: CanvasRenderingContext2D) {
     this.noteLength = Math.abs(this.minX - this.maxX);
     ctx.beginPath();
-    ctx.moveTo(this.minX * devicePixelRatio, this.minY * devicePixelRatio);
-    ctx.lineTo(this.maxX * devicePixelRatio, this.minY * devicePixelRatio);
-    ctx.lineTo(this.maxX * devicePixelRatio, this.maxY * devicePixelRatio);
-    ctx.lineTo(this.minX * devicePixelRatio, this.maxY * devicePixelRatio);
-    ctx.lineTo(this.minX * devicePixelRatio, this.minY * devicePixelRatio);
+    ctx.moveTo(this.minX , this.minY );
+    ctx.lineTo(this.maxX , this.minY );
+    ctx.lineTo(this.maxX , this.maxY );
+    ctx.lineTo(this.minX , this.maxY );
+    ctx.lineTo(this.minX , this.minY );
     this.isOverlap
       ? (ctx.fillStyle = noteStyle.overlapColor)
       : (ctx.fillStyle = noteStyle.color);
     ctx.fill();
     ctx.strokeStyle = noteStyle.borderColor;
-    ctx.lineWidth = noteStyle.borderWidth * devicePixelRatio;
+    ctx.lineWidth = noteStyle.borderWidth ;
     ctx.lineCap = noteStyle.lineCap;
     ctx.stroke();
     ctx.font = noteStyle.font;

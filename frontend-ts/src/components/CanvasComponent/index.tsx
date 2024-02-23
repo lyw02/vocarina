@@ -54,15 +54,37 @@ function CanvasComponent() {
   }, []);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (event.button === 0) {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
+    // event.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
 
-      const rect = canvas.getBoundingClientRect(); // Canvas region (a rect)
-      const clickX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
-      const clickY = event.clientY - rect.top;
-      const note = getNote(clickX, clickY);
+    const rect = canvas.getBoundingClientRect(); // Canvas region (a rect)
+    const clickX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
+    const clickY = event.clientY - rect.top;
+    const note = getNote(clickX, clickY);
+
+    if (event.button === 2) {
+      // delete note
+      event.preventDefault();
+      if (note) {
+        const index = notes.indexOf(note);
+        if (index !== -1) {
+          notes.splice(index, 1);
+          event.preventDefault();
+        }
+      }
+    }
+
+    if (event.button === 0) {
+      // const canvas = canvasRef.current;
+      // if (!canvas) return;
+      // const ctx = canvas.getContext("2d");
+
+      // const rect = canvas.getBoundingClientRect(); // Canvas region (a rect)
+      // const clickX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
+      // const clickY = event.clientY - rect.top;
+      // const note = getNote(clickX, clickY);
 
       console.log("clickX: ", clickX);
       console.log("clickY: ", clickY);
@@ -160,13 +182,21 @@ function CanvasComponent() {
     }
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (event.button === 2) {
+      event.preventDefault()
+    }
     // When mouse up, cancel move event
     window.onmousemove = null;
     window.onmouseup = null;
     // parsePitch(notes, updateNotes);
     // parseDuration(notes, updateNotes, bpm);
   };
+
+  const handleContextMenu = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  }
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -195,6 +225,7 @@ function CanvasComponent() {
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
+      onContextMenu={handleContextMenu}
     />
     // </div>
   );
