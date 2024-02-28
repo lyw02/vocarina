@@ -7,7 +7,6 @@ import { RootState } from "@/types";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // const { notes, updateNotes } = useNotes();
   const notesInState = useSelector((state: RootState) => state.notes.notes);
   const notes = [...notesInState];
   let noteId = 0;
@@ -77,18 +76,8 @@ function CanvasComponent() {
     }
 
     if (event.button === 0) {
-      // const canvas = canvasRef.current;
-      // if (!canvas) return;
-      // const ctx = canvas.getContext("2d");
-
-      // const rect = canvas.getBoundingClientRect(); // Canvas region (a rect)
-      // const clickX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
-      // const clickY = event.clientY - rect.top;
-      // const note = getNote(clickX, clickY);
-
       console.log("clickX: ", clickX);
       console.log("clickY: ", clickY);
-      // console.log("note.isBoundary(clickX, clickY): ", note!.isBoundary(clickX, clickY))
 
       if (note) {
         console.log(
@@ -98,7 +87,6 @@ function CanvasComponent() {
       }
 
       if (note && note.isBoundary(clickX, clickY)) {
-        // if (getBoundary(note, clickX) === "left")
         // adjust length
         console.log("boundary: ");
         const { startX, endX } = note;
@@ -172,13 +160,6 @@ function CanvasComponent() {
         dispatch(setNotes(notes));
         console.log(notes);
       }
-      // window.onmouseup = () => {
-      //   // When mouse up, cancel move event
-      //   window.onmousemove = null;
-      //   window.onmouseup = null;
-      //   // parsePitch(notes, updateNotes);
-      //   // parseDuration(notes, updateNotes, bpm);
-      // };
     }
   };
 
