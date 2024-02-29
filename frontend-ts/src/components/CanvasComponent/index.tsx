@@ -165,7 +165,7 @@ function CanvasComponent() {
 
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (event.button === 2) {
-      event.preventDefault()
+      event.preventDefault();
     }
     // When mouse up, cancel move event
     window.onmousemove = null;
@@ -177,7 +177,7 @@ function CanvasComponent() {
   const handleContextMenu = (event: React.MouseEvent<HTMLCanvasElement>) => {
     event.preventDefault();
     event.stopPropagation();
-  }
+  };
 
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;

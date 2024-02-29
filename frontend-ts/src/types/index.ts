@@ -1,4 +1,5 @@
 import { Note } from "@/utils/Note";
+import { Track } from "./project";
 
 export interface PianoKey {
   id: number;
@@ -21,6 +22,7 @@ export interface NoteProps {
 export interface RootState {
   notes: NotesState;
   params: ParamsState;
+  project: ProjectState;
 }
 
 export interface NotesState {
@@ -31,4 +33,14 @@ export interface ParamsState {
   numerator: number;
   denominator: number;
   bpm: number;
+}
+
+export interface TrackstState {
+  currentTrack: number;
+  tracks: Track[];
+}
+
+export interface ProjectState {
+  tracks: Track[];
+  params: ParamsState;
 }

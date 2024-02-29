@@ -19,7 +19,6 @@ const notesStore = createSlice({
         state.notes = parsed;
       } catch (error) {
         console.error('Error parsing JSON:', error);
-        // 处理错误，例如跳过当前元素或者其他操作
       }
     },
   },
