@@ -2,10 +2,12 @@ import { Note } from "@/utils/Note";
 
 export type trackState = "normal" | "muted" | "solo";
 
-interface Sentence {
-  sentenceOrder: number;
-  startNote: number;
-  endNote: number;
+export interface Sentence {
+  sentenceId: number;
+  nextSentenceId: number | null;
+  content: string;
+  startNote?: number;
+  endNote?: number;
 }
 
 interface Params {

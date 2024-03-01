@@ -9,7 +9,7 @@ const initialState: TrackstState = {
       trackId: 1,
       trackName: "Track 1",
       trackState: "normal",
-      trackLyrics: [],
+      trackLyrics: [{ sentenceId: 1, nextSentenceId: null, content: "" }],
       sheet: [],
     },
   ],
@@ -29,11 +29,13 @@ const trackStore = createSlice({
         trackState: "normal",
         trackLyrics: [],
         sheet: [],
-      })
+      });
     },
     deleteTrack(state, action) {
-      state.tracks = state.tracks.filter((track) => track.trackId !== action.payload);
-    }
+      state.tracks = state.tracks.filter(
+        (track) => track.trackId !== action.payload
+      );
+    },
   },
 });
 

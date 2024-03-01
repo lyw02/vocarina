@@ -1,8 +1,15 @@
+import { useState } from "react";
 import { Button, Stack } from "@mui/material";
 import "./index.css";
+import LyricsDialog from "../InputDialog/LyricsDialog";
 
 const Toolbar = () => {
-  const handleEditLyrics = (isEdit: boolean) => {};
+  const [isLyricsDialogVisible, setIsLyricsDialogVisible] =
+    useState<boolean>(false);
+
+  const handleEditLyrics = () => {
+    setIsLyricsDialogVisible(true);
+  };
   const handleGenerate = () => {};
   return (
     <div className="toolbar-wrapper">
@@ -19,7 +26,7 @@ const Toolbar = () => {
         <Button
           variant="outlined"
           size="small"
-          onClick={() => handleEditLyrics(true)}
+          onClick={() => handleEditLyrics()}
         >
           Edit Lyrics
         </Button>
@@ -27,6 +34,10 @@ const Toolbar = () => {
           Generate
         </Button>
       </Stack>
+      <LyricsDialog
+        isOpen={isLyricsDialogVisible}
+        setIsOpen={setIsLyricsDialogVisible}
+      />
     </div>
   );
 };
