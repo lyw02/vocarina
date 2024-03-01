@@ -2,11 +2,12 @@ import { ProjectState, RootState } from "@/types";
 import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 
-const initParams = useSelector((state: RootState) => state.params);
+// const initParams = useSelector((state: RootState) => state.params);
 
 const initialState: ProjectState = {
   tracks: [],
-  params: initParams,
+  params: {numerator: 4, denominator: 4, bpm: 120}
+  // params: initParams,
 };
 
 const projectStore = createSlice({

@@ -22,6 +22,7 @@ export interface NoteProps {
 export interface RootState {
   notes: NotesState;
   params: ParamsState;
+  tracks: TrackstState;
   project: ProjectState;
 }
 
