@@ -1,4 +1,4 @@
-import * as React from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
@@ -10,7 +10,6 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/types";
-import { ChangeEvent, useEffect, useState } from "react";
 import { Sentence } from "@/types/project";
 import { setLyrics } from "@/store/modules/tracks";
 
@@ -28,7 +27,7 @@ const sortSentences = (sentences: Sentence[]) => {
   sentences.sort((a, b) => {
     if (a.order === null) return 1;
     if (b.order === null) return -1;
-    return a.order - b.order; // Sort by id
+    return a.order - b.order; // Sort by order
   });
   return sentences;
 };
@@ -67,7 +66,10 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
       });
       setSentences(sortSentences(newSentences));
     } else if (current) {
-      let newSentences: Sentence[] = sentencesCopy.slice(1, sentencesCopy.length);
+      let newSentences: Sentence[] = sentencesCopy.slice(
+        1,
+        sentencesCopy.length
+      );
       setSentences(sortSentences(newSentences));
     }
   };
@@ -85,7 +87,7 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
     if (current) {
       if (next) {
         for (let s of sentencesCopy) {
-          if (s.order > current.order) s.order += 1
+          if (s.order > current.order) s.order += 1;
         }
       }
       let newSentence = {
@@ -100,12 +102,6 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
       const newSentences = sortSentences([...sentencesCopy, newSentence]);
       setSentences(newSentences);
       console.log("end, sentences: ", sentences);
-      // sentencesCopy.push(newSentence);
-      // setSentences(sentencesCopy);
-      // setSentences((prevSentences: Sentence[]) => [
-      //   ...prevSentences,
-      //   newSentence,
-      // ]);
     }
   };
 
@@ -181,19 +177,17 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   };
 
   return (
-    <React.Fragment>
-      <Dialog open={isOpen} onClose={handleClose} sx={{}}>
-        <DialogTitle>Edit Lyrics</DialogTitle>
-        <DialogContent>
-          <Stack direction="column" spacing={2}>
-            <SentenceList sentences={sentences} setSentences={setSentences} />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleClose()}>Cancel</Button>
-          <Button onClick={() => handleApply()}>Apply</Button>
-        </DialogActions>
-      </Dialog>
-    </React.Fragment>
+    <Dialog open={isOpen} onClose={handleClose} sx={{}}>
+      <DialogTitle>Edit Lyrics</DialogTitle>
+      <DialogContent>
+        <Stack direction="column" spacing={2}>
+          <SentenceList sentences={sentences} setSentences={setSentences} />
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => handleClose()}>Cancel</Button>
+        <Button onClick={() => handleApply()}>Apply</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
