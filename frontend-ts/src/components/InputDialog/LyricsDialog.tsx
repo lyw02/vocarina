@@ -111,7 +111,7 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
 
   return (
     <ul>
-      {sortSentences(sentences).map((sentence) => {
+      {sentences.map((sentence) => {
         return (
           <li key={sentence.sentenceId} style={{ listStyle: "none" }}>
             <Stack direction="row" spacing="space-between">
@@ -172,6 +172,7 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   const handleApply = () => {
     console.log("sentences in dispatch: ", sentences);
     dispatch(setLyrics({ sentences: sentences, trackId: currentTrackId }));
+    // sentences.map((s) => {})
     handleClose();
   };
 
