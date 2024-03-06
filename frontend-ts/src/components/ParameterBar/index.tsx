@@ -39,7 +39,7 @@ const ParameterBar = () => {
       <span>
         <select value={currentTrack} onChange={handleTrackChange}>
           {tracks.map((track) => (
-            <option value={track.trackId}>{track.trackName}</option>
+            <option key={track.trackId} value={track.trackId}>{track.trackName}</option>
           ))}
         </select>
       </span>

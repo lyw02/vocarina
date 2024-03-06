@@ -53,7 +53,7 @@ const ComposeArea = () => {
 
     let num = 1;
     for (let x = 0; x < colCanvasWidth; x += lineInterval * numerator) {
-      console.log(num)
+      // console.log(num)
       colNumCtx.font = 10 * devicePixelRatio + 'px Arial';
       colNumCtx.textAlign = noteStyle.textAlign;
       colNumCtx.textBaseline = noteStyle.textBaseline;

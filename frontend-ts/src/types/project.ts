@@ -5,6 +5,7 @@ export type trackState = "normal" | "muted" | "solo";
 export interface Sentence {
   sentenceId: number;
   nextSentenceId: number | null;
+  order: number;
   content: string;
   startNote?: number;
   endNote?: number;

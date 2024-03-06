@@ -10,13 +10,146 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/types";
-import { useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Sentence } from "@/types/project";
+import { setLyrics } from "@/store/modules/tracks";
+
+interface SentenceListProps {
+  sentences: Sentence[];
+  setSentences: React.Dispatch<React.SetStateAction<Sentence[]>>;
+}
 
 interface LyricsDialogProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
+const sortSentences = (sentences: Sentence[]) => {
+  sentences.sort((a, b) => {
+    if (a.order === null) return 1;
+    if (b.order === null) return -1;
+    return a.order - b.order; // Sort by id
+  });
+  return sentences;
+};
+
+const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
+  let maxID = sentences.reduce((max, sentence) => {
+    return sentence.sentenceId > max ? sentence.sentenceId : max;
+  }, 0);
+
+  const handleRemoveSentence = (sentenceId: number) => {
+    console.log("remove, id: ", sentenceId);
+    let sentencesCopy = sentences.map((sentence) => ({ ...sentence }));
+    if (sentencesCopy.length === 1) {
+      return;
+    }
+    let prev = sentencesCopy.find(
+      (sentence) => sentence.nextSentenceId === sentenceId
+    );
+    let current = sentencesCopy.find(
+      (sentence) => sentence.sentenceId === sentenceId
+    );
+    if (prev && current) {
+      prev = {
+        ...prev,
+        nextSentenceId: current.nextSentenceId,
+      };
+      let filteredSentences = sentencesCopy.filter(
+        (sentence) => sentence.sentenceId !== sentenceId
+      );
+      let newSentences: Sentence[] = filteredSentences.map((sentence) => {
+        if (prev && sentence.sentenceId === prev.sentenceId) {
+          return prev;
+        } else {
+          return sentence;
+        }
+      });
+      setSentences(sortSentences(newSentences));
+    } else if (current) {
+      let newSentences: Sentence[] = sentencesCopy.slice(1, sentencesCopy.length);
+      setSentences(sortSentences(newSentences));
+    }
+  };
+
+  const handleCreateSentence = (sentenceId: number) => {
+    console.log("create, id: ", sentenceId);
+    let sentencesCopy = sentences.map((sentence) => ({ ...sentence }));
+    console.log("start, sentencesCopy: ", sentencesCopy);
+    let current = sentencesCopy.find(
+      (sentence) => sentence.sentenceId === sentenceId
+    );
+    let next = sentencesCopy.find(
+      (sentence) => sentence.sentenceId === current?.nextSentenceId
+    );
+    if (current) {
+      if (next) {
+        for (let s of sentencesCopy) {
+          if (s.order > current.order) s.order += 1
+        }
+      }
+      let newSentence = {
+        sentenceId: maxID + 1,
+        nextSentenceId: current.nextSentenceId ? current.nextSentenceId : null,
+        order: current.order + 1,
+        content: "",
+      };
+      sentencesCopy[
+        sentencesCopy.findIndex((s) => s.sentenceId === sentenceId)
+      ].nextSentenceId = newSentence.sentenceId; // Update current's next id
+      const newSentences = sortSentences([...sentencesCopy, newSentence]);
+      setSentences(newSentences);
+      console.log("end, sentences: ", sentences);
+      // sentencesCopy.push(newSentence);
+      // setSentences(sentencesCopy);
+      // setSentences((prevSentences: Sentence[]) => [
+      //   ...prevSentences,
+      //   newSentence,
+      // ]);
+    }
+  };
+
+  return (
+    <ul>
+      {sortSentences(sentences).map((sentence) => {
+        return (
+          <li key={sentence.sentenceId} style={{ listStyle: "none" }}>
+            <Stack direction="row" spacing="space-between">
+              <TextField
+                defaultValue={sentence.content}
+                margin="dense"
+                id={sentence.sentenceId.toString()}
+                label={`Sentence ${sentence.sentenceId}`}
+                variant="standard"
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+                  console.log("e.target.id: ", e.target.id);
+                  const newSentences = sentences.map((s) => {
+                    if (s.sentenceId === parseInt(e.target.id)) {
+                      return {
+                        ...s,
+                        content: e.target.value,
+                      };
+                    }
+                    return s;
+                  });
+                  console.log(JSON.stringify(newSentences));
+                  setSentences(newSentences);
+                }}
+                multiline
+              />
+              <Button onClick={() => handleCreateSentence(sentence.sentenceId)}>
+                <AddIcon />
+              </Button>
+              <Button onClick={() => handleRemoveSentence(sentence.sentenceId)}>
+                <DeleteForeverIcon />
+              </Button>
+            </Stack>
+          </li>
+        );
+      })}
+    </ul>
+  );
+};
 
 export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   const dispatch = useDispatch();
@@ -31,99 +164,33 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     currentTrack!.trackLyrics
   );
 
+  useEffect(() => {
+    console.log("init sentences: ", sentences);
+    setSentences(sortSentences(sentences));
+  }, [sentences]);
+
+  const handleApply = () => {
+    console.log("sentences in dispatch: ", sentences);
+    dispatch(setLyrics({ sentences: sentences, trackId: currentTrackId }));
+    handleClose();
+  };
+
   const handleClose = () => {
     setIsOpen(false);
   };
 
-  let maxID = sentences.reduce((max, sentence) => {
-    return sentence.sentenceId > max ? sentence.sentenceId : max;
-  }, 0);
-
-  const handleRemoveSentence = (sentenceId: number) => {
-    const sentencesCopy = [...sentences];
-    if (sentencesCopy.length === 1) {
-      sentencesCopy[0].content = "";
-      setSentences(sentencesCopy);
-      return;
-    }
-    const prev = sentencesCopy.find(
-      (sentence) => sentence.nextSentenceId === sentenceId
-    );
-    if (prev && prev.nextSentenceId !== maxID) {
-      prev.nextSentenceId = sentencesCopy.find(
-        (sentence) => sentence.sentenceId === sentenceId
-      )!.nextSentenceId;
-    } else {
-      prev!.nextSentenceId = null;
-    }
-    const filteredSentences = sentencesCopy.filter(
-      (sentence) => sentence.sentenceId !== sentenceId
-    );
-    setSentences(filteredSentences);
-  };
-
-  const handleCreateSentence = (sentenceId: number) => {
-    const newSentence: Sentence = {
-      sentenceId: maxID + 1,
-      nextSentenceId:
-        sentences.find((sentence) => sentence.sentenceId === sentenceId)
-          ?.sentenceId || null,
-      content: "",
-    };
-    setSentences((prevSentences: Sentence[]) => [
-      ...prevSentences,
-      newSentence,
-    ]);
-  };
-
   return (
     <React.Fragment>
-      <Dialog
-        open={isOpen}
-        onClose={handleClose}
-        PaperProps={{
-          component: "form",
-          onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-            event.preventDefault();
-            const formData = new FormData(event.currentTarget);
-            const formJson = Object.fromEntries((formData as any).entries());
-            const email = formJson.email;
-            console.log(email);
-            handleClose();
-          },
-        }}
-      >
+      <Dialog open={isOpen} onClose={handleClose} sx={{}}>
         <DialogTitle>Edit Lyrics</DialogTitle>
         <DialogContent>
           <Stack direction="column" spacing={2}>
-            {sentences.map((sentence) => (
-              <Stack direction="row" spacing="space-between">
-                <TextField
-                  defaultValue={sentence.content}
-                  margin="dense"
-                  id="name"
-                  name="email"
-                  label="Sentence"
-                  variant="standard"
-                  multiline
-                />
-                <Button
-                  onClick={() => handleCreateSentence(sentence.sentenceId)}
-                >
-                  <AddIcon />
-                </Button>
-                <Button
-                  onClick={() => handleRemoveSentence(sentence.sentenceId)}
-                >
-                  <DeleteForeverIcon />
-                </Button>
-              </Stack>
-            ))}
+            <SentenceList sentences={sentences} setSentences={setSentences} />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit">Apply</Button>
+          <Button onClick={() => handleClose()}>Cancel</Button>
+          <Button onClick={() => handleApply()}>Apply</Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>

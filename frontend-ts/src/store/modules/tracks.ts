@@ -9,7 +9,7 @@ const initialState: TrackstState = {
       trackId: 1,
       trackName: "Track 1",
       trackState: "normal",
-      trackLyrics: [{ sentenceId: 1, nextSentenceId: null, content: "" }],
+      trackLyrics: [{ sentenceId: 1, nextSentenceId: null, order: 1, content: "" }],
       sheet: [],
     },
   ],
@@ -36,13 +36,26 @@ const trackStore = createSlice({
         (track) => track.trackId !== action.payload
       );
     },
+    setLyrics(state, action) {
+      state.tracks = state.tracks.map((track) => {
+        if (track.trackId === action.payload.trackId) {
+          return {
+            ...track,
+            trackLyrics: action.payload.sentences,
+          };
+        }
+        return track;
+      });
+      state.currentTrack = action.payload.trackId;
+    },
   },
 });
 
-const { setCurrentTrack, createNewTrack, deleteTrack } = trackStore.actions;
+const { setCurrentTrack, createNewTrack, deleteTrack, setLyrics } =
+  trackStore.actions;
 
 const reducer = trackStore.reducer;
 
-export { setCurrentTrack, createNewTrack, deleteTrack };
+export { setCurrentTrack, createNewTrack, deleteTrack, setLyrics };
 
 export default reducer;
