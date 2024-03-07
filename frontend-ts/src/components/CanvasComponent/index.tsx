@@ -76,19 +76,8 @@ function CanvasComponent() {
     }
 
     if (event.button === 0) {
-      console.log("clickX: ", clickX);
-      console.log("clickY: ", clickY);
-
-      if (note) {
-        console.log(
-          "note.isBoundary(clickX, clickY): ",
-          note.isBoundary(clickX, clickY)
-        );
-      }
-
       if (note && note.isBoundary(clickX, clickY)) {
         // adjust length
-        console.log("boundary: ");
         const { startX, endX } = note;
         if (note.isBoundary(clickX, clickY) === "left") {
           window.onmousemove = (e) => {

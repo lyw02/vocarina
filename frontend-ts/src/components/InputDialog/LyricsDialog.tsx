@@ -38,7 +38,6 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
   }, 0);
 
   const handleRemoveSentence = (sentenceId: number) => {
-    console.log("remove, id: ", sentenceId);
     let sentencesCopy = sentences.map((sentence) => ({ ...sentence }));
     if (sentencesCopy.length === 1) {
       return;
@@ -75,9 +74,7 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
   };
 
   const handleCreateSentence = (sentenceId: number) => {
-    console.log("create, id: ", sentenceId);
     let sentencesCopy = sentences.map((sentence) => ({ ...sentence }));
-    console.log("start, sentencesCopy: ", sentencesCopy);
     let current = sentencesCopy.find(
       (sentence) => sentence.sentenceId === sentenceId
     );
@@ -101,7 +98,6 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
       ].nextSentenceId = newSentence.sentenceId; // Update current's next id
       const newSentences = sortSentences([...sentencesCopy, newSentence]);
       setSentences(newSentences);
-      console.log("end, sentences: ", sentences);
     }
   };
 
@@ -118,7 +114,6 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
                 label={`Sentence ${sentence.sentenceId}`}
                 variant="standard"
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-                  console.log("e.target.id: ", e.target.id);
                   const newSentences = sentences.map((s) => {
                     if (s.sentenceId === parseInt(e.target.id)) {
                       return {
@@ -128,7 +123,6 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
                     }
                     return s;
                   });
-                  console.log(JSON.stringify(newSentences));
                   setSentences(newSentences);
                 }}
                 multiline
@@ -161,12 +155,11 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   );
 
   useEffect(() => {
-    console.log("init sentences: ", sentences);
     setSentences(sortSentences(sentences));
   }, [sentences]);
 
   const handleApply = () => {
-    console.log("sentences in dispatch: ", sentences);
+    // console.log("sentences in dispatch: ", sentences);
     dispatch(setLyrics({ sentences: sentences, trackId: currentTrackId }));
     // sentences.map((s) => {})
     handleClose();
