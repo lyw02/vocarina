@@ -12,7 +12,8 @@ function CanvasComponent() {
     (state: RootState) => state.tracks.currentTrack
   );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
-  const notesInState = tracks[currentTrack-1].sheet;
+  const editMode = useSelector((state: RootState) => state.editMode.editMode);
+  const notesInState = tracks[currentTrack - 1].sheet;
   const notesInstances = notesInState.map((n) => {
     return new Note(
       n.id,
@@ -113,7 +114,6 @@ function CanvasComponent() {
             note.endX = endX + disXRight;
           };
         }
-        // dispatch(setNotes(notes.map((n) => n.toJSON())));
       } else if (note && !note.isBoundary(clickX, clickY)) {
         // Drag note
         const { startX, startY, endX, endY } = note;
@@ -150,24 +150,22 @@ function CanvasComponent() {
           note.startY = startY + disY;
           note.endY = endY + disY;
         };
-        // updateNotes(notes);
-        // dispatch(setNotes(notes.map((n) => n.toJSON())));
       } else {
-        // Draw new note
-        const note = new Note(noteId, clickX, clickY);
-        noteId = noteId + 1;
-        window.onmousemove = (e) => {
-          if (e.clientX - rect.left > canvas.width) {
-            note.endX = canvas.width;
-          } else if (e.clientX - rect.left < 0) {
-            note.endX = 0;
-          } else {
-            note.endX = e.clientX - rect.left;
-          }
-        };
-        notes.push(note);
-        // updateNotes(notes);
-        // dispatch(setNotes(notes.map((n) => n.toJSON())));
+        if (editMode === "edit") {
+          // Draw new note
+          const note = new Note(noteId, clickX, clickY);
+          noteId = noteId + 1;
+          window.onmousemove = (e) => {
+            if (e.clientX - rect.left > canvas.width) {
+              note.endX = canvas.width;
+            } else if (e.clientX - rect.left < 0) {
+              note.endX = 0;
+            } else {
+              note.endX = e.clientX - rect.left;
+            }
+          };
+          notes.push(note);
+        }
       }
     }
   };

@@ -1,5 +1,6 @@
-import { Note } from "@/utils/Note";
 import { Track } from "./project";
+
+export type editMode = "edit" | "select";
 
 export interface PianoKey {
   id: number;
@@ -25,6 +26,7 @@ export interface RootState {
   params: ParamsState;
   tracks: TrackstState;
   project: ProjectState;
+  editMode: EditModeState;
 }
 
 export interface NotesState {
@@ -45,4 +47,8 @@ export interface TrackstState {
 export interface ProjectState {
   tracks: Track[];
   params: ParamsState;
+}
+
+export interface EditModeState {
+  editMode: editMode;
 }

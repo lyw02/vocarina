@@ -1,8 +1,7 @@
-import { ChangeEvent, useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/types";
+import { RootState, editMode } from "@/types";
 import InputDialog from "../InputDialog";
-import { setCurrentTrack } from "@/store/modules/tracks";
 import Stack from "@mui/material/Stack";
 import Slider from "@mui/material/Slider";
 import VolumeDown from "@mui/icons-material/VolumeDown";
@@ -11,12 +10,14 @@ import "./index.css";
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import SelectAllIcon from "@mui/icons-material/SelectAll";
+import { setEditMode } from "@/store/modules/editMode";
 
 const ParameterBar = () => {
   const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] =
     useState<boolean>(false);
   const [isBpmDialogVisible, setIsBpmDialogVisible] = useState<boolean>(false);
 
+  const editMode = useSelector((state: RootState) => state.editMode);
   const dispatch = useDispatch();
 
   const { numerator, denominator, bpm } = useSelector(
@@ -31,13 +32,14 @@ const ParameterBar = () => {
   };
 
   // Toggle button (edit or select)
-  const [toggle, setToggle] = useState("edit");
+  const [toggle, setToggle] = useState<editMode>(editMode.editMode);
 
   const handleToggleChange = (
     event: React.MouseEvent<HTMLElement>,
-    newToggle: string
+    newToggle: editMode
   ) => {
     if (newToggle) {
+      dispatch(setEditMode(newToggle));
       setToggle(newToggle);
     }
   };
