@@ -11,7 +11,7 @@ import AddIcon from "@mui/icons-material/Add";
 import { useDispatch, useSelector } from "react-redux";
 import { NoteProps, RootState } from "@/types";
 import { Sentence } from "@/types/project";
-import { setLyrics } from "@/store/modules/tracks";
+import { setLyrics, setSheet } from "@/store/modules/tracks";
 import { setNotes } from "@/store/modules/notes";
 import _ from "lodash";
 
@@ -149,7 +149,7 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   const currentTrackId = useSelector(
     (state: RootState) => state.tracks.currentTrack
   );
-  const notesInState = useSelector((state: RootState) => state.notes.notes);
+  const notesInState = tracks[currentTrackId-1].sheet;
   const notes = _.cloneDeep(notesInState);
 
   const currentTrack = tracks.find((track) => track.trackId === currentTrackId);
@@ -164,7 +164,8 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
 
   const handleApply = () => {
     dispatch(setLyrics({ sentences: sentences, trackId: currentTrackId }));
-    dispatch(setNotes(parseLyrics(notes)));
+    // dispatch(setNotes(parseLyrics(notes)));
+    dispatch(setSheet({ trackId: currentTrackId, sheet: parseLyrics(notes) }));
     handleClose();
   };
 
@@ -177,19 +178,15 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     const allLyrics = tracks[currentTrackId - 1].trackLyrics.map(
       (s) => s.content
     );
-    console.log("allLyrics: ", allLyrics);
     const allLyricsStr = allLyrics
       .join(" ")
       .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // Remove control characters
       .replace(/^\s+/, ""); // Remove leading spaces
     const allLyricsArray = allLyricsStr.split(/\s+/); // Split by any length space
-    console.log("allLyricsArray: ", allLyricsArray);
     let length = Math.min(notesCopy.length, allLyricsArray.length);
-    console.log("length: ", length);
     for (let i = 0; i < length; i++) {
       notesCopy[i].lyrics = allLyricsArray[i];
     }
-    console.log("after parse lyrics: ", notesCopy);
     return notesCopy;
   };
 

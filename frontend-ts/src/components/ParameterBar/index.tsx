@@ -68,15 +68,6 @@ const ParameterBar = () => {
             BPM: {bpm}
           </span>
           <span>
-            <select value={currentTrack} onChange={handleTrackChange}>
-              {tracks.map((track) => (
-                <option key={track.trackId} value={track.trackId}>
-                  {track.trackName}
-                </option>
-              ))}
-            </select>
-          </span>
-          <span>
             <select>
               <option>Select Voice</option>
             </select>

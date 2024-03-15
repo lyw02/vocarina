@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from "react";
-import { setNotes } from "@/store/modules/notes";
 import { noteStyle, Note } from "@/utils/Note";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
@@ -14,8 +13,6 @@ function CanvasComponent() {
   );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const notesInState = tracks[currentTrack-1].sheet;
-  console.log("notesInState: ", notesInState)
-  // const notesInState = useSelector((state: RootState) => state.notes.notes);
   const notesInstances = notesInState.map((n) => {
     return new Note(
       n.id,
@@ -29,7 +26,6 @@ function CanvasComponent() {
     );
   });
   const notes = _.cloneDeep(notesInstances);
-  console.log("notes: ", notes)
   let noteId: number;
   if (notes.length === 0) {
     noteId = 0;
@@ -40,7 +36,7 @@ function CanvasComponent() {
   const dispatch = useDispatch();
 
   function getNote(x: number, y: number) {
-    // get note that clicked on
+    // Get note that clicked on
     for (let i = notes.length - 1; i >= 0; i--) {
       const n = notes[i];
       if (n.isInside(x, y)) {

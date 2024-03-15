@@ -49,15 +49,6 @@ const trackStore = createSlice({
       state.currentTrack = action.payload.trackId;
     },
     setSheet(state, action) {
-      // state.tracks = state.tracks.map((track) => {
-      //   if (track.trackId === action.payload.trackId) {
-      //     return {
-      //       ...track,
-      //       sheet: action.payload.notes,
-      //     };
-      //   }
-      //   return track;
-      // });
       state.tracks[action.payload.trackId-1].sheet = action.payload.sheet;
     }
   },

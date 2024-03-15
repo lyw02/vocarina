@@ -25,10 +25,8 @@ const TrackBar = () => {
     (state: RootState) => state.tracks.currentTrack
   );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
-  // const notes = useSelector((state: RootState) => state.notes.notes);
 
   const handleTrackChange = (event: SelectChangeEvent) => {
-    // dispatch(setSheet({ trackId: currentTrack, notes: notes }));
     dispatch(setCurrentTrack(event.target.value));
     dispatch(
       setSheet({ trackId: currentTrack, sheet: tracks[currentTrack - 1].sheet })
