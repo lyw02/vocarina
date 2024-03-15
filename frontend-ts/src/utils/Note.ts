@@ -1,3 +1,5 @@
+import { NoteProps } from "@/types";
+
 export const noteStyle = {
   color: "#ff8fab",
   overlapColor: "#ffe5ec",
@@ -24,16 +26,52 @@ export class Note {
   noteLength: number;
   lyrics: string;
 
-  constructor(id: number, startX: number, startY: number) {
-    this.id = id;
-    this.startX = startX;
-    this.startY =
-      Math.floor(startY / noteStyle.noteHeight) * noteStyle.noteHeight;
-    this.endX = startX + noteStyle.minNoteWidth;
-    this.endY = this.startY + noteStyle.noteHeight;
-    this.isOverlap = false;
-    this.noteLength = Math.abs(this.startX - this.endX);
-    this.lyrics = "";
+  constructor(id: number, startX: number, startY: number); // New notes
+  constructor(
+    id: number,
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number,
+    isOverlap: boolean,
+    noteLength: number,
+    lyrics: string,
+    breakpoints?: any[]
+  ); // Read existing notes
+  constructor(
+    id: number,
+    startX: number,
+    startY: number,
+    endX?: number,
+    endY?: number,
+    isOverlap?: boolean,
+    noteLength?: number,
+    lyrics?: string,
+    breakpoints?: any[]
+  ) {
+    if (endX && endY && isOverlap !== undefined && noteLength && lyrics !== undefined) {
+      this.id = id;
+      this.startX = startX;
+      this.startY = startY;
+      this.endX = endX;
+      this.endY = endY;
+      this.isOverlap = isOverlap;
+      this.noteLength = noteLength;
+      this.lyrics = lyrics;
+      if (breakpoints) {
+        // TODO
+      }
+    } else {
+      this.id = id;
+      this.startX = startX;
+      this.startY =
+        Math.floor(startY / noteStyle.noteHeight) * noteStyle.noteHeight;
+      this.endX = startX + noteStyle.minNoteWidth;
+      this.endY = this.startY + noteStyle.noteHeight;
+      this.isOverlap = false;
+      this.noteLength = Math.abs(this.startX - this.endX);
+      this.lyrics = "";
+    }
   }
 
   get minX() {
@@ -68,17 +106,17 @@ export class Note {
   drawNote(ctx: CanvasRenderingContext2D) {
     this.noteLength = Math.abs(this.minX - this.maxX);
     ctx.beginPath();
-    ctx.moveTo(this.minX , this.minY );
-    ctx.lineTo(this.maxX , this.minY );
-    ctx.lineTo(this.maxX , this.maxY );
-    ctx.lineTo(this.minX , this.maxY );
-    ctx.lineTo(this.minX , this.minY );
+    ctx.moveTo(this.minX, this.minY);
+    ctx.lineTo(this.maxX, this.minY);
+    ctx.lineTo(this.maxX, this.maxY);
+    ctx.lineTo(this.minX, this.maxY);
+    ctx.lineTo(this.minX, this.minY);
     this.isOverlap
       ? (ctx.fillStyle = noteStyle.overlapColor)
       : (ctx.fillStyle = noteStyle.color);
     ctx.fill();
     ctx.strokeStyle = noteStyle.borderColor;
-    ctx.lineWidth = noteStyle.borderWidth ;
+    ctx.lineWidth = noteStyle.borderWidth;
     ctx.lineCap = noteStyle.lineCap;
     ctx.stroke();
     ctx.font = noteStyle.font;
@@ -98,7 +136,7 @@ export class Note {
     return x > this.minX && x < this.maxX && y > this.minY && y < this.maxY;
   }
 
-  isBoundary(x: number, y: number): boundary | undefined{
+  isBoundary(x: number, y: number): boundary | undefined {
     // whether position (x, y) is on the left/right boundary of a note
     if (!(y < this.maxY && y > this.minY)) return undefined;
     if (x > this.minX - 2 && x < this.minX + 3) {
@@ -106,5 +144,18 @@ export class Note {
     } else if (x > this.maxX - 3 && x < this.maxX + 2) {
       return "right";
     }
+  }
+
+  toJSON(): NoteProps {
+    return {
+      id: this.id,
+      startX: this.startX,
+      startY: this.startY,
+      endX: this.endX,
+      endY: this.endY,
+      isOverlap: this.isOverlap,
+      noteLength: this.noteLength,
+      lyrics: this.lyrics,
+    };
   }
 }

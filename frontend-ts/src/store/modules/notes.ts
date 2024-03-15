@@ -15,10 +15,11 @@ const notesStore = createSlice({
       // // state.notes = action.payload;
 
       try {
-        const parsed = action.payload.map((n: string) => JSON.parse(n));
-        state.notes = parsed;
+        // const parsed = action.payload.map((n: string) => JSON.parse(n));
+        // state.notes = parsed;
+        state.notes = action.payload;
       } catch (error) {
-        console.error('Error parsing JSON:', error);
+        console.error('Error:', error);
       }
     },
   },

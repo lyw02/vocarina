@@ -9,14 +9,15 @@ export interface PianoKey {
 }
 
 export interface NoteProps {
-  id?: number;
-  startX?: number;
-  startY?: number;
-  endX?: number;
-  endY?: number;
-  isOverlap?: boolean;
-  noteLength?: number;
-  lyrics?: string;
+  id: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  isOverlap: boolean;
+  noteLength: number;
+  lyrics: string;
+  breakpoints?: any[];
 }
 
 export interface RootState {

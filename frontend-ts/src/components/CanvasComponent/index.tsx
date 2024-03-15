@@ -4,12 +4,32 @@ import { noteStyle, Note } from "@/utils/Note";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
 import { RootState } from "@/types";
+import _ from "lodash";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const notesInState = useSelector((state: RootState) => state.notes.notes);
-  const notes = [...notesInState];
-  let noteId = 0;
+  // const notes = [...notesInState];
+  const notesInstances = notesInState.map((n) => {
+    return new Note(
+      n.id,
+      n.startX,
+      n.startY,
+      n.endX,
+      n.endY,
+      n.isOverlap,
+      n.noteLength,
+      n.lyrics
+    );
+  });
+  const notes = _.cloneDeep(notesInstances);
+  let noteId: number;
+  if (notes.length === 0) {
+    noteId = 0;
+  } else {
+    noteId = Math.max(...notes.map((n) => n.id)) + 1;
+  }
+
   const dispatch = useDispatch();
 
   function getNote(x: number, y: number) {
@@ -41,16 +61,17 @@ function CanvasComponent() {
 
     function draw() {
       if (!ctx) return;
+      const notesInDraw = notes;
       requestAnimationFrame(draw);
       ctx.clearRect(0, 0, 2700, 2700); // Clear canvas
-      notes.forEach((note) => {
+      notesInDraw.forEach((note) => {
         overlap(note) ? (note.isOverlap = true) : (note.isOverlap = false);
         note.drawNote(ctx);
       });
     }
 
     draw();
-  }, []);
+  }, [notesInState]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     // event.preventDefault();
@@ -77,7 +98,7 @@ function CanvasComponent() {
 
     if (event.button === 0) {
       if (note && note.isBoundary(clickX, clickY)) {
-        // adjust length
+        // Adjust length
         const { startX, endX } = note;
         if (note.isBoundary(clickX, clickY) === "left") {
           window.onmousemove = (e) => {
@@ -90,10 +111,9 @@ function CanvasComponent() {
             note.endX = endX + disXRight;
           };
         }
-        dispatch(setNotes(notes));
-        console.log(notes);
+        // dispatch(setNotes(notes.map((n) => n.toJSON())));
       } else if (note && !note.isBoundary(clickX, clickY)) {
-        // drag note
+        // Drag note
         const { startX, startY, endX, endY } = note;
         window.onmousemove = (e) => {
           const disX = e.clientX - rect.left - clickX; // how far the mouse moved in X
@@ -129,12 +149,13 @@ function CanvasComponent() {
           note.endY = endY + disY;
         };
         // updateNotes(notes);
-        dispatch(setNotes(notes));
+        // dispatch(setNotes(notes.map((n) => n.toJSON())));
         console.log(notes);
       } else {
-        // draw new note
+        // Draw new note
         const note = new Note(noteId, clickX, clickY);
         noteId = noteId + 1;
+        console.log("id: ", noteId);
         window.onmousemove = (e) => {
           if (e.clientX - rect.left > canvas.width) {
             note.endX = canvas.width;
@@ -146,8 +167,8 @@ function CanvasComponent() {
         };
         notes.push(note);
         // updateNotes(notes);
-        dispatch(setNotes(notes));
-        console.log(notes);
+        // dispatch(setNotes(notes.map((n) => n.toJSON())));
+        console.log("after creation", notes);
       }
     }
   };
@@ -159,6 +180,7 @@ function CanvasComponent() {
     // When mouse up, cancel move event
     window.onmousemove = null;
     window.onmouseup = null;
+    dispatch(setNotes(notes.map((n) => n.toJSON())));
     // parsePitch(notes, updateNotes);
     // parseDuration(notes, updateNotes, bpm);
   };
