@@ -28,7 +28,7 @@ export interface RootState {
 }
 
 export interface NotesState {
-  notes: Note[];
+  notes: NoteProps[];
 }
 
 export interface ParamsState {

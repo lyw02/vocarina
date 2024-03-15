@@ -9,9 +9,11 @@ import { Stack } from "@mui/material";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import AddIcon from "@mui/icons-material/Add";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/types";
+import { NoteProps, RootState } from "@/types";
 import { Sentence } from "@/types/project";
 import { setLyrics } from "@/store/modules/tracks";
+import { setNotes } from "@/store/modules/notes";
+import _ from "lodash";
 
 interface SentenceListProps {
   sentences: Sentence[];
@@ -147,6 +149,8 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   const currentTrackId = useSelector(
     (state: RootState) => state.tracks.currentTrack
   );
+  const notesInState = useSelector((state: RootState) => state.notes.notes);
+  const notes = _.cloneDeep(notesInState);
 
   const currentTrack = tracks.find((track) => track.trackId === currentTrackId);
 
@@ -159,14 +163,34 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   }, [sentences]);
 
   const handleApply = () => {
-    // console.log("sentences in dispatch: ", sentences);
     dispatch(setLyrics({ sentences: sentences, trackId: currentTrackId }));
-    // sentences.map((s) => {})
+    dispatch(setNotes(parseLyrics(notes)));
     handleClose();
   };
 
   const handleClose = () => {
     setIsOpen(false);
+  };
+
+  const parseLyrics = (notes: NoteProps[]) => {
+    const notesCopy = _.cloneDeep(notes);
+    const allLyrics = tracks[currentTrackId - 1].trackLyrics.map(
+      (s) => s.content
+    );
+    console.log("allLyrics: ", allLyrics);
+    const allLyricsStr = allLyrics
+      .join(" ")
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // Remove control characters
+      .replace(/^\s+/, ""); // Remove leading spaces
+    const allLyricsArray = allLyricsStr.split(/\s+/); // Split by any length space
+    console.log("allLyricsArray: ", allLyricsArray);
+    let length = Math.min(notesCopy.length, allLyricsArray.length);
+    console.log("length: ", length);
+    for (let i = 0; i < length; i++) {
+      notesCopy[i].lyrics = allLyricsArray[i];
+    }
+    console.log("after parse lyrics: ", notesCopy);
+    return notesCopy;
   };
 
   return (
