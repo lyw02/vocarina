@@ -5,11 +5,17 @@ import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
 import { RootState } from "@/types";
 import _ from "lodash";
+import { setSheet } from "@/store/modules/tracks";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const notesInState = useSelector((state: RootState) => state.notes.notes);
-  // const notes = [...notesInState];
+  const currentTrack = useSelector(
+    (state: RootState) => state.tracks.currentTrack
+  );
+  const tracks = useSelector((state: RootState) => state.tracks.tracks);
+  const notesInState = tracks[currentTrack-1].sheet;
+  console.log("notesInState: ", notesInState)
+  // const notesInState = useSelector((state: RootState) => state.notes.notes);
   const notesInstances = notesInState.map((n) => {
     return new Note(
       n.id,
@@ -23,6 +29,7 @@ function CanvasComponent() {
     );
   });
   const notes = _.cloneDeep(notesInstances);
+  console.log("notes: ", notes)
   let noteId: number;
   if (notes.length === 0) {
     noteId = 0;
@@ -77,7 +84,6 @@ function CanvasComponent() {
     // event.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
 
     const rect = canvas.getBoundingClientRect(); // Canvas region (a rect)
     const clickX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
@@ -85,7 +91,7 @@ function CanvasComponent() {
     const note = getNote(clickX, clickY);
 
     if (event.button === 2) {
-      // delete note
+      // Delete note
       event.preventDefault();
       if (note) {
         const index = notes.indexOf(note);
@@ -150,12 +156,10 @@ function CanvasComponent() {
         };
         // updateNotes(notes);
         // dispatch(setNotes(notes.map((n) => n.toJSON())));
-        console.log(notes);
       } else {
         // Draw new note
         const note = new Note(noteId, clickX, clickY);
         noteId = noteId + 1;
-        console.log("id: ", noteId);
         window.onmousemove = (e) => {
           if (e.clientX - rect.left > canvas.width) {
             note.endX = canvas.width;
@@ -168,7 +172,6 @@ function CanvasComponent() {
         notes.push(note);
         // updateNotes(notes);
         // dispatch(setNotes(notes.map((n) => n.toJSON())));
-        console.log("after creation", notes);
       }
     }
   };
@@ -180,7 +183,9 @@ function CanvasComponent() {
     // When mouse up, cancel move event
     window.onmousemove = null;
     window.onmouseup = null;
-    dispatch(setNotes(notes.map((n) => n.toJSON())));
+    dispatch(
+      setSheet({ trackId: currentTrack, sheet: notes.map((n) => n.toJSON()) })
+    );
     // parsePitch(notes, updateNotes);
     // parseDuration(notes, updateNotes, bpm);
   };
@@ -193,7 +198,6 @@ function CanvasComponent() {
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
 
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border

@@ -1,8 +1,20 @@
-import { setCurrentTrack } from "@/store/modules/tracks";
+import {
+  createNewTrack,
+  setCurrentTrack,
+  setSheet,
+} from "@/store/modules/tracks";
 import { RootState } from "@/types";
 import { AddCircleOutline } from "@mui/icons-material";
-import { Button, Stack, ToggleButton, ToggleButtonGroup } from "@mui/material";
-import { ChangeEvent, useState } from "react";
+import {
+  Button,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
 
@@ -13,13 +25,18 @@ const TrackBar = () => {
     (state: RootState) => state.tracks.currentTrack
   );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
+  // const notes = useSelector((state: RootState) => state.notes.notes);
 
-  const handleTrackChange = (event: ChangeEvent<HTMLSelectElement>) => {
+  const handleTrackChange = (event: SelectChangeEvent) => {
+    // dispatch(setSheet({ trackId: currentTrack, notes: notes }));
     dispatch(setCurrentTrack(event.target.value));
+    dispatch(
+      setSheet({ trackId: currentTrack, sheet: tracks[currentTrack - 1].sheet })
+    );
   };
 
   const handleCreateTrack = () => {
-    //
+    dispatch(createNewTrack({ trackName: "" }));
   };
 
   // Toggle button (muted / solo)
@@ -34,13 +51,13 @@ const TrackBar = () => {
   return (
     <div className="trackbar-wrapper">
       <Stack direction="row" spacing={2}>
-        <select value={currentTrack} onChange={handleTrackChange}>
+        <Select value={currentTrack.toString()} onChange={handleTrackChange}>
           {tracks.map((track) => (
-            <option key={track.trackId} value={track.trackId}>
+            <MenuItem key={track.trackId} value={track.trackId}>
               {track.trackName}
-            </option>
+            </MenuItem>
           ))}
-        </select>
+        </Select>
         <ToggleButtonGroup
           color="primary"
           value={toggle}
