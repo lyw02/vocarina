@@ -2,6 +2,7 @@ import {
   createNewTrack,
   setCurrentTrack,
   setSheet,
+  setTrackState,
 } from "@/store/modules/tracks";
 import { RootState } from "@/types";
 import { AddCircleOutline } from "@mui/icons-material";
@@ -14,9 +15,10 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
+import { trackState } from "@/types/project";
 
 const TrackBar = () => {
   const dispatch = useDispatch();
@@ -33,17 +35,22 @@ const TrackBar = () => {
     );
   };
 
+  useEffect(() => {
+    setToggle(tracks[currentTrack - 1].trackState);
+  }, [currentTrack])
+
   const handleCreateTrack = () => {
     dispatch(createNewTrack({ trackName: "" }));
   };
 
   // Toggle button (muted / solo)
-  const [toggle, setToggle] = useState("");
+  const [toggle, setToggle] = useState(tracks[currentTrack - 1].trackState);
 
   const handleToggleChange = (
     event: React.MouseEvent<HTMLElement>,
-    newToggle: string
+    newToggle: trackState
   ) => {
+    dispatch(setTrackState({ trackId: currentTrack, newState: newToggle }));
     setToggle(newToggle);
   };
   return (

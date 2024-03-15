@@ -12,7 +12,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { NoteProps, RootState } from "@/types";
 import { Sentence } from "@/types/project";
 import { setLyrics, setSheet } from "@/store/modules/tracks";
-import { setNotes } from "@/store/modules/notes";
 import _ from "lodash";
 
 interface SentenceListProps {

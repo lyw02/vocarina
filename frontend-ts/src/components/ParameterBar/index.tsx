@@ -19,15 +19,6 @@ const ParameterBar = () => {
 
   const dispatch = useDispatch();
 
-  const currentTrack = useSelector(
-    (state: RootState) => state.tracks.currentTrack
-  );
-  const tracks = useSelector((state: RootState) => state.tracks.tracks);
-
-  const handleTrackChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    dispatch(setCurrentTrack(event.target.value));
-  };
-
   const { numerator, denominator, bpm } = useSelector(
     (state: RootState) => state.params
   );

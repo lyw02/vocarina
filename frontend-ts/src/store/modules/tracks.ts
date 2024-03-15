@@ -9,7 +9,9 @@ const initialState: TrackstState = {
       trackId: 1,
       trackName: "Track 1",
       trackState: "normal",
-      trackLyrics: [{ sentenceId: 1, nextSentenceId: null, order: 1, content: "" }],
+      trackLyrics: [
+        { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
+      ],
       sheet: [],
     },
   ],
@@ -25,7 +27,9 @@ const trackStore = createSlice({
     createNewTrack(state, action) {
       state.tracks.push({
         trackId: state.tracks.length + 1,
-        trackName: action.payload.trackName || `Untitled track ${state.tracks.length + 1}`,
+        trackName:
+          action.payload.trackName ||
+          `Untitled track ${state.tracks.length + 1}`,
         trackState: "normal",
         trackLyrics: [],
         sheet: [],
@@ -49,16 +53,33 @@ const trackStore = createSlice({
       state.currentTrack = action.payload.trackId;
     },
     setSheet(state, action) {
-      state.tracks[action.payload.trackId-1].sheet = action.payload.sheet;
-    }
+      state.tracks[action.payload.trackId - 1].sheet = action.payload.sheet;
+    },
+    setTrackState(state, action) {
+      state.tracks[action.payload.trackId - 1].trackState =
+        action.payload.newState;
+    },
   },
 });
 
-const { setCurrentTrack, createNewTrack, deleteTrack, setLyrics, setSheet } =
-  trackStore.actions;
+const {
+  setCurrentTrack,
+  createNewTrack,
+  deleteTrack,
+  setLyrics,
+  setSheet,
+  setTrackState,
+} = trackStore.actions;
 
 const reducer = trackStore.reducer;
 
-export { setCurrentTrack, createNewTrack, deleteTrack, setLyrics, setSheet };
+export {
+  setCurrentTrack,
+  createNewTrack,
+  deleteTrack,
+  setLyrics,
+  setSheet,
+  setTrackState,
+};
 
 export default reducer;
