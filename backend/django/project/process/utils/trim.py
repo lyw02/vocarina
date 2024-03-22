@@ -1,16 +1,21 @@
 from pydub import AudioSegment
 
+from .oss import *
+
 
 def remove_silence_from_audio(file_path, save_path):
-    sound = AudioSegment.from_file(file_path)
+    audio_object = get_file_object(file_path)
+    audio_content = audio_object.read()
 
-    # remove silence in start and end
+    sound = AudioSegment.from_file(audio_content)
+
+    # Remove silence in start and end
     start_trim = detect_leading_silence(sound)
     end_trim = detect_leading_silence(sound.reverse())
 
     trimmed_audio = sound[start_trim:len(sound)-end_trim]
 
-    trimmed_audio.export(save_path, format="wav")
+    upload_file_directly(save_path, trimmed_audio.export(format="wav").read())
 
 
 def detect_leading_silence(sound, silence_threshold=-50.0, chunk_size=10):

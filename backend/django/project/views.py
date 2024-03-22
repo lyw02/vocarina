@@ -5,6 +5,7 @@ import json
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse, StreamingHttpResponse, HttpResponse
+from rest_framework import status
 from rest_framework.parsers import JSONParser
 
 from .models import Project
@@ -68,38 +69,26 @@ def audio_process_api(request):
             # target_pitch_list = ast.literal_eval(request.POST.get('target_pitch_list'))
             # target_duration_list = ast.literal_eval(request.POST.get('target_duration_list'))
             data = json.loads(request.body)
-            lyrics = data.get('lyrics', [])
-            target_pitch_list = data.get('target_pitch_list', [])
-            target_duration_list = data.get('target_duration_list', [])
+            tracks = data.get("tracks", [])
+            current_track = tracks[0]
+            print(f"current_track: {current_track}")
+            lyrics = current_track.get("lyrics")
+            target_pitch_list = current_track.get("target_pitch_list")
+            target_duration_list = current_track.get("target_duration_list")
 
-            audio_stream = (AudioProcessor()
-                            .generate(lyrics)
-                            .set_pitch_to_avg()
-                            .edit_pitch(target_pitch_list)
-                            .remove_silence()
-                            .edit_duration(target_duration_list)
-                            .remove_silence()
-                            .generate_final_audio())
-                            # .to_audio_stream()
-                            # .__getattribute__("_audio_data_base64"))
-            audio_file_path = rf"C:\Users\Jerry\Desktop\sampleMusic\final_audio.wav"
-            with open(audio_file_path, "rb") as audio_file:
-                audio_binary_data = audio_file.read()
-            # 对音频数据进行base64编码
-            audio_base64 = base64.b64encode(audio_binary_data).decode('utf-8')
-            # 构建HttpResponse对象并设置Content-Type头
-            response = HttpResponse(content_type="audio/wav")
-            # 设置Content-Disposition头，让浏览器下载文件而不是尝试播放
-            response['Content-Disposition'] = 'attachment; filename="audio.wav"'
-            # 将base64编码的音频数据写入HttpResponse对象
-            response.write(audio_base64)
+            (AudioProcessor()
+                .generate(lyrics)
+                .set_pitch_to_avg()
+                .edit_pitch(target_pitch_list)
+                .remove_silence()
+                .edit_duration(target_duration_list)
+                .remove_silence()
+                .generate_final_audio())
 
-            print(audio_stream)
-            with open(r"C:\Users\Jerry\Desktop\sampleMusic\audio_base64.txt", "w") as file:
-                file.write(audio_stream)
         except Exception as e:
             return JsonResponse(f"Exception: {e}", safe=False, status=400)
 
         # return JsonResponse(str(audio_stream), safe=False, status=201)
         # return HttpResponse(audio_stream, content_type="audio/wav", status=201)
-        return response
+        # return response
+        return HttpResponse({'message': 'OK'}, status=status.HTTP_200_OK)

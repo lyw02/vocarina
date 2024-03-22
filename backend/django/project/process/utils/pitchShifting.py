@@ -1,3 +1,5 @@
+import tempfile
+
 import parselmouth
 
 from parselmouth.praat import call
@@ -5,9 +7,23 @@ from parselmouth.praat import call
 from .pitchDetect import get_average_pitch
 from .duration import get_duration
 
+from .oss import *
+
 
 def change_pitch_to_average(file_path):
-    sound = parselmouth.Sound(file_path)
+    # audio_object = get_file_object(file_path)
+    # audio_content = audio_object.read()
+
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+        audio_object = get_file_object(file_path)
+        audio_object_data = audio_object.read()
+        tmp.write(audio_object_data)
+        tmp.flush()
+        os.fsync(tmp.fileno())
+        tmp.close()
+        sound = parselmouth.Sound(tmp.name)
+
+    # sound = parselmouth.Sound(audio_content)
 
     manipulation = call(sound, "To Manipulation", 0.01, 75, 600)
 
@@ -25,7 +41,10 @@ def change_pitch_to_average(file_path):
 
 
 def change_pitch(file_path, factor):
-    sound = parselmouth.Sound(file_path)
+    audio_object = get_file_object(file_path)
+    audio_content = audio_object.read()
+
+    sound = parselmouth.Sound(audio_content)
 
     manipulation = call(sound, "To Manipulation", 0.01, 75, 600)
 
