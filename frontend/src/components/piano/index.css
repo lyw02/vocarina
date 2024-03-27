@@ -1,0 +1,49 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.piano-wrapper {
+  height: 1944px;
+  width: 60px;
+}
+
+.piano-keys .key {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  color: #7c7877;
+  position: relative;
+  justify-content: center;
+}
+
+.piano-keys .white {
+  width: 60px;
+  height: 25px;
+  border-top: #fff;
+  background: linear-gradient(#fff 95%, #eee 5%);
+}
+
+.piano-keys .white.key-mouse-over {
+  background: linear-gradient(#ffbbd6 95%, #f199bc 5%);
+}
+
+.piano-keys .black {
+  width: 60px;
+  height: 25px;
+  background: linear-gradient(#333 95%, #000 5%);
+}
+
+.piano-keys .black.key-mouse-over {
+  background: linear-gradient(#ffbbd6 95%, #f199bc 5%);
+  border-left: 1px solid #ffbbd6;
+}
+
+.piano-keys .key-name {
+  position: absolute;
+  text-align: right;
+  font-size: 0.8rem;
+  line-height: 25px;
+  padding-left: 10px;
+}

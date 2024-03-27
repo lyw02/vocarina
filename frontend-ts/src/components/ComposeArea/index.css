@@ -1,0 +1,55 @@
+.compose-area-outer-wrapper {
+  position: relative;
+  width: 10000px;
+  height: 2720px;
+}
+
+.upper-bar {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 10000px;
+  height: 20px;
+  z-index: 3;
+}
+
+.compose-area-wrapper {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 10000px;
+  height: 2700px;
+}
+
+.compose-area-cols {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.compose-area-col-numbers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+}
+
+.compose-area-rows {
+  list-style-type: none;
+}
+
+.key-row.white {
+  width: 100%;
+  background: #e9ecef;
+  height: 25px;
+  border-bottom: 1px solid #ced4da;
+}
+
+.key-row.black {
+  width: 100%;
+  background: #ced4da;
+  height: 25px;
+}
