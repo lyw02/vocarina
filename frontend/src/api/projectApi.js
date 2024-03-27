@@ -17,7 +17,7 @@ export const processAudio = (notes) => {
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
-      'Origin': 'http://localhost:3000',  // 与Django中配置的CORS_ALLOWED_ORIGINS相匹配
+      'Origin': 'http://localhost:5173',  // 与Django中配置的CORS_ALLOWED_ORIGINS相匹配
     },
     body: JSON.stringify(parsePostData(notes)),
   })

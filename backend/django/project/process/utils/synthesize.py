@@ -1,3 +1,4 @@
+import base64
 import os
 import tempfile
 
@@ -11,6 +12,31 @@ load_dotenv()
 
 SPEECH_KEY = os.environ.get('MS_SPEECH_KEY')
 SPEECH_REGION = os.environ.get('MS_SPEECH_REGION')
+
+
+def tts_legacy(text, save_dir, save_name):
+    speech_config = speechsdk.SpeechConfig(subscription=SPEECH_KEY, region=SPEECH_REGION)
+    audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=False, filename=rf"{save_dir}{save_name}")
+    speech_config.speech_synthesis_voice_name = 'en-US-JennyNeural'
+
+    speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=audio_config)
+
+    result = speech_synthesizer.speak_text_async(text).get()
+
+    if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+        # Get the audio data as bytes
+        audio_data = result.audio_data
+        # Convert audio data to base64
+        base64_audio = base64.b64encode(audio_data).decode('utf-8')
+        return base64_audio
+    elif result.reason == speechsdk.ResultReason.Canceled:
+        cancellation_details = result.cancellation_details
+        print("Speech synthesis canceled: {}".format(cancellation_details.reason))
+        if cancellation_details.reason == speechsdk.CancellationReason.Error:
+            if cancellation_details.error_details:
+                print("Error details: {}".format(cancellation_details.error_details))
+                print("Did you set the speech resource key and region values?")
+        return None
 
 
 def tts(text, save_dir, save_name):

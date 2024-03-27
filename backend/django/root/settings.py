@@ -51,7 +51,7 @@ INSTALLED_APPS = [
 # CORS_ORIGIN_WHITELIST = ()
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # 允许React应用的地址
+    "http://localhost:5173",  # 允许React应用的地址
 ]
 
 MIDDLEWARE = [

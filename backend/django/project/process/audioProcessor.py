@@ -1,14 +1,13 @@
-import os
-import re
-import tempfile
-import fnmatch
+import base64
+import io
 import traceback
-from io import BytesIO
+import soundfile as sf
 
 import parselmouth
-from ffmpeg import ffmpeg
+from pydub import AudioSegment
 
-from .utils.synthesize import tts
+from .utils.loadSound import load_sound_pydub
+from .utils.synthesize import tts, tts_legacy
 from .utils.pitchShifting import change_pitch_to_average, change_pitch
 from .utils.pitchDetect import get_average_pitch
 from .utils.duration import change_duration
@@ -18,95 +17,111 @@ from .utils.oss import *
 
 project_name = "myprj"
 # working_dir = "../temp"
-# working_dir = r"C:\Users\Jerry\Desktop\sampleMusic"
-working_dir = f"projects/{project_name}/"
-
-
-def delete_files_in_working_dir():
-
-    try:
-
-        if exists(working_dir):
-            delete_dir(working_dir)
-            create_dir(working_dir)
-    except Exception as e:
-        print(f"Unable to clean {working_dir}: {e}")
-
-
-def get_matching_files(directory, pattern):
-    matching_files = []
-
-    file_list = list_all_files_in_dir(directory)
-    filename_list = [filename.replace(directory, '') for filename in file_list]
-
-    for filename in fnmatch.filter(filename_list, pattern):
-        matching_files.append(f"{working_dir}{filename}")
-
-    matching_files.sort(key=lambda f: int(re.findall(r'\d+', f)[-1]))
-
-    return matching_files
+working_dir = r"C:\Users\Jerry\Desktop\sampleMusic"
+# working_dir = f"projects/{project_name}/"
 
 
 def generate_lyrics(lyrics, process_index):
+    res = []
 
     for i, word in enumerate(lyrics):
-        tts(word, f"{working_dir}", f"process-{process_index}-raw-{i}.wav")
+        # tts(word, f"{working_dir}", f"process-{process_index}-raw-{i}.wav")
+        res.append(tts_legacy(word, f"{working_dir}", f"process-{process_index}-raw-{i}.wav"))
+
+    return res
 
 
 def remove_silence(file_list, process_index):
+    res = []
 
-    for i, file in enumerate(file_list):
-        remove_silence_from_audio(file, rf"{working_dir}process-{process_index}-trimmed-{i}.wav")
+    for i, data in enumerate(file_list):
 
-
-def set_pitch_to_average(file_list, process_index):
-
-    for i, file in enumerate(file_list):
-        # change_pitch_to_average(file).save(rf"{working_dir}/process-{process_index}-edited-average-{i}.wav", "WAV")
         try:
-            # output = BytesIO()
-            # change_pitch_to_average(file).save(output, "WAV")
-            # output.seek(0)
-            # upload_file_directly(f"{working_dir}process-{process_index}-edited-average-{i}.wav", output)
 
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as temp:
-                change_pitch_to_average(file).save(temp.name, parselmouth.SoundFileFormat.WAV)
-                with open(temp.name, 'rb') as f:
-                    upload_file_directly(f"{working_dir}process-{process_index}-edited-average-{i}.wav", f)
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+                temp_file_path = temp_file.name
+                remove_silence_from_audio(data).export(temp_file_path, format="wav")
+
+            with open(temp_file_path, "rb") as f:
+                audio_data = f.read()
+
+            res.append(base64.b64encode(audio_data).decode("utf-8"))
         except Exception as e:
-            print(f"Exception in set_pitch_to_average {file}: {e}")
+            print(f"Exception in remove_silence {i}: {e}")
             traceback.print_exc()
 
-
-def edit_pitch(file_list, target_pitch_list, process_index):
-
-    for i, file in enumerate(file_list):
-        # change_pitch(file, target_pitch_list[i] / get_average_pitch(file))\
-        #     .save(rf"{working_dir}/process-{process_index}-edited-pitch-{i}.wav", "WAV")
-        output = BytesIO()
-        change_pitch(file, target_pitch_list[i] / get_average_pitch(file)).save(output, "WAV")
-        output.seek(0)
-        upload_file_directly(f"{working_dir}process-{process_index}-edited-pitch-{i}.wav", output)
+    return res
 
 
-def edit_duration(file_list, target_duration_list, process_index):
+def set_pitch_to_average(base64_res):
+    res = []
 
-    for i, file in enumerate(file_list):
-        change_duration(file, rf"{working_dir}process-{process_index}-edited-duration-{i}.wav",
-                        target_duration_list[i])
-        # output = BytesIO()
-        # change_duration(file, rf"{working_dir}/process-{process_index}-edited-duration-{i}.wav",
-        #                 target_duration_list[i]).save(output, "WAV")
-        # output.seek(0)
-        # upload_file_directly(f"{working_dir}/process-{process_index}-edited-pitch-{i}.wav", output)
+    for i, data in enumerate(base64_res):
+
+        try:
+
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+                temp_file_path = temp_file.name
+                change_pitch_to_average(data).save(temp_file_path, parselmouth.SoundFileFormat.WAV)
+
+            with open(temp_file_path, "rb") as f:
+                audio_data = f.read()
+
+            res.append(base64.b64encode(audio_data).decode("utf-8"))
+        except Exception as e:
+            print(f"Exception in set_pitch_to_average {i}: {e}")
+            traceback.print_exc()
+
+    return res
+
+
+def edit_pitch(base64_res, target_pitch_list):
+    res = []
+
+    for i, data in enumerate(base64_res):
+
+        try:
+
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+                temp_file_path = temp_file.name
+                change_pitch(data, target_pitch_list[i] / get_average_pitch(audio_content=data))\
+                    .save(temp_file_path, parselmouth.SoundFileFormat.WAV)
+
+            with open(temp_file_path, "rb") as f:
+                audio_data = f.read()
+
+            res.append(base64.b64encode(audio_data).decode("utf-8"))
+        except Exception as e:
+            print(f"Exception in edit_pitch {i}: {e}")
+            traceback.print_exc()
+
+    return res
+
+
+def edit_duration(base64_res, target_duration_list):
+    res = []
+
+    for i, data in enumerate(base64_res):
+
+        try:
+
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+                temp_file_path = temp_file.name
+                edited_duration_data, sr = change_duration(data, target_duration_list[i])
+                sf.write(temp_file_path, edited_duration_data, sr, format='wav')
+
+            with open(temp_file_path, "rb") as f:
+                audio_data = f.read()
+
+            res.append(base64.b64encode(audio_data).decode("utf-8"))
+        except Exception as e:
+            print(f"Exception in edit_duration {i}: {e}")
+            traceback.print_exc()
+
+    return res
 
 
 def generate_audio_files_txt(file_list, save_path):
-
-    # with open(rf"{save_path}/audio_file_list.txt", "w") as f:
-    #
-    #     for file in file_list:
-    #         f.write(f"file '{file}'\n")
 
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
 
@@ -124,65 +139,61 @@ class AudioProcessor:
         self._process_index = 0
         self._file_pattern = None
         self._audio_data_base64 = None
-        # delete_files_in_working_dir()
+        self.base64_res = []
+        self.base64_final = None
 
     def generate(self, lyrics):
         delete_dir(working_dir)
         create_dir(working_dir)
-        generate_lyrics(lyrics, self._process_index)
+        self.base64_res = generate_lyrics(lyrics, self._process_index)
         self._file_pattern = f"process-{self._process_index}-raw-*.wav"
         self._process_index += 1
         print("[INFO] Speech synthesize - Done.")
         return self
 
     def set_pitch_to_avg(self):
-        files = get_matching_files(working_dir, self._file_pattern)
-        print(f"files: {files}")
-        set_pitch_to_average(files, self._process_index)
-        self._file_pattern = f"process-{self._process_index}-edited-average-*.wav"
+        self.base64_res = set_pitch_to_average(self.base64_res)
         self._process_index += 1
         print("[INFO] Set pitch to average - Done.")
         return self
 
     def edit_pitch(self, target_pitch_list):
-        files = get_matching_files(working_dir, self._file_pattern)
-        edit_pitch(files, target_pitch_list, self._process_index)
-        self._file_pattern = f"process-{self._process_index}-edited-pitch-*.wav"
+        self.base64_res = edit_pitch(self.base64_res, target_pitch_list)
         self._process_index += 1
         print("[INFO] Edit pitch - Done.")
         return self
 
     def edit_duration(self, target_duration_list):
-        files = get_matching_files(working_dir, self._file_pattern)
-        edit_duration(files, target_duration_list, self._process_index)
-        self._file_pattern = f"process-{self._process_index}-edited-duration-*.wav"
+        self.base64_res = edit_duration(self.base64_res, target_duration_list)
         self._process_index += 1
         print("[INFO] Edit duration - Done.")
         return self
 
     def remove_silence(self):
-        files = get_matching_files(working_dir, self._file_pattern)
-        remove_silence(files, self._process_index)
-        self._file_pattern = f"process-{self._process_index}-trimmed-*.wav"
+        self.base64_res = remove_silence(self.base64_res, self._process_index)
         self._process_index += 1
         print("[INFO] Remove silence - Done.")
         return self
 
     def generate_final_audio(self):
-        files = get_matching_files(working_dir, self._file_pattern)
-        generate_audio_files_txt(files, working_dir)
-        # audio_file_list = BytesIO()
-        audio_file_list = get_file_object(f"{working_dir}/audio_file_list.txt").read()
-        # subprocess.call(["ffmpeg", "-f", "concat", "-safe", "0", "-i", rf"{working_dir}/audio_file_list.txt", "-c",
-        #                  "copy", rf"{working_dir}/final_audio.wav"])
-        with open("final_audio.wav", "rb") as f:
-            (
-                ffmpeg
-                .input(audio_file_list, format="concat", safe=0)
-                .output(f, c="copy")
-                .run()
-            )
-            upload_file_directly(f"{working_dir}/final_audio.wav", f)
+        combined_audio = AudioSegment.silent(duration=0)
+
+        for i, base64_audio in enumerate(self.base64_res):
+            audio_segment = load_sound_pydub(audio_content=base64_audio)
+            combined_audio += audio_segment
+
+        combined_audio_file = io.BytesIO()
+        combined_audio.export(combined_audio_file, format="wav")
+        combined_audio_data = combined_audio_file.getvalue()
+        combined_audio_base64 = base64.b64encode(combined_audio_data).decode("utf-8")
+
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+            temp_file_path = temp_file.name
+            remove_silence_from_audio(combined_audio_base64).export(temp_file_path, format="wav")
+
+        with open(temp_file_path, "rb") as f:
+            self.base64_final = base64.b64encode(f.read()).decode("utf-8")
+
         print("[INFO] Done.")
         return self
 

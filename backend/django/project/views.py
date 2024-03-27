@@ -1,6 +1,7 @@
 import ast
 import base64
 import json
+import traceback
 
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -71,24 +72,37 @@ def audio_process_api(request):
             data = json.loads(request.body)
             tracks = data.get("tracks", [])
             current_track = tracks[0]
-            print(f"current_track: {current_track}")
             lyrics = current_track.get("lyrics")
             target_pitch_list = current_track.get("target_pitch_list")
             target_duration_list = current_track.get("target_duration_list")
 
-            (AudioProcessor()
-                .generate(lyrics)
-                .set_pitch_to_avg()
-                .edit_pitch(target_pitch_list)
-                .remove_silence()
-                .edit_duration(target_duration_list)
-                .remove_silence()
-                .generate_final_audio())
+            # (AudioProcessor()
+            #     .generate(lyrics)
+            #     # .set_pitch_to_avg()
+            #     # .edit_pitch(target_pitch_list)
+            #     # .remove_silence()
+            #     # .edit_duration(target_duration_list)
+            #     # .remove_silence()
+            #     # .generate_final_audio()
+            #  )
+
+            base64_final = (AudioProcessor()
+                            .generate(lyrics)
+                            .set_pitch_to_avg()
+                            .edit_pitch(target_pitch_list)
+                            .edit_duration(target_duration_list)
+                            .remove_silence()
+                            .generate_final_audio()
+                            .base64_final)
+
+            print(f"base64_final: {base64_final}")
+            return JsonResponse(json.dumps({"data": base64_final}), safe=False, status=status.HTTP_200_OK)
 
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse(f"Exception: {e}", safe=False, status=400)
 
         # return JsonResponse(str(audio_stream), safe=False, status=201)
         # return HttpResponse(audio_stream, content_type="audio/wav", status=201)
         # return response
-        return HttpResponse({'message': 'OK'}, status=status.HTTP_200_OK)
+        # return HttpResponse("Done", status=status.HTTP_200_OK)

@@ -1,30 +1,15 @@
-import tempfile
-
 import parselmouth
 
-from .oss import *
+from .loadSound import load_sound_parselmouth
 
 
-def pitch_detect(file_path):
-    sound = parselmouth.Sound(file_path)
-
-    pitch = sound.to_pitch()
-
-    print(pitch)
-
-
-def get_average_pitch(file_path):
-
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-        audio_object = get_file_object(file_path)
-        audio_object_data = audio_object.read()
-        tmp.write(audio_object_data)
-        tmp.flush()
-        os.fsync(tmp.fileno())
-        tmp.close()
-        sound = parselmouth.Sound(tmp.name)
-
-    # sound = parselmouth.Sound(file_path)
+def get_average_pitch(file_path=None, audio_content=None):
+    if file_path is not None:
+        sound = parselmouth.Sound(file_path)
+    elif audio_content is not None:
+        sound, _ = load_sound_parselmouth(audio_content)
+    else:
+        raise "Failed to get_average_pitch"
 
     pitch = sound.to_pitch()
 

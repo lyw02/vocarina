@@ -27,6 +27,7 @@ export interface RootState {
   tracks: TrackstState;
   project: ProjectState;
   editMode: EditModeState;
+  projectAudio: projectAudioState;
 }
 
 export interface NotesState {
@@ -51,4 +52,8 @@ export interface ProjectState {
 
 export interface EditModeState {
   editMode: editMode;
+}
+
+export interface projectAudioState {
+  base64: string;
 }
