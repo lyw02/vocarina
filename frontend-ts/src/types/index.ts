@@ -24,7 +24,7 @@ export interface NoteProps {
 export interface RootState {
   notes: NotesState;
   params: ParamsState;
-  tracks: TrackstState;
+  tracks: TracksState;
   project: ProjectState;
   editMode: EditModeState;
   projectAudio: projectAudioState;
@@ -40,7 +40,7 @@ export interface ParamsState {
   bpm: number;
 }
 
-export interface TrackstState {
+export interface TracksState {
   currentTrack: number;
   tracks: Track[];
 }

@@ -1,7 +1,7 @@
-import { TrackstState } from "@/types";
+import { TracksState } from "@/types";
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState: TrackstState = {
+const initialState: TracksState = {
   currentTrack: 1,
   tracks: [
     {
@@ -52,11 +52,22 @@ const trackStore = createSlice({
       state.currentTrack = action.payload.trackId;
     },
     setSheet(state, action) {
-      state.tracks[action.payload.trackId - 1].sheet = action.payload.sheet;
+      const trackIndex = state.tracks.findIndex(
+        (t) => t.trackId === action.payload.trackId
+      );
+      state.tracks[trackIndex].sheet = action.payload.sheet;
     },
     setTrackState(state, action) {
-      state.tracks[action.payload.trackId - 1].trackState =
-        action.payload.newState;
+      const trackIndex = state.tracks.findIndex(
+        (t) => t.trackId === action.payload.trackId
+      );
+      state.tracks[trackIndex].trackState = action.payload.newState;
+    },
+    setTrackName(state, action) {
+      const trackIndex = state.tracks.findIndex(
+        (t) => t.trackId === action.payload.trackId
+      );
+      state.tracks[trackIndex].trackName = action.payload.trackName;
     },
   },
 });
@@ -68,6 +79,7 @@ const {
   setLyrics,
   setSheet,
   setTrackState,
+  setTrackName,
 } = trackStore.actions;
 
 const reducer = trackStore.reducer;
@@ -79,6 +91,7 @@ export {
   setLyrics,
   setSheet,
   setTrackState,
+  setTrackName,
 };
 
 export default reducer;

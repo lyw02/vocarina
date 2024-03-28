@@ -25,6 +25,7 @@ import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
 import { trackState } from "@/types/project";
 import theme from "@/theme";
+import InputDialog from "../InputDialog";
 
 const TrackBar = () => {
   const dispatch = useDispatch();
@@ -35,8 +36,6 @@ const TrackBar = () => {
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
 
   const handleTrackChange = (trackId: number) => {
-    console.log("click track id: ", trackId);
-    
     dispatch(setCurrentTrack(trackId));
     dispatch(
       setSheet({ trackId: currentTrack, sheet: tracks[currentTrack - 1].sheet })
@@ -80,7 +79,10 @@ const TrackBar = () => {
 
   const [optionTrackId, setOptionTrackId] = useState<null | number>(null);
 
-  const handleTrackOptionsClick = (event: React.MouseEvent<HTMLElement>, trackId: number) => {
+  const handleTrackOptionsClick = (
+    event: React.MouseEvent<HTMLElement>,
+    trackId: number
+  ) => {
     console.log("click button on track id: ", trackId);
     setTrackOptionsAnchorEl(event.currentTarget);
     setOptionTrackId(trackId);
@@ -92,7 +94,10 @@ const TrackBar = () => {
 
   const handleNewTruck = () => {
     console.log("new track after id: ", optionTrackId);
-    console.log("position: ", tracks.findIndex((t) => t.trackId === optionTrackId) + 1);
+    console.log(
+      "position: ",
+      tracks.findIndex((t) => t.trackId === optionTrackId) + 1
+    );
     const index = tracks.findIndex((t) => t.trackId === optionTrackId);
     const newPosition = index !== -1 ? index + 1 : tracks.length + 1;
 
@@ -105,8 +110,8 @@ const TrackBar = () => {
     handleTrackOptionsClose();
   };
 
-  const handleEditTruckName = () => {
-    // handleCreateTrack();
+  const handleEditTrackName = () => {
+    setIsTrackNameDialogVisible(true)
     handleTrackOptionsClose();
   };
 
@@ -116,6 +121,9 @@ const TrackBar = () => {
     dispatch(deleteTrack(optionTrackId));
     handleTrackOptionsClose();
   };
+
+  const [isTrackNameDialogVisible, setIsTrackNameDialogVisible] =
+    useState<boolean>(false);
 
   return (
     <div className="trackbar-wrapper">
@@ -218,16 +226,18 @@ const TrackBar = () => {
               onClose={handleTrackOptionsClose}
               TransitionComponent={Fade}
             >
-              <MenuItem onClick={handleNewTruck}>
-                New track
-              </MenuItem>
-              <MenuItem onClick={handleTrackOptionsClose}>
+              <MenuItem onClick={handleNewTruck}>New track</MenuItem>
+              <MenuItem onClick={handleEditTrackName}>
                 Edit track name
               </MenuItem>
-              <MenuItem onClick={handleDeleteTruck}>
-                Delete track
-              </MenuItem>
+              <MenuItem onClick={handleDeleteTruck}>Delete track</MenuItem>
             </Menu>
+            <InputDialog
+              title="Edit Track Name"
+              formType="EditTrackNameForm"
+              isOpen={isTrackNameDialogVisible}
+              setIsOpen={setIsTrackNameDialogVisible}
+            />
           </Stack>
         );
       })}

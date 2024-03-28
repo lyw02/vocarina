@@ -9,10 +9,13 @@ import {
   PaperProps,
 } from "@mui/material";
 import Draggable from "react-draggable";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setBpm, setDenominator, setNumerator } from "@/store/modules/params";
+import { setTrackName } from "@/store/modules/tracks";
 import EditTimeSignatureForm from "./EditTimeSignatureForm";
 import EditBpmForm from "./EditBpmForm";
+import EditTrackNameForm from "./EditTrackNameForm";
+import { RootState } from "@/types";
 
 const PaperComponent = (props: PaperProps) => {
   return (
@@ -27,15 +30,17 @@ const PaperComponent = (props: PaperProps) => {
 
 interface InputDialogProps {
   title: string;
-  formType: "EditTimeSignatureForm" | "EditBpmForm";
+  formType: "EditTimeSignatureForm" | "EditBpmForm" | "EditTrackNameForm";
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  trackId?: number;
 }
 
 export interface FormValues {
   numerator?: number;
   denominator?: number;
   bpm?: number;
+  trackName?: string;
 }
 
 const InputDialog = ({
@@ -43,10 +48,18 @@ const InputDialog = ({
   formType,
   isOpen,
   setIsOpen,
+  trackId = 1,
 }: InputDialogProps) => {
   const [values, setValues] = useState<FormValues>({});
 
   const dispatch = useDispatch();
+
+  const oldName = useSelector(
+    (state: RootState) =>
+      state.tracks.tracks[
+        state.tracks.tracks.findIndex((t) => t.trackId === trackId)
+      ].trackName
+  );
 
   const getForm = () => {
     if (formType === "EditTimeSignatureForm") {
@@ -64,6 +77,25 @@ const InputDialog = ({
         dispatchFunctions: [() => dispatch(setBpm(values.bpm || 120))],
         formComponent: (
           <EditBpmForm values={values} setValues={handleSetValues} />
+        ),
+      };
+    } else if (formType === "EditTrackNameForm") {
+      return {
+        dispatchFunctions: [
+          () =>
+            dispatch(
+              setTrackName({
+                trackId: trackId,
+                trackName: values.trackName || oldName,
+              })
+            ),
+        ],
+        formComponent: (
+          <EditTrackNameForm
+            values={values}
+            setValues={handleSetValues}
+            trackId={trackId}
+          />
         ),
       };
     }
