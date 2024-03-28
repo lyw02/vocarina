@@ -1,17 +1,18 @@
 import {
   createNewTrack,
+  deleteTrack,
   setCurrentTrack,
   setSheet,
   setTrackState,
 } from "@/store/modules/tracks";
 import { RootState } from "@/types";
-import { AddCircleOutline, MoreHoriz } from "@mui/icons-material";
+import { MoreHoriz } from "@mui/icons-material";
 import {
   Box,
   Button,
+  Fade,
+  Menu,
   MenuItem,
-  Select,
-  SelectChangeEvent,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -19,7 +20,7 @@ import {
   styled,
   toggleButtonGroupClasses,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
 import { trackState } from "@/types/project";
@@ -34,18 +35,17 @@ const TrackBar = () => {
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
 
   const handleTrackChange = (trackId: number) => {
+    console.log("click track id: ", trackId);
+    
     dispatch(setCurrentTrack(trackId));
     dispatch(
       setSheet({ trackId: currentTrack, sheet: tracks[currentTrack - 1].sheet })
     );
   };
 
-  const handleCreateTrack = () => {
-    dispatch(createNewTrack({ trackName: "" }));
-  };
-
   // Toggle button (muted / solo)
-  const [toggle, setToggle] = useState(tracks[currentTrack - 1].trackState);
+  const currentTrackIndex = tracks.findIndex((t) => t.trackId === currentTrack);
+  const [_toggle, setToggle] = useState(tracks[currentTrackIndex].trackState);
 
   const handleToggleChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -71,6 +71,51 @@ const TrackBar = () => {
         borderLeft: "1px solid transparent",
       },
   }));
+
+  // Track options
+  const [trackOptionsAnchorEl, setTrackOptionsAnchorEl] =
+    useState<null | HTMLElement>(null);
+
+  const isTrackOptionsOpen = Boolean(trackOptionsAnchorEl);
+
+  const [optionTrackId, setOptionTrackId] = useState<null | number>(null);
+
+  const handleTrackOptionsClick = (event: React.MouseEvent<HTMLElement>, trackId: number) => {
+    console.log("click button on track id: ", trackId);
+    setTrackOptionsAnchorEl(event.currentTarget);
+    setOptionTrackId(trackId);
+  };
+
+  const handleTrackOptionsClose = () => {
+    setTrackOptionsAnchorEl(null);
+  };
+
+  const handleNewTruck = () => {
+    console.log("new track after id: ", optionTrackId);
+    console.log("position: ", tracks.findIndex((t) => t.trackId === optionTrackId) + 1);
+    const index = tracks.findIndex((t) => t.trackId === optionTrackId);
+    const newPosition = index !== -1 ? index + 1 : tracks.length + 1;
+
+    dispatch(
+      createNewTrack({
+        position: newPosition,
+        trackName: "",
+      })
+    );
+    handleTrackOptionsClose();
+  };
+
+  const handleEditTruckName = () => {
+    // handleCreateTrack();
+    handleTrackOptionsClose();
+  };
+
+  const handleDeleteTruck = () => {
+    if (tracks.length === 1) return;
+    if (optionTrackId === currentTrack) return;
+    dispatch(deleteTrack(optionTrackId));
+    handleTrackOptionsClose();
+  };
 
   return (
     <div className="trackbar-wrapper">
@@ -118,7 +163,12 @@ const TrackBar = () => {
                 ></Box>
                 <Box
                   component="div"
-                  sx={{ p: 0, width: "50%", display: "flex", cursor: "pointer" }}
+                  sx={{
+                    p: 0,
+                    width: "50%",
+                    display: "flex",
+                    cursor: "pointer",
+                  }}
                   onClick={() => handleTrackChange(track.trackId)}
                 >
                   <Typography
@@ -146,7 +196,7 @@ const TrackBar = () => {
                   sx={{ p: 0, width: "20%", display: "flex" }}
                 >
                   <Button
-                    onClick={handleCreateTrack}
+                    onClick={(e) => handleTrackOptionsClick(e, track.trackId)}
                     sx={{ margin: "auto", minWidth: "80%", width: "80%" }}
                   >
                     <MoreHoriz />
@@ -158,6 +208,26 @@ const TrackBar = () => {
               component="div"
               sx={{ p: 2, borderLeft: "1px solid lightgrey", width: "80%" }}
             ></Box>
+            <Menu
+              id="fade-menu"
+              MenuListProps={{
+                "aria-labelledby": "fade-button",
+              }}
+              anchorEl={trackOptionsAnchorEl}
+              open={isTrackOptionsOpen}
+              onClose={handleTrackOptionsClose}
+              TransitionComponent={Fade}
+            >
+              <MenuItem onClick={handleNewTruck}>
+                New track
+              </MenuItem>
+              <MenuItem onClick={handleTrackOptionsClose}>
+                Edit track name
+              </MenuItem>
+              <MenuItem onClick={handleDeleteTruck}>
+                Delete track
+              </MenuItem>
+            </Menu>
           </Stack>
         );
       })}

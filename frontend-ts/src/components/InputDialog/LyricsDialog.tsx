@@ -148,10 +148,10 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   const currentTrackId = useSelector(
     (state: RootState) => state.tracks.currentTrack
   );
-  const notesInState = tracks[currentTrackId-1].sheet;
-  const notes = _.cloneDeep(notesInState);
-
   const currentTrack = tracks.find((track) => track.trackId === currentTrackId);
+  const currentTrackIndex = tracks.findIndex((t) => t.trackId === currentTrack?.trackId);
+  const notesInState = tracks[currentTrackIndex].sheet;
+  const notes = _.cloneDeep(notesInState);
 
   const [sentences, setSentences] = useState<Sentence[]>(
     currentTrack!.trackLyrics

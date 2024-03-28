@@ -1,6 +1,5 @@
-import { TrackstState, RootState } from "@/types";
+import { TrackstState } from "@/types";
 import { createSlice } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
 
 const initialState: TrackstState = {
   currentTrack: 1,
@@ -25,7 +24,7 @@ const trackStore = createSlice({
       state.currentTrack = action.payload;
     },
     createNewTrack(state, action) {
-      state.tracks.push({
+      state.tracks.splice(action.payload.position, 0, {
         trackId: state.tracks.length + 1,
         trackName:
           action.payload.trackName ||

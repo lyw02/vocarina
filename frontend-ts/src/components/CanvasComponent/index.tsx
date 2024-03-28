@@ -13,7 +13,8 @@ function CanvasComponent() {
   );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const editMode = useSelector((state: RootState) => state.editMode.editMode);
-  const notesInState = tracks[currentTrack - 1].sheet;
+  const currentTrackIndex = tracks.findIndex((t) => t.trackId === currentTrack);
+  const notesInState = tracks[currentTrackIndex].sheet;
   const notesInstances = notesInState.map((n) => {
     return new Note(
       n.id,
