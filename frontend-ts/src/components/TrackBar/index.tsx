@@ -258,6 +258,7 @@ const TrackBar = () => {
               formType="EditTrackNameForm"
               isOpen={isTrackNameDialogVisible}
               setIsOpen={setIsTrackNameDialogVisible}
+              trackId={track.trackId}
             />
           </Stack>
         );
