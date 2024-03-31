@@ -27,7 +27,7 @@ const ParameterBar = () => {
   // Volume
   const [value, setValue] = useState(30);
 
-  const handleChange = (event: Event, newValue: number | number[]) => {
+  const handleChange = (_event: Event, newValue: number | number[]) => {
     setValue(newValue as number);
   };
 
@@ -35,7 +35,7 @@ const ParameterBar = () => {
   const [toggle, setToggle] = useState<editMode>(editMode.editMode);
 
   const handleToggleChange = (
-    event: React.MouseEvent<HTMLElement>,
+    _event: React.MouseEvent<HTMLElement>,
     newToggle: editMode
   ) => {
     if (newToggle) {

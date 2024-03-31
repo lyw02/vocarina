@@ -20,12 +20,14 @@ import {
   styled,
   toggleButtonGroupClasses,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
 import { trackState } from "@/types/project";
 import theme from "@/theme";
 import InputDialog from "../InputDialog";
+import TrackBarCanvas from "../TrackBarCanvas";
+import _ from "lodash";
 
 const TrackBar = () => {
   const dispatch = useDispatch();
@@ -83,7 +85,6 @@ const TrackBar = () => {
     event: React.MouseEvent<HTMLElement>,
     trackId: number
   ) => {
-    console.log("click button on track id: ", trackId);
     setTrackOptionsAnchorEl(event.currentTarget);
     setOptionTrackId(trackId);
   };
@@ -93,11 +94,6 @@ const TrackBar = () => {
   };
 
   const handleNewTruck = () => {
-    console.log("new track after id: ", optionTrackId);
-    console.log(
-      "position: ",
-      tracks.findIndex((t) => t.trackId === optionTrackId) + 1
-    );
     const index = tracks.findIndex((t) => t.trackId === optionTrackId);
     const newPosition = index !== -1 ? index + 1 : tracks.length + 1;
 
@@ -111,7 +107,7 @@ const TrackBar = () => {
   };
 
   const handleEditTrackName = () => {
-    setIsTrackNameDialogVisible(true)
+    setIsTrackNameDialogVisible(true);
     handleTrackOptionsClose();
   };
 
@@ -125,20 +121,45 @@ const TrackBar = () => {
   const [isTrackNameDialogVisible, setIsTrackNameDialogVisible] =
     useState<boolean>(false);
 
+  const trackStackRef = useRef<HTMLDivElement | null>(null);
+
+  const distanceX: number[] = [];
+  const distanceY: number[] = [];
+
+  tracks.forEach((t) => {
+    let sheet = t.sheet;
+
+    if (sheet.length !== 0) {
+      let minStartX = sheet.reduce((prev, current) => (prev.startX < current.startX) ? prev : current).startX;
+      let maxEndX = sheet.reduce((prev, current) => (prev.endX > current.endX) ? prev : current).endX;
+      let minStartY = sheet.reduce((prev, current) => (prev.startY < current.startY) ? prev : current).startY;
+      let maxEndY = sheet.reduce((prev, current) => (prev.endY > current.endY) ? prev : current).endY;
+
+      distanceX.push(maxEndX - minStartX);
+      distanceY.push(maxEndY - minStartY);
+    }
+  });
+
+  const maxDistanceX = _.max(distanceX) || 0;
+  const maxDistanceY = _.max(distanceY) || 0;
+
   return (
     <div className="trackbar-wrapper">
       {tracks.map((track) => {
         return (
           <Stack
             key={track.trackId}
+            ref={trackStackRef}
             direction="row"
             spacing={0}
             sx={
               track.trackId === currentTrack
                 ? {
+                    maxHeight: "7vh",
                     backgroundColor: theme.palette.grey[200],
                   }
                 : {
+                    maxHeight: "7vh",
                     backgroundColor: theme.palette.grey[100],
                   }
             }
@@ -212,10 +233,12 @@ const TrackBar = () => {
                 </Box>
               </Stack>
             </Box>
-            <Box
-              component="div"
-              sx={{ p: 2, borderLeft: "1px solid lightgrey", width: "80%" }}
-            ></Box>
+            <TrackBarCanvas
+              trackStackRef={trackStackRef}
+              trackId={track.trackId}
+              maxDistanceX={maxDistanceX}
+              maxDistanceY={maxDistanceY}
+            />
             <Menu
               id="fade-menu"
               MenuListProps={{
@@ -227,9 +250,7 @@ const TrackBar = () => {
               TransitionComponent={Fade}
             >
               <MenuItem onClick={handleNewTruck}>New track</MenuItem>
-              <MenuItem onClick={handleEditTrackName}>
-                Edit track name
-              </MenuItem>
+              <MenuItem onClick={handleEditTrackName}>Edit track name</MenuItem>
               <MenuItem onClick={handleDeleteTruck}>Delete track</MenuItem>
             </Menu>
             <InputDialog

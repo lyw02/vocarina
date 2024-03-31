@@ -48,6 +48,13 @@ function CanvasComponent() {
     return null;
   }
 
+  const overlap = (note: Note) => {
+    return notes.some(
+      (item) =>
+        note !== item && note.minX < item.maxX && note.maxX > item.minX
+    );
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -56,13 +63,6 @@ function CanvasComponent() {
 
     canvas.width = 3000;
     canvas.height = 2700;
-
-    const overlap = (note: Note) => {
-      return notes.some(
-        (item) =>
-          note !== item && note.minX < item.maxX && note.maxX > item.minX
-      );
-    };
 
     function draw() {
       if (!ctx) return;
