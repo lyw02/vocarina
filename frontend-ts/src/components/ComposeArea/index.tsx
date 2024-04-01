@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { noteStyle } from "@/utils/Note";
 import { useSelector } from "react-redux";
 import { RootState } from "@/types";
+import {ComposeAreaStyle} from "@/utils/ComposeAreaStyle"
 
 const ComposeArea = () => {
   const colCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,37 +24,39 @@ const ComposeArea = () => {
     const colNumCtx = colNumCanvas.getContext("2d");
     if (!colNumCtx) return;
 
-    colCanvas.width = 10000;
-    colCanvas.height = 5000;
+    colCanvas.width = ComposeAreaStyle.colCanvasWidth;
+    colCanvas.height = ComposeAreaStyle.colCanvasHeight;
 
-    colNumCanvas.width = 10000;
-    colNumCanvas.height = 20;
+    colNumCanvas.width = ComposeAreaStyle.colNumCanvasWidth;
+    colNumCanvas.height = ComposeAreaStyle.colNumCanvasHeight;
 
     // Draw column lines
-    colCtx.lineWidth = 1;
+    colCtx.lineWidth = ComposeAreaStyle.colLineWidth;
 
-    const colCanvasWidth = colCanvas.width;
-    const colCanvasHeight = colCanvas.height;
-    const lineInterval = 80;
+    const colCanvasWidth = ComposeAreaStyle.colCanvasWidth;
+    const colCanvasHeight = ComposeAreaStyle.colCanvasHeight;
+    const lineInterval = ComposeAreaStyle.colLineInterval;
+    const lineIntervalInner = ComposeAreaStyle.colLineIntervalInner;
 
     for (let x = lineInterval; x < colCanvasWidth; x += lineInterval) {
-      // for (let xInner = x + lineInterval / 8; xInner < x + lineInterval; xInner += lineInterval / 8) {
-      //   ctx.strokeStyle = "#b5babf";
-      //   ctx.beginPath();
-      //   ctx.moveTo(x, 0);
-      //   ctx.lineTo(x, height);
-      //   ctx.stroke();
-      // }
-      colCtx.strokeStyle = "#8a8e92";
+      colCtx.strokeStyle = ComposeAreaStyle.colStrokeColor;
       colCtx.beginPath();
       colCtx.moveTo(x, 0);
       colCtx.lineTo(x, colCanvasHeight);
       colCtx.stroke();
     }
 
+    for (let x = lineIntervalInner; x < colCanvasWidth; x += lineIntervalInner) {
+      colCtx.strokeStyle = ComposeAreaStyle.colStrokeColor;
+      colCtx.beginPath();
+      colCtx.moveTo(x, 0);
+      colCtx.lineTo(x, colCanvasHeight);
+      colCtx.lineWidth = ComposeAreaStyle.colLineWidthInner;
+      colCtx.stroke();
+    }
+
     let num = 1;
     for (let x = 0; x < colCanvasWidth; x += lineInterval * numerator) {
-      // console.log(num)
       colNumCtx.font = 10 * devicePixelRatio + 'px Arial';
       colNumCtx.textAlign = noteStyle.textAlign;
       colNumCtx.textBaseline = noteStyle.textBaseline;

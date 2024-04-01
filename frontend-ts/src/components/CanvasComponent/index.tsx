@@ -5,6 +5,7 @@ import "./index.css";
 import { RootState } from "@/types";
 import _ from "lodash";
 import { setSheet } from "@/store/modules/tracks";
+import { ComposeAreaStyle } from "@/utils/ComposeAreaStyle";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -13,6 +14,9 @@ function CanvasComponent() {
   );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const editMode = useSelector((state: RootState) => state.editMode.editMode);
+  const snappingMode = useSelector(
+    (state: RootState) => state.snappingMode.snappingMode
+  );
   const currentTrackIndex = tracks.findIndex((t) => t.trackId === currentTrack);
   const notesInState = tracks[currentTrackIndex].sheet;
   const notesInstances = notesInState.map((n) => {
@@ -50,8 +54,7 @@ function CanvasComponent() {
 
   const overlap = (note: Note) => {
     return notes.some(
-      (item) =>
-        note !== item && note.minX < item.maxX && note.maxX > item.minX
+      (item) => note !== item && note.minX < item.maxX && note.maxX > item.minX
     );
   };
 
@@ -106,12 +109,24 @@ function CanvasComponent() {
         const { startX, endX } = note;
         if (note.isBoundary(clickX, clickY) === "left") {
           window.onmousemove = (e) => {
-            const disXLeft = e.clientX - rect.left - clickX; // how far the mouse moved in X
+            let tempDisXLeft = e.clientX - rect.left - clickX; // how far the mouse moved in X
+            let disXLeft;
+            snappingMode
+              ? (disXLeft =
+                  tempDisXLeft -
+                  (tempDisXLeft % ComposeAreaStyle.colLineIntervalInner))
+              : (disXLeft = tempDisXLeft);
             note.startX = startX + disXLeft;
           };
         } else if (note.isBoundary(clickX, clickY) === "right") {
           window.onmousemove = (e) => {
-            const disXRight = e.clientX - rect.left - clickX; // how far the mouse moved in X
+            let tempDisXRight = e.clientX - rect.left - clickX; // how far the mouse moved in X
+            let disXRight;
+            snappingMode
+              ? (disXRight =
+                  tempDisXRight -
+                  (tempDisXRight % ComposeAreaStyle.colLineIntervalInner))
+              : (disXRight = tempDisXRight);
             note.endX = endX + disXRight;
           };
         }
@@ -119,8 +134,13 @@ function CanvasComponent() {
         // Drag note
         const { startX, startY, endX, endY } = note;
         window.onmousemove = (e) => {
-          const disX = e.clientX - rect.left - clickX; // how far the mouse moved in X
-          const disY =
+          let tempDisX = e.clientX - rect.left - clickX; // how far the mouse moved in X
+          let disX;
+          snappingMode
+            ? (disX =
+                tempDisX - (tempDisX % ComposeAreaStyle.colLineIntervalInner))
+            : (disX = tempDisX);
+          let disY =
             Math.floor((e.clientY - rect.top - clickY) / noteStyle.noteHeight) *
             noteStyle.noteHeight;
 
@@ -154,7 +174,13 @@ function CanvasComponent() {
       } else {
         if (editMode === "edit") {
           // Draw new note
-          const note = new Note(noteId, clickX, clickY);
+          const note = new Note(
+            noteId,
+            snappingMode
+              ? clickX - (clickX % ComposeAreaStyle.colLineIntervalInner)
+              : clickX,
+            clickY
+          );
           noteId = noteId + 1;
           window.onmousemove = (e) => {
             if (e.clientX - rect.left > canvas.width) {
@@ -162,7 +188,11 @@ function CanvasComponent() {
             } else if (e.clientX - rect.left < 0) {
               note.endX = 0;
             } else {
-              note.endX = e.clientX - rect.left;
+              let temp = e.clientX - rect.left;
+              snappingMode
+                ? (note.endX =
+                    temp - (temp % ComposeAreaStyle.colLineIntervalInner))
+                : (note.endX = temp);
             }
           };
           notes.push(note);
@@ -209,7 +239,6 @@ function CanvasComponent() {
   };
 
   return (
-    // <div className="canvas-container">
     <canvas
       className="compose-area-canvas"
       ref={canvasRef}
@@ -218,7 +247,6 @@ function CanvasComponent() {
       onMouseUp={handleMouseUp}
       onContextMenu={handleContextMenu}
     />
-    // </div>
   );
 }
 

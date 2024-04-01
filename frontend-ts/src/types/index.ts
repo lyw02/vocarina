@@ -29,6 +29,7 @@ export interface RootState {
   editMode: EditModeState;
   projectAudio: ProjectAudioState;
   localStatus: LocalStatusState;
+  snappingMode: SnappingModeState;
 }
 
 export interface NotesState {
@@ -65,4 +66,8 @@ export interface LocalStatusState {
   isGenerating: boolean;
   isGenerated: boolean;
   isPlaying: boolean;
+}
+
+export interface SnappingModeState {
+  snappingMode: boolean;
 }

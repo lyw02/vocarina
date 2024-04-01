@@ -7,6 +7,7 @@ import projectReducer from "./modules/project";
 import editModeReducer from "./modules/editMode";
 import projectAudioReducer from "./modules/projectAudio";
 import localStatusReducer from "./modules/localStatus";
+import snappingModeReducer from "./modules/snappingMode";
 
 const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
     editMode: editModeReducer,
     projectAudio: projectAudioReducer,
     localStatus: localStatusReducer,
+    snappingMode: snappingModeReducer,
   },
 });
 

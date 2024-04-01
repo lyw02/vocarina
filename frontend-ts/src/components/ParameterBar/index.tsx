@@ -8,9 +8,11 @@ import VolumeDown from "@mui/icons-material/VolumeDown";
 import VolumeUp from "@mui/icons-material/VolumeUp";
 import "./index.css";
 import {
+  FormControlLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
+  Switch,
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
@@ -21,6 +23,7 @@ import {
   setLanguage as setLanguageInState,
   setVoice as setVoiceInState,
 } from "@/store/modules/params";
+import { setSnappingMode } from "@/store/modules/snappingMode";
 
 const ParameterBar = () => {
   const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] =
@@ -79,6 +82,11 @@ const ParameterBar = () => {
     dispatch(setVoiceInState(e.target.value));
   };
 
+  // Snapping mode
+  const handleSnappingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSnappingMode(e.target.checked));
+  };
+
   return (
     <div className="param-wrapper">
       <Stack justifyContent="space-between" direction="row" sx={{ mb: 1 }}>
@@ -135,6 +143,10 @@ const ParameterBar = () => {
           sx={{ width: "30%" }}
           alignItems="center"
         >
+          <FormControlLabel
+            control={<Switch defaultChecked onChange={(e) => handleSnappingChange(e)} />}
+            label="Snapping"
+          />
           <ToggleButtonGroup
             color="primary"
             value={toggle}
