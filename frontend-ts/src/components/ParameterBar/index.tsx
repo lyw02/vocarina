@@ -7,10 +7,20 @@ import Slider from "@mui/material/Slider";
 import VolumeDown from "@mui/icons-material/VolumeDown";
 import VolumeUp from "@mui/icons-material/VolumeUp";
 import "./index.css";
-import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+import {
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import SelectAllIcon from "@mui/icons-material/SelectAll";
 import { setEditMode } from "@/store/modules/editMode";
+import {
+  setLanguage as setLanguageInState,
+  setVoice as setVoiceInState,
+} from "@/store/modules/params";
 
 const ParameterBar = () => {
   const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] =
@@ -44,6 +54,31 @@ const ParameterBar = () => {
     }
   };
 
+  // Language and voice
+  const options: { [key: string]: string[] } = {
+    English: ["Microsoft - Jenny"],
+    Chinese: ["Reecho.ai - Otto"],
+  };
+
+  const [language, setLanguage] = useState<string>(
+    useSelector((state: RootState) => state.params.language) || ""
+  );
+  const [voice, setVoice] = useState<string>(
+    useSelector((state: RootState) => state.params.voice) || ""
+  );
+
+  const handleLanguageChange = (e: SelectChangeEvent<string>) => {
+    setLanguage(e.target.value);
+    setVoice("");
+    dispatch(setLanguageInState(e.target.value));
+    dispatch(setVoiceInState(""));
+  };
+
+  const handleVoiceChange = (e: SelectChangeEvent<string>) => {
+    setVoice(e.target.value);
+    dispatch(setVoiceInState(e.target.value));
+  };
+
   return (
     <div className="param-wrapper">
       <Stack justifyContent="space-between" direction="row" sx={{ mb: 1 }}>
@@ -60,11 +95,39 @@ const ParameterBar = () => {
           >
             BPM: {bpm}
           </span>
-          <span>
-            <select>
-              <option>Select Voice</option>
-            </select>
-          </span>
+          <Select
+            value={language}
+            onChange={(e) => handleLanguageChange(e)}
+            size="small"
+            displayEmpty
+          >
+            <MenuItem value="" disabled>
+              Select Language
+            </MenuItem>
+            {Object.keys(options).map((language) => (
+              <MenuItem key={language} value={language}>
+                {language}
+              </MenuItem>
+            ))}
+          </Select>
+          <Select
+            value={voice}
+            onChange={(e) => handleVoiceChange(e)}
+            disabled={!language}
+            size="small"
+            displayEmpty
+            sx={{ visibility: language ? "visible" : "hidden" }}
+          >
+            <MenuItem value="" disabled>
+              Select Voice
+            </MenuItem>
+            {language &&
+              options[language].map((voice) => (
+                <MenuItem key={voice} value={voice}>
+                  {voice}
+                </MenuItem>
+              ))}
+          </Select>
         </Stack>
         <Stack
           spacing={2}

@@ -38,6 +38,8 @@ export interface ParamsState {
   numerator: number;
   denominator: number;
   bpm: number;
+  language: string;
+  voice: string;
 }
 
 export interface TracksState {
