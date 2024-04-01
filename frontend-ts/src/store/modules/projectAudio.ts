@@ -2,7 +2,7 @@ import { ProjectAudioState } from "@/types";
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState: ProjectAudioState = {
-  base64: ""
+  base64: "",
 };
 
 const projectAudioStore = createSlice({

@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, CircularProgress, Stack } from "@mui/material";
 import "./index.css";
 import LyricsDialog from "../InputDialog/LyricsDialog";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
+import PauseCircleFilledIcon from "@mui/icons-material/PauseCircleFilled";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { processAudio } from "@/api/projectApi";
 import { useDispatch, useSelector } from "react-redux";
 import { setProjectAudio } from "@/store/modules/projectAudio";
 import { RootState } from "@/types";
-import { setGeneratedStatus, setGeneratingStatus } from "@/store/modules/localStatus";
+import {
+  setGeneratedStatus,
+  setGeneratingStatus,
+  setPlayingStatus,
+} from "@/store/modules/localStatus";
+import AudioContainer from "../AudioContainer";
 
 const sampleData = {
   tracks: [
@@ -61,15 +67,30 @@ const Toolbar = () => {
   };
 
   const handleGenerate = async () => {
-    // console.log("Generate...");
     dispatch(setGeneratingStatus(true));
     let responseData = await processAudio(sampleData);
-    let base64Data = JSON.parse(responseData).data;
-    // console.log(base64Data);
-    dispatch(setProjectAudio(base64Data));
+    let resBase64Data = JSON.parse(responseData).data;
+    dispatch(setProjectAudio(resBase64Data));
     dispatch(setGeneratingStatus(false));
     dispatch(setGeneratedStatus(true));
   };
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+  let base64Data = useSelector((state: RootState) => state.projectAudio.base64);
+  console.log("Get base64: ", base64Data);
+
+  const handlePlay = () => {
+    dispatch(setPlayingStatus(!isPlaying));
+    isPlaying && audioRef
+      ? audioRef?.current?.pause()
+      : audioRef?.current?.play();
+  };
+
+  if (audioRef.current) {
+    audioRef.current.onended = () => {
+      dispatch(setPlayingStatus(false));
+    };
+  }
 
   return (
     <div className="toolbar-wrapper">
@@ -91,7 +112,10 @@ const Toolbar = () => {
           </Button>
           <Button variant="contained" size="small" onClick={handleGenerate}>
             {isGenerating ? (
-              <CircularProgress size={20} sx={{ marginRight: "5px", color: "white" }} />
+              <CircularProgress
+                size={20}
+                sx={{ marginRight: "5px", color: "white" }}
+              />
             ) : (
               <MusicNoteIcon sx={{ marginRight: "5px" }} />
             )}
@@ -99,10 +123,24 @@ const Toolbar = () => {
           </Button>
         </Stack>
         <Stack direction="row">
-          <Button disabled={!isGenerated} variant="contained" size="small">
-            <PlayCircleFilledIcon sx={{ marginRight: "5px" }} />
+          <Button
+            disabled={!isGenerated}
+            onClick={handlePlay}
+            variant="contained"
+            size="small"
+          >
+            {isPlaying ? (
+              <PauseCircleFilledIcon sx={{ marginRight: "5px" }} />
+            ) : (
+              <PlayCircleFilledIcon sx={{ marginRight: "5px" }} />
+            )}
             Play
           </Button>
+          <AudioContainer
+            base64Data={base64Data}
+            display="none"
+            ref={audioRef}
+          />
         </Stack>
       </Stack>
       <LyricsDialog
