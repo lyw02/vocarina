@@ -1,7 +1,7 @@
-import { projectAudioState } from "@/types";
+import { ProjectAudioState } from "@/types";
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState: projectAudioState = {
+const initialState: ProjectAudioState = {
   base64: ""
 };
 
