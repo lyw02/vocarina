@@ -110,23 +110,13 @@ function CanvasComponent() {
         if (note.isBoundary(clickX, clickY) === "left") {
           window.onmousemove = (e) => {
             let tempDisXLeft = e.clientX - rect.left - clickX; // how far the mouse moved in X
-            let disXLeft;
-            snappingMode
-              ? (disXLeft =
-                  tempDisXLeft -
-                  (tempDisXLeft % ComposeAreaStyle.colLineIntervalInner))
-              : (disXLeft = tempDisXLeft);
+            let disXLeft = getDisX(tempDisXLeft, note.startX);
             note.startX = startX + disXLeft;
           };
         } else if (note.isBoundary(clickX, clickY) === "right") {
           window.onmousemove = (e) => {
             let tempDisXRight = e.clientX - rect.left - clickX; // how far the mouse moved in X
-            let disXRight;
-            snappingMode
-              ? (disXRight =
-                  tempDisXRight -
-                  (tempDisXRight % ComposeAreaStyle.colLineIntervalInner))
-              : (disXRight = tempDisXRight);
+            let disXRight = getDisX(tempDisXRight, note.endX);
             note.endX = endX + disXRight;
           };
         }
@@ -135,11 +125,7 @@ function CanvasComponent() {
         const { startX, startY, endX, endY } = note;
         window.onmousemove = (e) => {
           let tempDisX = e.clientX - rect.left - clickX; // how far the mouse moved in X
-          let disX;
-          snappingMode
-            ? (disX =
-                tempDisX - (tempDisX % ComposeAreaStyle.colLineIntervalInner))
-            : (disX = tempDisX);
+          let disX = getDisX(tempDisX, note.startX);
           let disY =
             Math.floor((e.clientY - rect.top - clickY) / noteStyle.noteHeight) *
             noteStyle.noteHeight;
@@ -237,6 +223,25 @@ function CanvasComponent() {
       canvas.style.cursor = "default";
     }
   };
+
+  const getDisX = (tempDisX: number, startX: number) => {
+    let disX;
+    if (
+      snappingMode &&
+      (tempDisX + startX) % ComposeAreaStyle.colLineIntervalInner !==
+        0
+    ) {
+      disX =
+        Math.floor(
+          (tempDisX + startX) / ComposeAreaStyle.colLineIntervalInner
+        ) *
+          ComposeAreaStyle.colLineIntervalInner -
+        startX;
+    } else {
+      disX = tempDisX;
+    }
+    return disX;
+  }
 
   return (
     <canvas
