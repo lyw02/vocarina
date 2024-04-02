@@ -2,8 +2,8 @@ import { NoteProps } from "@/types";
 
 export const noteStyle = {
   color: "#ff8fab",
-  overlapColor: "#db7790",
-  selectedColor: "#ffe5ec",
+  overlapColor: "#db7790b2",
+  selectedColor: "#faccd7",
   overlapSelectedColor: "#db7790b2",
   borderColor: "#fff",
   textColor: "#fff",
@@ -128,11 +128,11 @@ export class Note {
     ctx.lineTo(this.minX, this.minY);
     if (this.isOverlap) {
       selectedNotes.includes(this.id)
-        ? (ctx.fillStyle = noteStyle.overlapColor)
+        ? (ctx.fillStyle = noteStyle.overlapSelectedColor)
         : (ctx.fillStyle = noteStyle.overlapColor);
     } else {
       selectedNotes.includes(this.id)
-        ? (ctx.fillStyle = noteStyle.overlapColor)
+        ? (ctx.fillStyle = noteStyle.selectedColor)
         : (ctx.fillStyle = noteStyle.color);
     }
     // this.isOverlap

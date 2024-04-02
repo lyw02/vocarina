@@ -43,7 +43,7 @@ function CanvasComponent() {
 
   const dispatch = useDispatch();
 
-  function getNote(x: number, y: number) {
+  const getNote = (x: number, y: number) => {
     // Get note that clicked on
     for (let i = notes.length - 1; i >= 0; i--) {
       const n = notes[i];
@@ -131,7 +131,13 @@ function CanvasComponent() {
         }
       } else if (note && !note.isBoundary(clickX, clickY)) {
         // Drag note
+        console.log("selected: ", selected);
         const { startX, startY, endX, endY } = note;
+        const startXArr = notes.map((note) => note.startX);
+        const endXArr = notes.map((note) => note.endX);
+        const startYArr = notes.map((note) => note.startY);
+        const endYArr = notes.map((note) => note.endY);
+
         window.onmousemove = (e) => {
           let tempDisX = e.clientX - rect.left - clickX; // how far the mouse moved in X
           let disX = getDisX(tempDisX, note.startX);
@@ -139,32 +145,41 @@ function CanvasComponent() {
             Math.floor((e.clientY - rect.top - clickY) / noteStyle.noteHeight) *
             noteStyle.noteHeight;
 
-          // Boundary determination
-          // TODO
-          if (startX + disX > canvas.width) {
-            note.startX = canvas.width;
-            note.endX = canvas.width - note.noteLength;
-          } else if (startX < 0) {
-            note.startX = 0;
-            note.endX = note.noteLength;
+          // // TODO Boundary determination
+          // if (startX + disX > canvas.width) {
+          //   note.startX = canvas.width;
+          //   note.endX = canvas.width - note.noteLength;
+          // } else if (startX < 0) {
+          //   note.startX = 0;
+          //   note.endX = note.noteLength;
+          // } else {
+          // }
+
+          // if (endX + disX > canvas.width) {
+          //   note.endX = canvas.width;
+          //   note.startX = note.endX - note.noteLength;
+          // } else if (endX + disX < 0) {
+          //   note.endX = 0;
+          //   note.startX = note.endX + note.noteLength;
+          // } else {
+          // }
+
+          if (selected.includes(note.id)) {
+            selected.forEach((id) => {
+              let index =  notes.findIndex((note) => note.id === id)
+              if (notes[index]) {
+                notes[index].startX = startXArr[index] + disX
+                notes[index].endX = endXArr[index] + disX;
+                notes[index].startY = startYArr[index] + disY;
+                notes[index].endY = endYArr[index] + disY;
+              }
+            });
           } else {
             note.startX = startX + disX;
-          }
-
-          if (endX + disX > canvas.width) {
-            note.endX = canvas.width;
-            note.startX = note.endX - note.noteLength;
-          } else if (endX + disX < 0) {
-            note.endX = 0;
-            note.startX = note.endX + note.noteLength;
-          } else {
             note.endX = endX + disX;
+            note.startY = startY + disY;
+            note.endY = endY + disY;
           }
-
-          // note.startX = startX + disX;
-          // note.endX = endX + disX;
-          note.startY = startY + disY;
-          note.endY = endY + disY;
         };
       } else {
         if (editMode === "edit") {
