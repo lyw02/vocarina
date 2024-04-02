@@ -5,6 +5,7 @@ const initialState: LocalStatusState = {
   isGenerating: false,
   isGenerated: false,
   isPlaying: false,
+  selectedNotes: [],
 };
 
 const localStatusStore = createSlice({
@@ -20,14 +21,26 @@ const localStatusStore = createSlice({
     setPlayingStatus(state, action) {
       state.isPlaying = action.payload;
     },
+    setSelectedNotes(state, action) {
+      state.selectedNotes = action.payload;
+    },
   },
 });
 
-const { setGeneratingStatus, setGeneratedStatus, setPlayingStatus } =
-  localStatusStore.actions;
+const {
+  setGeneratingStatus,
+  setGeneratedStatus,
+  setPlayingStatus,
+  setSelectedNotes,
+} = localStatusStore.actions;
 
 const reducer = localStatusStore.reducer;
 
-export { setGeneratingStatus, setGeneratedStatus, setPlayingStatus };
+export {
+  setGeneratingStatus,
+  setGeneratedStatus,
+  setPlayingStatus,
+  setSelectedNotes,
+};
 
 export default reducer;

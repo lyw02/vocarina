@@ -66,6 +66,7 @@ export interface LocalStatusState {
   isGenerating: boolean;
   isGenerated: boolean;
   isPlaying: boolean;
+  selectedNotes: number[];
 }
 
 export interface SnappingModeState {

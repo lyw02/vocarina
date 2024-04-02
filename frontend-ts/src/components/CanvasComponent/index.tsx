@@ -6,6 +6,8 @@ import { RootState } from "@/types";
 import _ from "lodash";
 import { setSheet } from "@/store/modules/tracks";
 import { ComposeAreaStyle } from "@/utils/ComposeAreaStyle";
+import { DragSelector } from "@/utils/DragSelector";
+import { setSelectedNotes } from "@/store/modules/localStatus";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -58,6 +60,12 @@ function CanvasComponent() {
     );
   };
 
+  const dragSelector = new DragSelector(0, 0);
+  const selectedNotes = useSelector(
+    (state: RootState) => state.localStatus.selectedNotes
+  );
+  let selected = _.cloneDeep(selectedNotes);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -74,12 +82,13 @@ function CanvasComponent() {
       ctx.clearRect(0, 0, 2700, 2700); // Clear canvas
       notesInDraw.forEach((note) => {
         overlap(note) ? (note.isOverlap = true) : (note.isOverlap = false);
-        note.drawNote(ctx);
+        note.drawNote(ctx, selectedNotes);
       });
+      dragSelector.drawSelector(ctx);
     }
 
     draw();
-  }, [notesInState]);
+  }, [notesInState, dragSelector, selected]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     // event.preventDefault();
@@ -182,6 +191,17 @@ function CanvasComponent() {
             }
           };
           notes.push(note);
+        } else if (editMode === "select") {
+          // Drag select
+          selected = [];
+          dragSelector.startX = clickX;
+          dragSelector.startY = clickY;
+          dragSelector.endX = clickX;
+          dragSelector.endY = clickY;
+          window.onmousemove = (e) => {
+            dragSelector.endX = e.clientX - rect.left;
+            dragSelector.endY = e.clientY - rect.top;
+          };
         }
       }
     }
@@ -191,6 +211,21 @@ function CanvasComponent() {
     if (event.button === 2) {
       event.preventDefault();
     }
+
+    notes.forEach((note) => {
+      if (
+        !selected.includes(note.id) &&
+        Math.abs(note.midX - dragSelector.midX) <
+          (note.noteLength + dragSelector.width) / 2 &&
+        Math.abs(note.midY - dragSelector.midY) <
+          (noteStyle.noteHeight + dragSelector.height) / 2
+      ) {
+        // Note is overlapped with drag selector
+        selected.push(note.id);
+      }
+    });
+    dispatch(setSelectedNotes(selected));
+
     // When mouse up, cancel move event
     window.onmousemove = null;
     window.onmouseup = null;
@@ -228,8 +263,7 @@ function CanvasComponent() {
     let disX;
     if (
       snappingMode &&
-      (tempDisX + startX) % ComposeAreaStyle.colLineIntervalInner !==
-        0
+      (tempDisX + startX) % ComposeAreaStyle.colLineIntervalInner !== 0
     ) {
       disX =
         Math.floor(
@@ -241,7 +275,7 @@ function CanvasComponent() {
       disX = tempDisX;
     }
     return disX;
-  }
+  };
 
   return (
     <canvas

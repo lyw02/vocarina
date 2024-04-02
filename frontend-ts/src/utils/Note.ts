@@ -2,7 +2,9 @@ import { NoteProps } from "@/types";
 
 export const noteStyle = {
   color: "#ff8fab",
-  overlapColor: "#ffe5ec",
+  overlapColor: "#db7790",
+  selectedColor: "#ffe5ec",
+  overlapSelectedColor: "#db7790b2",
   borderColor: "#fff",
   textColor: "#fff",
   font: "15px sans-serif",
@@ -49,7 +51,13 @@ export class Note {
     lyrics?: string,
     breakpoints?: any[]
   ) {
-    if (endX && endY && isOverlap !== undefined && noteLength && lyrics !== undefined) {
+    if (
+      endX &&
+      endY &&
+      isOverlap !== undefined &&
+      noteLength &&
+      lyrics !== undefined
+    ) {
       this.id = id;
       this.startX = startX;
       this.startY = startY;
@@ -103,7 +111,14 @@ export class Note {
     return this.endY;
   }
 
-  drawNote(ctx: CanvasRenderingContext2D) {
+  get midX() {
+    return (this.startX + this.endX) / 2;
+  }
+  get midY() {
+    return (this.startY + this.endY) / 2;
+  }
+
+  drawNote(ctx: CanvasRenderingContext2D, selectedNotes: number[]) {
     this.noteLength = Math.abs(this.minX - this.maxX);
     ctx.beginPath();
     ctx.moveTo(this.minX, this.minY);
@@ -111,9 +126,18 @@ export class Note {
     ctx.lineTo(this.maxX, this.maxY);
     ctx.lineTo(this.minX, this.maxY);
     ctx.lineTo(this.minX, this.minY);
-    this.isOverlap
-      ? (ctx.fillStyle = noteStyle.overlapColor)
-      : (ctx.fillStyle = noteStyle.color);
+    if (this.isOverlap) {
+      selectedNotes.includes(this.id)
+        ? (ctx.fillStyle = noteStyle.overlapColor)
+        : (ctx.fillStyle = noteStyle.overlapColor);
+    } else {
+      selectedNotes.includes(this.id)
+        ? (ctx.fillStyle = noteStyle.overlapColor)
+        : (ctx.fillStyle = noteStyle.color);
+    }
+    // this.isOverlap
+    //   ? (ctx.fillStyle = noteStyle.overlapColor)
+    //   : (ctx.fillStyle = noteStyle.color);
     ctx.fill();
     ctx.strokeStyle = noteStyle.borderColor;
     ctx.lineWidth = noteStyle.borderWidth;
