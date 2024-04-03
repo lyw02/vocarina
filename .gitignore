@@ -294,4 +294,6 @@ fabric.properties
 
 backend/root/project/process/temp/
 
+.VSCodeCounter/
+
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,django

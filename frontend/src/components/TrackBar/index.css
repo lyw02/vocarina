@@ -1,0 +1,5 @@
+.trackbar-wrapper {
+  margin: 10px 30px;
+  max-height: 21vh;
+  overflow: auto;
+}

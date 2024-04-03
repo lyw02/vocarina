@@ -1,4 +1,4 @@
-.navbar-wrapper {
+.site-header-wrapper {
   background-image: linear-gradient(
     -20deg,
     #ddd6f3 0%,
@@ -14,6 +14,11 @@
 .optionButtons {
   display: flex;
   list-style: none;
+  margin: 0;
+}
+
+.link {
+  text-decoration: none;
 }
 
 .optionButtons li {
