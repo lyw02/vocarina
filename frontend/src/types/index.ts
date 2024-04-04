@@ -2,6 +2,13 @@ import { Track } from "./project";
 
 export type editMode = "edit" | "select";
 
+export type wavePlotElement = {
+  id: number;
+  left: number;
+  top: number;
+  width: number;
+};
+
 export interface PianoKey {
   id: number;
   octave: number;
@@ -59,7 +66,9 @@ export interface EditModeState {
 }
 
 export interface ProjectAudioState {
-  base64: string;
+  base64Arr: string[]; // Data of each note
+  base64: string; // Data of final audio
+  wavePlotElements: wavePlotElement[];
 }
 
 export interface LocalStatusState {

@@ -8,6 +8,10 @@ import { setSheet } from "@/store/modules/tracks";
 import { ComposeAreaStyle } from "@/utils/ComposeAreaStyle";
 import { DragSelector } from "@/utils/DragSelector";
 import { setSelectedNotes } from "@/store/modules/localStatus";
+import {
+  pushWavePlotElements,
+  setWavePlotElements as setWavePlotElementsInState,
+} from "@/store/modules/projectAudio";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -52,7 +56,7 @@ function CanvasComponent() {
       }
     }
     return null;
-  }
+  };
 
   const overlap = (note: Note) => {
     return notes.some(
@@ -89,6 +93,29 @@ function CanvasComponent() {
 
     draw();
   }, [notesInState, dragSelector, selected]);
+
+  const noteAudioArr = useSelector(
+    (state: RootState) => state.projectAudio.base64Arr
+  );
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    dispatch(setWavePlotElementsInState([]));
+    tracks
+      .find((t) => t.trackId === currentTrack)!
+      .sheet.forEach((note) => {
+        dispatch(
+          pushWavePlotElements({
+            id: note.id,
+            left: note.startX,
+            top: note.startY + noteStyle.noteHeight,
+            width: note.noteLength,
+          })
+        );
+      });
+  }, [noteAudioArr, currentTrack]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     // event.preventDefault();
@@ -166,9 +193,9 @@ function CanvasComponent() {
 
           if (selected.includes(note.id)) {
             selected.forEach((id) => {
-              let index =  notes.findIndex((note) => note.id === id)
+              let index = notes.findIndex((note) => note.id === id);
               if (notes[index]) {
-                notes[index].startX = startXArr[index] + disX
+                notes[index].startX = startXArr[index] + disX;
                 notes[index].endX = endXArr[index] + disX;
                 notes[index].startY = startYArr[index] + disY;
                 notes[index].endY = endYArr[index] + disY;

@@ -16,6 +16,7 @@
     "@mui/icons-material": "^5.15.6",
     "@mui/material": "^5.15.6",
     "@reduxjs/toolkit": "^2.1.0",
+    "@wavesurfer/react": "^1.0.4",
     "classnames": "^2.5.1",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
@@ -25,6 +26,7 @@
     "react-router-dom": "^6.21.3",
     "react-swipeable-views": "^0.14.0",
     "uuid": "^9.0.1",
+    "wavesurfer.js": "^7.7.8",
     "web-audio-api": "^0.2.2"
   },
   "devDependencies": {

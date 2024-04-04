@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button, CircularProgress, Stack } from "@mui/material";
 import "./index.css";
 import LyricsDialog from "../InputDialog/LyricsDialog";
@@ -8,7 +8,7 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { processAudio } from "@/api/projectApi";
 import { useDispatch, useSelector } from "react-redux";
-import { setProjectAudio } from "@/store/modules/projectAudio";
+import { setProjectAudio, setProjectAudioArr } from "@/store/modules/projectAudio";
 import { RootState } from "@/types";
 import {
   setGeneratedStatus,
@@ -69,7 +69,9 @@ const Toolbar = () => {
   const handleGenerate = async () => {
     dispatch(setGeneratingStatus(true));
     let responseData = await processAudio(sampleData);
-    let resBase64Data = JSON.parse(responseData).data;
+    let resBase64DataArr = JSON.parse(responseData).data_arr;
+    let resBase64Data = JSON.parse(responseData).final_data;
+    dispatch(setProjectAudioArr(resBase64DataArr));
     dispatch(setProjectAudio(resBase64Data));
     dispatch(setGeneratingStatus(false));
     dispatch(setGeneratedStatus(true));

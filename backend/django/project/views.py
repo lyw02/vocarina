@@ -86,17 +86,20 @@ def audio_process_api(request):
             #     # .generate_final_audio()
             #  )
 
-            base64_final = (AudioProcessor()
-                            .generate(lyrics)
-                            .set_pitch_to_avg()
-                            .edit_pitch(target_pitch_list)
-                            .edit_duration(target_duration_list)
-                            .remove_silence()
-                            .generate_final_audio()
-                            .base64_final)
+            audio_processor = (AudioProcessor()
+                               .generate(lyrics)
+                               .set_pitch_to_avg()
+                               .edit_pitch(target_pitch_list)
+                               .edit_duration(target_duration_list)
+                               .remove_silence()
+                               .generate_final_audio())
+
+            base64_res = audio_processor.base64_res
+            base64_final = audio_processor.base64_final
 
             print(f"base64_final: {base64_final}")
-            return JsonResponse(json.dumps({"data": base64_final}), safe=False, status=status.HTTP_200_OK)
+            return JsonResponse(json.dumps({"data_arr": base64_res, "final_data": base64_final}), safe=False,
+                                status=status.HTTP_200_OK)
 
         except Exception as e:
             traceback.print_exc()
