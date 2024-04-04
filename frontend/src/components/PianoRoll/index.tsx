@@ -43,9 +43,7 @@ const PianoRoll = () => {
     const map = getMap();
     const minLength = Math.min(refs.current.size, audioUrls.length);
     refs.current.keys().forEach((i: number) => {
-      console.log("i: ", i);
       if (i < minLength) {
-        console.log("i < minLength");
         WaveSurfer.create({
           container: map.get(i),
           height: noteStyle.noteHeight * 4,

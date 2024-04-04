@@ -37,6 +37,8 @@ const TrackBar = () => {
   );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
 
+  const [clickedTrack, setClickedTrack] = useState<number>(currentTrack);
+
   const handleTrackChange = (trackId: number) => {
     dispatch(setCurrentTrack(trackId));
     dispatch(
@@ -130,10 +132,18 @@ const TrackBar = () => {
     let sheet = t.sheet;
 
     if (sheet.length !== 0) {
-      let minStartX = sheet.reduce((prev, current) => (prev.startX < current.startX) ? prev : current).startX;
-      let maxEndX = sheet.reduce((prev, current) => (prev.endX > current.endX) ? prev : current).endX;
-      let minStartY = sheet.reduce((prev, current) => (prev.startY < current.startY) ? prev : current).startY;
-      let maxEndY = sheet.reduce((prev, current) => (prev.endY > current.endY) ? prev : current).endY;
+      let minStartX = sheet.reduce((prev, current) =>
+        prev.startX < current.startX ? prev : current
+      ).startX;
+      let maxEndX = sheet.reduce((prev, current) =>
+        prev.endX > current.endX ? prev : current
+      ).endX;
+      let minStartY = sheet.reduce((prev, current) =>
+        prev.startY < current.startY ? prev : current
+      ).startY;
+      let maxEndY = sheet.reduce((prev, current) =>
+        prev.endY > current.endY ? prev : current
+      ).endY;
 
       distanceX.push(maxEndX - minStartX);
       distanceY.push(maxEndY - minStartY);
@@ -239,30 +249,30 @@ const TrackBar = () => {
               maxDistanceX={maxDistanceX}
               maxDistanceY={maxDistanceY}
             />
-            <Menu
-              id="fade-menu"
-              MenuListProps={{
-                "aria-labelledby": "fade-button",
-              }}
-              anchorEl={trackOptionsAnchorEl}
-              open={isTrackOptionsOpen}
-              onClose={handleTrackOptionsClose}
-              TransitionComponent={Fade}
-            >
-              <MenuItem onClick={handleNewTruck}>New track</MenuItem>
-              <MenuItem onClick={handleEditTrackName}>Edit track name</MenuItem>
-              <MenuItem onClick={handleDeleteTruck}>Delete track</MenuItem>
-            </Menu>
-            <InputDialog
-              title="Edit Track Name"
-              formType="EditTrackNameForm"
-              isOpen={isTrackNameDialogVisible}
-              setIsOpen={setIsTrackNameDialogVisible}
-              trackId={track.trackId}
-            />
           </Stack>
         );
       })}
+      <Menu
+        id="fade-menu"
+        MenuListProps={{
+          "aria-labelledby": "fade-button",
+        }}
+        anchorEl={trackOptionsAnchorEl}
+        open={isTrackOptionsOpen}
+        onClose={handleTrackOptionsClose}
+        TransitionComponent={Fade}
+      >
+        <MenuItem onClick={handleNewTruck}>New track</MenuItem>
+        <MenuItem onClick={handleEditTrackName}>Edit track name</MenuItem>
+        <MenuItem onClick={handleDeleteTruck}>Delete track</MenuItem>
+      </Menu>
+      <InputDialog
+        title="Edit Track Name"
+        formType="EditTrackNameForm"
+        isOpen={isTrackNameDialogVisible}
+        setIsOpen={setIsTrackNameDialogVisible}
+        trackId={optionTrackId || undefined}
+      />
     </div>
   );
 };

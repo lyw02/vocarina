@@ -158,7 +158,6 @@ function CanvasComponent() {
         }
       } else if (note && !note.isBoundary(clickX, clickY)) {
         // Drag note
-        console.log("selected: ", selected);
         const { startX, startY, endX, endY } = note;
         const startXArr = notes.map((note) => note.startX);
         const endXArr = notes.map((note) => note.endX);
