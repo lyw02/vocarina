@@ -37,12 +37,14 @@ const TrackBar = () => {
   );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
 
-  const [clickedTrack, setClickedTrack] = useState<number>(currentTrack);
-
   const handleTrackChange = (trackId: number) => {
     dispatch(setCurrentTrack(trackId));
     dispatch(
-      setSheet({ trackId: currentTrack, sheet: tracks[currentTrack - 1].sheet })
+      setSheet({
+        trackId: currentTrack,
+        sheet:
+          tracks[tracks.findIndex((t) => t.trackId === currentTrack)].sheet,
+      })
     );
   };
 
@@ -271,7 +273,7 @@ const TrackBar = () => {
         formType="EditTrackNameForm"
         isOpen={isTrackNameDialogVisible}
         setIsOpen={setIsTrackNameDialogVisible}
-        trackId={optionTrackId || undefined}
+        trackId={optionTrackId || 1}
       />
     </div>
   );

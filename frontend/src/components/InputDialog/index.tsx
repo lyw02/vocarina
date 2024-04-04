@@ -54,12 +54,15 @@ const InputDialog = ({
 
   const dispatch = useDispatch();
 
-  const oldName = useSelector(
-    (state: RootState) =>
-      state.tracks.tracks[
-        state.tracks.tracks.findIndex((t) => t.trackId === trackId)
-      ].trackName
-  );
+  const tracks = useSelector((state: RootState) => state.tracks.tracks);
+  const trackIds = tracks.map((t) => t.trackId);
+
+  if (!tracks[tracks.findIndex((t) => t.trackId === trackId)]) {
+    trackId = trackIds[0];
+  }
+
+  const oldName =
+    tracks[tracks.findIndex((t) => t.trackId === trackId)].trackName;
 
   const getForm = () => {
     if (formType === "EditTimeSignatureForm") {
