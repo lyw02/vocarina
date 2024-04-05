@@ -10,8 +10,10 @@ import { DragSelector } from "@/utils/DragSelector";
 import { setSelectedNotes } from "@/store/modules/localStatus";
 import {
   pushWavePlotElements,
+  setCursorTime,
   setWavePlotElements as setWavePlotElementsInState,
 } from "@/store/modules/projectAudio";
+import { Cursor } from "@/utils/Cursor";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -68,7 +70,16 @@ function CanvasComponent() {
   const selectedNotes = useSelector(
     (state: RootState) => state.localStatus.selectedNotes
   );
+  const { bpm, numerator, denominator } = useSelector(
+    (state: RootState) => state.params
+  );
   let selected = _.cloneDeep(selectedNotes);
+  let cursorPos = 0;
+  // const cursorTime = useSelector(
+  //   (state: RootState) => state.projectAudio.cursorTime
+  // );
+  // cursorPos = (cursorTime * bpm * 40) / (60 * numerator * numerator * denominator);
+  const cursor = Cursor.getInstance(cursorPos, 2700);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -83,16 +94,17 @@ function CanvasComponent() {
       if (!ctx) return;
       const notesInDraw = notes;
       requestAnimationFrame(draw);
-      ctx.clearRect(0, 0, 2700, 2700); // Clear canvas
+      ctx.clearRect(0, 0, 10000, 2700); // Clear canvas
       notesInDraw.forEach((note) => {
         overlap(note) ? (note.isOverlap = true) : (note.isOverlap = false);
         note.drawNote(ctx, selectedNotes);
       });
       dragSelector.drawSelector(ctx);
+      cursor.drawCursor(ctx);
     }
 
     draw();
-  }, [notesInState, dragSelector, selected]);
+  }, [notesInState, dragSelector, cursor, selected]);
 
   const noteAudioArr = useSelector(
     (state: RootState) => state.projectAudio.base64Arr
@@ -274,6 +286,27 @@ function CanvasComponent() {
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (event.button === 2) {
       event.preventDefault();
+    }
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect(); // Canvas region (a rect)
+    const clickX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
+
+    if (
+      event.button === 0 &&
+      editMode === "select" &&
+      dragSelector.startX === dragSelector.endX &&
+      dragSelector.startY === dragSelector.endY // Just click, no drag
+    ) {
+      cursorPos = clickX;
+      cursor.set(cursorPos);
+      console.log("cursorPos: ", cursorPos);
+      const measureDuration = (60 * numerator * denominator) / bpm;
+      const measureCount = cursorPos / 40 / numerator;
+      dispatch(setCursorTime(measureDuration * measureCount));
+      console.log("cursor: ", cursor);
     }
 
     notes.forEach((note) => {

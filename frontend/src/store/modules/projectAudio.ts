@@ -5,6 +5,7 @@ const initialState: ProjectAudioState = {
   base64Arr: [],
   base64: "",
   wavePlotElements: [],
+  cursorTime: 0,
 };
 
 const projectAudioStore = createSlice({
@@ -23,13 +24,28 @@ const projectAudioStore = createSlice({
     pushWavePlotElements(state, action) {
       state.wavePlotElements.push(action.payload);
     },
+    setCursorTime(state, action) {
+      state.cursorTime = action.payload;
+    },
   },
 });
 
-const { setProjectAudioArr, setProjectAudio, setWavePlotElements, pushWavePlotElements } = projectAudioStore.actions;
+const {
+  setProjectAudioArr,
+  setProjectAudio,
+  setWavePlotElements,
+  pushWavePlotElements,
+  setCursorTime,
+} = projectAudioStore.actions;
 
 const reducer = projectAudioStore.reducer;
 
-export { setProjectAudioArr, setProjectAudio, setWavePlotElements, pushWavePlotElements };
+export {
+  setProjectAudioArr,
+  setProjectAudio,
+  setWavePlotElements,
+  pushWavePlotElements,
+  setCursorTime,
+};
 
 export default reducer;

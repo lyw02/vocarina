@@ -94,6 +94,9 @@ const Toolbar = () => {
     (state: RootState) =>
       state.tracks.tracks.find((t) => t.trackType === "instrumental")?.instUrl
   );
+  let cursorTime = useSelector(
+    (state: RootState) => state.projectAudio.cursorTime
+  );
   console.log("Get base64: ", base64Data);
 
   const refs = [...audioRefs, instAudioRef];
@@ -101,7 +104,12 @@ const Toolbar = () => {
   const handlePlay = () => {
     dispatch(setPlayingStatus(!isPlaying));
     refs.forEach((ref) => {
-      isPlaying && ref.current ? ref.current.pause() : ref.current?.play();
+      if (isPlaying && ref.current) {
+        ref.current.pause();
+      } else if (ref.current && cursorTime < ref.current.duration) {
+        ref.current.currentTime = cursorTime;
+        ref.current?.play();
+      }
     });
   };
 

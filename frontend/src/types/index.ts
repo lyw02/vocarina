@@ -69,6 +69,7 @@ export interface ProjectAudioState {
   base64Arr: string[]; // Data of each note
   base64: string; // Data of final audio
   wavePlotElements: wavePlotElement[];
+  cursorTime: number;
 }
 
 export interface LocalStatusState {
