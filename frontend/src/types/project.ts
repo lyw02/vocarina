@@ -1,7 +1,7 @@
-import { Note } from "@/utils/Note";
 import { NoteProps } from ".";
 
 export type trackState = "normal" | "muted" | "solo";
+export type trackType = "vocal" | "instrumental";
 
 export interface Sentence {
   sentenceId: number;
@@ -22,6 +22,7 @@ export interface Track {
   trackId: number;
   trackName: string;
   trackState: trackState;
+  trackType: trackType;
   params?: any[];
   sheet: NoteProps[];
   trackLyrics: Sentence[];

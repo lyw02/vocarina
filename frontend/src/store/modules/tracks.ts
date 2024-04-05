@@ -8,6 +8,7 @@ const initialState: TracksState = {
       trackId: 1,
       trackName: "Track 1",
       trackState: "normal",
+      trackType: "vocal",
       trackLyrics: [
         { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
       ],
@@ -21,7 +22,13 @@ const trackStore = createSlice({
   initialState: initialState,
   reducers: {
     setCurrentTrack(state, action) {
-      state.currentTrack = action.payload;
+      if (
+        state.tracks[
+          state.tracks.findIndex((t) => t.trackId === action.payload)
+        ].trackType === "vocal"
+      ) {
+        state.currentTrack = action.payload;
+      }
     },
     createNewTrack(state, action) {
       state.tracks.splice(action.payload.position, 0, {
@@ -30,6 +37,7 @@ const trackStore = createSlice({
           action.payload.trackName ||
           `Untitled track ${state.tracks.length + 1}`,
         trackState: "normal",
+        trackType: action.payload.trackType,
         trackLyrics: [],
         sheet: [],
       });

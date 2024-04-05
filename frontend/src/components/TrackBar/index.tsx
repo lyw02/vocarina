@@ -20,14 +20,15 @@ import {
   styled,
   toggleButtonGroupClasses,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
-import { trackState } from "@/types/project";
+import { trackState, trackType } from "@/types/project";
 import theme from "@/theme";
 import InputDialog from "../InputDialog";
 import TrackBarCanvas from "../TrackBarCanvas";
 import _ from "lodash";
+import { v4 as uuidv4 } from "uuid";
 
 const TrackBar = () => {
   const dispatch = useDispatch();
@@ -97,17 +98,34 @@ const TrackBar = () => {
     setTrackOptionsAnchorEl(null);
   };
 
-  const handleNewTruck = () => {
+  const newTrack = (
+    trackType: trackType,
+    position: number | undefined = undefined
+  ) => {
     const index = tracks.findIndex((t) => t.trackId === optionTrackId);
     const newPosition = index !== -1 ? index + 1 : tracks.length + 1;
 
     dispatch(
       createNewTrack({
-        position: newPosition,
+        position: position || newPosition,
         trackName: "",
+        trackType: trackType,
       })
     );
     handleTrackOptionsClose();
+  };
+
+  const handleNewTruck = () => {
+    if (tracks.length <= 5) {
+      newTrack("vocal");
+    }
+  };
+
+  const handleNewInstTruck = () => {
+    const trackTypes = tracks.map((t) => t.trackType);
+    if (tracks.length <= 5 && !trackTypes.includes("instrumental")) {
+      newTrack("instrumental", tracks.length);
+    }
   };
 
   const handleEditTrackName = () => {
@@ -160,7 +178,7 @@ const TrackBar = () => {
       {tracks.map((track) => {
         return (
           <Stack
-            key={track.trackId}
+            key={`${track.trackId}-${tracks.length}-${currentTrack}`}
             ref={trackStackRef}
             direction="row"
             spacing={0}
@@ -214,9 +232,19 @@ const TrackBar = () => {
                 >
                   <Typography
                     variant="body2"
-                    sx={{ margin: "auto", userSelect: "none" }}
+                    sx={
+                      track.trackType === "vocal"
+                        ? { margin: "auto", userSelect: "none" }
+                        : {
+                            margin: "auto",
+                            userSelect: "none",
+                            textDecoration: "underline",
+                          }
+                    }
                   >
-                    {track.trackName}
+                    {track.trackType === "vocal"
+                      ? track.trackName
+                      : "Inst. track"}
                   </Typography>
                 </Box>
                 <Box component="div" sx={{ p: 0, width: "30%", height: "50%" }}>
@@ -245,12 +273,16 @@ const TrackBar = () => {
                 </Box>
               </Stack>
             </Box>
-            <TrackBarCanvas
-              trackStackRef={trackStackRef}
-              trackId={track.trackId}
-              maxDistanceX={maxDistanceX}
-              maxDistanceY={maxDistanceY}
-            />
+            {track.trackType === "vocal" ? (
+              <TrackBarCanvas
+                trackStackRef={trackStackRef}
+                trackId={track.trackId}
+                maxDistanceX={maxDistanceX}
+                maxDistanceY={maxDistanceY}
+              />
+            ) : (
+              <Box component="div" />
+            )}
           </Stack>
         );
       })}
@@ -264,9 +296,29 @@ const TrackBar = () => {
         onClose={handleTrackOptionsClose}
         TransitionComponent={Fade}
       >
-        <MenuItem onClick={handleNewTruck}>New track</MenuItem>
-        <MenuItem onClick={handleEditTrackName}>Edit track name</MenuItem>
-        <MenuItem onClick={handleDeleteTruck}>Delete track</MenuItem>
+        {tracks.find((t) => t.trackId === optionTrackId)?.trackType === "vocal"
+          ? [
+              <MenuItem key={uuidv4()} onClick={handleNewTruck}>
+                New track
+              </MenuItem>,
+              <MenuItem key={uuidv4()} onClick={handleNewInstTruck}>
+                New instrumental track
+              </MenuItem>,
+              <MenuItem key={uuidv4()} onClick={handleEditTrackName}>
+                Edit track name
+              </MenuItem>,
+              <MenuItem key={uuidv4()} onClick={handleDeleteTruck}>
+                Delete track
+              </MenuItem>,
+            ].map((item) => item)
+          : [
+              <MenuItem key={uuidv4()} onClick={() => {}}>
+                Upload
+              </MenuItem>,
+              <MenuItem key={uuidv4()} onClick={handleDeleteTruck}>
+                Delete track
+              </MenuItem>,
+            ].map((item) => item)}
       </Menu>
       <InputDialog
         title="Edit Track Name"
