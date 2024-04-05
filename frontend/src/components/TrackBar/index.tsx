@@ -2,6 +2,7 @@ import {
   createNewTrack,
   deleteTrack,
   setCurrentTrack,
+  setInstUrl,
   setSheet,
   setTrackState,
 } from "@/store/modules/tracks";
@@ -29,6 +30,8 @@ import InputDialog from "../InputDialog";
 import TrackBarCanvas from "../TrackBarCanvas";
 import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
+import { useWavesurfer } from "@wavesurfer/react";
+import { noteStyle } from "@/utils/Note";
 
 const TrackBar = () => {
   const dispatch = useDispatch();
@@ -140,11 +143,45 @@ const TrackBar = () => {
     handleTrackOptionsClose();
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.files![0].stream());
+    if (!e.target.files) return;
+    const currentFile = e.target.files[0];
+    const currentFileURL = URL.createObjectURL(currentFile);
+    dispatch(setInstUrl(currentFileURL));
+  };
+
   const [isTrackNameDialogVisible, setIsTrackNameDialogVisible] =
     useState<boolean>(false);
 
   const trackStackRef = useRef<HTMLDivElement | null>(null);
+  const instTrackWavPlotRef = useRef<HTMLDivElement | null>(null);
+  const instAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  const instUrl = useSelector(
+    (state: RootState) =>
+      state.tracks.tracks.find((t) => t.trackType === "instrumental")?.instUrl
+  );
+  const { bpm, numerator, denominator } = useSelector(
+    (state: RootState) => state.params
+  );
+
+  const measureDuration = (60 * numerator * denominator) / bpm
+  const maxDuration = measureDuration * 62;
+  const instDuration = instAudioRef.current?.duration || 0;
+  const ratio = instDuration / maxDuration;
+
+  useWavesurfer({
+    container: instTrackWavPlotRef,
+    height: 45,
+    width: instTrackWavPlotRef.current?.clientWidth! * ratio,
+    waveColor: theme.palette.primary.light,
+    cursorWidth: 0,
+    interact: false,
+    url: instUrl,
+  });
+
+  // deprecated
   const distanceX: number[] = [];
   const distanceY: number[] = [];
 
@@ -281,7 +318,25 @@ const TrackBar = () => {
                 maxDistanceY={maxDistanceY}
               />
             ) : (
-              <Box component="div" />
+              <>
+                <Box
+                  component="div"
+                  ref={instTrackWavPlotRef}
+                  sx={{
+                    // p: "auto 0",
+                    m: "auto 0",
+                    width: "80%",
+                    // height: "100%",
+                    maxHeight: "7vh",
+                    borderLeft: "1px solid lightgrey",
+                  }}
+                />
+                <audio
+                  ref={instAudioRef}
+                  src={instUrl}
+                  style={{ display: "none" }}
+                />
+              </>
             )}
           </Stack>
         );
@@ -299,24 +354,31 @@ const TrackBar = () => {
         {tracks.find((t) => t.trackId === optionTrackId)?.trackType === "vocal"
           ? [
               <MenuItem key={uuidv4()} onClick={handleNewTruck}>
-                New track
+                {"New track"}
               </MenuItem>,
               <MenuItem key={uuidv4()} onClick={handleNewInstTruck}>
-                New instrumental track
+                {"New instrumental track"}
               </MenuItem>,
               <MenuItem key={uuidv4()} onClick={handleEditTrackName}>
-                Edit track name
+                {"Edit track name"}
               </MenuItem>,
               <MenuItem key={uuidv4()} onClick={handleDeleteTruck}>
-                Delete track
+                {"Delete track"}
               </MenuItem>,
             ].map((item) => item)
           : [
               <MenuItem key={uuidv4()} onClick={() => {}}>
-                Upload
+                {"Upload"}
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept="audio/wav"
+                  style={{ opacity: 0 }}
+                  onChange={(e) => handleFileUpload(e)}
+                />
               </MenuItem>,
               <MenuItem key={uuidv4()} onClick={handleDeleteTruck}>
-                Delete track
+                {"Delete track"}
               </MenuItem>,
             ].map((item) => item)}
       </Menu>

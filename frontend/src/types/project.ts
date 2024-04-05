@@ -26,6 +26,9 @@ export interface Track {
   params?: any[];
   sheet: NoteProps[];
   trackLyrics: Sentence[];
+  instUrl?: string;
+  instStart?: number;
+  instEnd?: number;
 }
 
 export interface Project {

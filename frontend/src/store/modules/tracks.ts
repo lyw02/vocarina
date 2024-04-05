@@ -77,6 +77,14 @@ const trackStore = createSlice({
       );
       state.tracks[trackIndex].trackName = action.payload.trackName;
     },
+    setInstUrl(state, action) {
+      const instTrack = state.tracks.find(
+        (t) => t.trackType === "instrumental"
+      );
+      if (instTrack) {
+        instTrack.instUrl = action.payload;
+      }
+    },
   },
 });
 
@@ -88,6 +96,7 @@ const {
   setSheet,
   setTrackState,
   setTrackName,
+  setInstUrl,
 } = trackStore.actions;
 
 const reducer = trackStore.reducer;
@@ -100,6 +109,7 @@ export {
   setSheet,
   setTrackState,
   setTrackName,
+  setInstUrl,
 };
 
 export default reducer;
