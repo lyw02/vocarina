@@ -2,6 +2,8 @@ import {
   createNewTrack,
   deleteTrack,
   setCurrentTrack,
+  setInstEnd,
+  setInstStart,
   setInstUrl,
   setSheet,
   setTrackState,
@@ -21,7 +23,7 @@ import {
   styled,
   toggleButtonGroupClasses,
 } from "@mui/material";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
 import { trackState, trackType } from "@/types/project";
@@ -31,7 +33,8 @@ import TrackBarCanvas from "../TrackBarCanvas";
 import _ from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import { useWavesurfer } from "@wavesurfer/react";
-import { noteStyle } from "@/utils/Note";
+import WaveSurfer from "wavesurfer.js";
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 
 const TrackBar = () => {
   const dispatch = useDispatch();
@@ -144,7 +147,6 @@ const TrackBar = () => {
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.files![0].stream());
     if (!e.target.files) return;
     const currentFile = e.target.files[0];
     const currentFileURL = URL.createObjectURL(currentFile);
@@ -166,20 +168,55 @@ const TrackBar = () => {
     (state: RootState) => state.params
   );
 
-  const measureDuration = (60 * numerator * denominator) / bpm
+  const measureDuration = (60 * numerator * denominator) / bpm;
   const maxDuration = measureDuration * 62;
   const instDuration = instAudioRef.current?.duration || 0;
   const ratio = instDuration / maxDuration;
+  const wavePlotWidth = instTrackWavPlotRef.current?.clientWidth! * ratio;
 
-  useWavesurfer({
+  const { wavesurfer } = useWavesurfer({
     container: instTrackWavPlotRef,
     height: 45,
-    width: instTrackWavPlotRef.current?.clientWidth! * ratio,
+    width: wavePlotWidth,
     waveColor: theme.palette.primary.light,
     cursorWidth: 0,
     interact: false,
     url: instUrl,
   });
+
+  // TODO Drag
+  useEffect(() => {
+    dispatch(setInstStart(0));
+    dispatch(setInstEnd(wavePlotWidth));
+  }, [dispatch, wavesurfer]);
+
+  const wsRegions = wavesurfer?.registerPlugin(RegionsPlugin.create());
+  const instTrackWavPlotRect =
+    instTrackWavPlotRef.current?.getBoundingClientRect();
+
+  const handleShowRegion = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    if (e.clientX - instTrackWavPlotRect!.left < wavePlotWidth) {
+      wsRegions?.addRegion({
+        start: 0,
+        end: wavePlotWidth,
+        color: "rgba(0, 0, 0, 0.3)",
+        drag: false,
+        resize: false,
+      });
+    } else {
+      wsRegions?.clearRegions();
+    }
+  };
+
+  const handleClearReagion = () => {
+    wsRegions?.clearRegions();
+  };
+
+  const handleDragRegion = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {};
 
   // deprecated
   const distanceX: number[] = [];
@@ -322,11 +359,12 @@ const TrackBar = () => {
                 <Box
                   component="div"
                   ref={instTrackWavPlotRef}
+                  onMouseOver={(e) => handleShowRegion(e)}
+                  onMouseOut={handleClearReagion}
+                  onMouseDown={(e) => handleDragRegion(e)}
                   sx={{
-                    // p: "auto 0",
                     m: "auto 0",
                     width: "80%",
-                    // height: "100%",
                     maxHeight: "7vh",
                     borderLeft: "1px solid lightgrey",
                   }}
@@ -368,12 +406,18 @@ const TrackBar = () => {
             ].map((item) => item)
           : [
               <MenuItem key={uuidv4()} onClick={() => {}}>
-                {"Upload"}
+                <Box component="div">{"Upload"}</Box>
                 <input
                   id="file-upload"
                   type="file"
                   accept="audio/wav"
-                  style={{ opacity: 0 }}
+                  style={{
+                    opacity: 0,
+                    width: "100%",
+                    position: "absolute",
+                    left: 0,
+                    zIndex: 1,
+                  }}
                   onChange={(e) => handleFileUpload(e)}
                 />
               </MenuItem>,
