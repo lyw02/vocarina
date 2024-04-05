@@ -118,7 +118,6 @@ function CanvasComponent() {
   }, [noteAudioArr, currentTrack]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    // event.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -127,20 +126,18 @@ function CanvasComponent() {
     const clickY = event.clientY - rect.top;
     const note = getNote(clickX, clickY);
 
-    if (event.button === 2) {
+    if (event.button === 2 && note) {
       // Delete note
-      if (note) {
-        const index = notes.indexOf(note);
-        if (index !== -1) {
-          if (selected.includes(note.id)) {
-            for (let i = notes.length - 1; i >= 0; i--) {
-              if (selected.includes(notes[i].id)) {
-                notes.splice(i, 1);
-              }
+      const index = notes.indexOf(note);
+      if (index !== -1) {
+        if (selected.includes(note.id)) {
+          for (let i = notes.length - 1; i >= 0; i--) {
+            if (selected.includes(notes[i].id)) {
+              notes.splice(i, 1);
             }
-          } else {
-            notes.splice(index, 1);
           }
+        } else {
+          notes.splice(index, 1);
         }
       }
     }
