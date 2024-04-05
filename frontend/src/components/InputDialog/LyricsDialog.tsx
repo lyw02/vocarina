@@ -114,7 +114,7 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
                 id={sentence.sentenceId.toString()}
                 label={`Sentence`}
                 variant="standard"
-                sx={{width: "50vh"}}
+                sx={{ width: "50vh" }}
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
                   const newSentences = sentences.map((s) => {
                     if (s.sentenceId === parseInt(e.target.id)) {
@@ -150,13 +150,19 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     (state: RootState) => state.tracks.currentTrack
   );
   const currentTrack = tracks.find((track) => track.trackId === currentTrackId);
-  const currentTrackIndex = tracks.findIndex((t) => t.trackId === currentTrack?.trackId);
+  const currentTrackIndex = tracks.findIndex(
+    (t) => t.trackId === currentTrack?.trackId
+  );
   const notesInState = tracks[currentTrackIndex].sheet;
   const notes = _.cloneDeep(notesInState);
 
   const [sentences, setSentences] = useState<Sentence[]>(
     currentTrack!.trackLyrics
   );
+
+  useEffect(() => {
+    setSentences(currentTrack!.trackLyrics.map((s) => s));
+  }, [currentTrackId]);
 
   useEffect(() => {
     setSentences(sortSentences(sentences));
@@ -179,7 +185,7 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     );
     sentences.forEach((s) => {
       allLyrics.push(s.content);
-    })
+    });
     const allLyricsStr = allLyrics
       .join(" ")
       .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // Remove control characters
