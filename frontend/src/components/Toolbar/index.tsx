@@ -8,7 +8,10 @@ import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { processAudio } from "@/api/projectApi";
 import { useDispatch, useSelector } from "react-redux";
-import { setProjectAudio, setProjectAudioArr } from "@/store/modules/projectAudio";
+import {
+  setProjectAudio,
+  setProjectAudioArr,
+} from "@/store/modules/projectAudio";
 import { RootState } from "@/types";
 import {
   setGeneratedStatus,
@@ -48,6 +51,7 @@ const sampleData = {
 
 const Toolbar = () => {
   const dispatch = useDispatch();
+  const tracks = useSelector((state: RootState) => state.tracks.tracks);
 
   const isGenerating = useSelector(
     (state: RootState) => state.localStatus.isGenerating
@@ -77,22 +81,43 @@ const Toolbar = () => {
     dispatch(setGeneratedStatus(true));
   };
 
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef1 = useRef<HTMLAudioElement>(null);
+  const audioRef2 = useRef<HTMLAudioElement>(null);
+  const audioRef3 = useRef<HTMLAudioElement>(null);
+  const audioRef4 = useRef<HTMLAudioElement>(null);
+  const audioRef5 = useRef<HTMLAudioElement>(null);
+  const audioRefs = [audioRef1, audioRef2, audioRef3, audioRef4, audioRef5];
+  const instAudioRef = useRef<HTMLAudioElement>(null);
+
   let base64Data = useSelector((state: RootState) => state.projectAudio.base64);
+  let instUrl = useSelector(
+    (state: RootState) =>
+      state.tracks.tracks.find((t) => t.trackType === "instrumental")?.instUrl
+  );
   console.log("Get base64: ", base64Data);
+
+  const refs = [...audioRefs, instAudioRef];
 
   const handlePlay = () => {
     dispatch(setPlayingStatus(!isPlaying));
-    isPlaying && audioRef
-      ? audioRef?.current?.pause()
-      : audioRef?.current?.play();
+    refs.forEach((ref) => {
+      isPlaying && ref.current ? ref.current.pause() : ref.current?.play();
+    });
   };
 
-  if (audioRef.current) {
-    audioRef.current.onended = () => {
-      dispatch(setPlayingStatus(false));
-    };
-  }
+  const durations = refs.map((ref) => ref.current?.duration || 0);
+  const maxDuration = Math.max(...durations);
+
+  refs.forEach((ref) => {
+    if (ref.current) {
+      ref.current.onended = () => {
+        ref.current!.pause();
+        if (Math.abs(Math.floor(ref.current?.duration!) - maxDuration) < 1) {
+          dispatch(setPlayingStatus(false));
+        }
+      };
+    }
+  });
 
   return (
     <div className="toolbar-wrapper">
@@ -141,8 +166,14 @@ const Toolbar = () => {
           <AudioContainer
             base64Data={base64Data}
             display="none"
-            ref={audioRef}
+            ref={audioRef1}
           />
+          <AudioContainer
+            base64Data={base64Data}
+            display="none"
+            ref={audioRef2}
+          />
+          <AudioContainer objUrl={instUrl} display="none" ref={instAudioRef} />
         </Stack>
       </Stack>
       <LyricsDialog
