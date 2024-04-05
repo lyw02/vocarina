@@ -129,12 +129,18 @@ function CanvasComponent() {
 
     if (event.button === 2) {
       // Delete note
-      event.preventDefault();
       if (note) {
         const index = notes.indexOf(note);
         if (index !== -1) {
-          notes.splice(index, 1);
-          event.preventDefault();
+          if (selected.includes(note.id)) {
+            for (let i = notes.length - 1; i >= 0; i--) {
+              if (selected.includes(notes[i].id)) {
+                notes.splice(i, 1);
+              }
+            }
+          } else {
+            notes.splice(index, 1);
+          }
         }
       }
     }
