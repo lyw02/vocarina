@@ -104,7 +104,7 @@ function CanvasComponent() {
     }
 
     draw();
-  }, [notesInState, dragSelector, cursor, selected]);
+  }, [notesInState, tracks[currentTrackIndex].trackLyrics, dragSelector, cursor, selected]);
 
   const noteAudioArr = useSelector(
     (state: RootState) => state.projectAudio.base64Arr
@@ -302,11 +302,9 @@ function CanvasComponent() {
     ) {
       cursorPos = clickX;
       cursor.set(cursorPos);
-      console.log("cursorPos: ", cursorPos);
       const measureDuration = (60 * numerator * denominator) / bpm;
       const measureCount = cursorPos / 40 / numerator;
       dispatch(setCursorTime(measureDuration * measureCount));
-      console.log("cursor: ", cursor);
     }
 
     notes.forEach((note) => {

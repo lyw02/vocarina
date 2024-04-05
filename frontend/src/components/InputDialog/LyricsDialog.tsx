@@ -112,8 +112,9 @@ const SentenceList = ({ sentences, setSentences }: SentenceListProps) => {
                 defaultValue={sentence.content}
                 margin="dense"
                 id={sentence.sentenceId.toString()}
-                label={`Sentence ${sentence.sentenceId}`}
+                label={`Sentence`}
                 variant="standard"
+                sx={{width: "50vh"}}
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
                   const newSentences = sentences.map((s) => {
                     if (s.sentenceId === parseInt(e.target.id)) {
@@ -163,7 +164,6 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
 
   const handleApply = () => {
     dispatch(setLyrics({ sentences: sentences, trackId: currentTrackId }));
-    // dispatch(setNotes(parseLyrics(notes)));
     dispatch(setSheet({ trackId: currentTrackId, sheet: parseLyrics(notes) }));
     handleClose();
   };
@@ -172,11 +172,14 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     setIsOpen(false);
   };
 
-  const parseLyrics = (notes: NoteProps[]) => {
+  const parseLyrics = (notes: NoteProps[]): NoteProps[] => {
     const notesCopy = _.cloneDeep(notes);
-    const allLyrics = tracks[currentTrackId - 1].trackLyrics.map(
+    const allLyrics = tracks[currentTrackIndex].trackLyrics.map(
       (s) => s.content
     );
+    sentences.forEach((s) => {
+      allLyrics.push(s.content);
+    })
     const allLyricsStr = allLyrics
       .join(" ")
       .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // Remove control characters
@@ -190,8 +193,8 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   };
 
   return (
-    <Dialog open={isOpen} onClose={handleClose} sx={{}}>
-      <DialogTitle>Edit Lyrics</DialogTitle>
+    <Dialog open={isOpen} onClose={handleClose}>
+      <DialogTitle>{`Edit Lyrics for ${tracks[currentTrackIndex].trackName}`}</DialogTitle>
       <DialogContent>
         <Stack direction="column" spacing={2}>
           <SentenceList sentences={sentences} setSentences={setSentences} />

@@ -132,10 +132,10 @@ const Toolbar = () => {
       <Stack justifyContent="space-between" direction="row">
         <Stack spacing={2} direction="row">
           <Button variant="outlined" size="small">
-            Save Project
+            {"Save Project"}
           </Button>
           <Button variant="outlined" size="small">
-            Import Project
+            {"Import Project"}
           </Button>
           <Button
             variant="outlined"
@@ -143,7 +143,7 @@ const Toolbar = () => {
             onClick={() => handleEditLyrics()}
           >
             <EditOutlinedIcon />
-            Edit Lyrics
+            {"Edit Lyrics"}
           </Button>
           <Button variant="contained" size="small" onClick={handleGenerate}>
             {isGenerating ? (
@@ -154,7 +154,7 @@ const Toolbar = () => {
             ) : (
               <MusicNoteIcon sx={{ marginRight: "5px" }} />
             )}
-            Generate
+            {"Generate"}
           </Button>
         </Stack>
         <Stack direction="row">
@@ -169,7 +169,7 @@ const Toolbar = () => {
             ) : (
               <PlayCircleFilledIcon sx={{ marginRight: "5px" }} />
             )}
-            Play
+            {"Play"}
           </Button>
           <AudioContainer
             base64Data={base64Data}
