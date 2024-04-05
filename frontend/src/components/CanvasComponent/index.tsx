@@ -143,17 +143,37 @@ function CanvasComponent() {
       if (note && note.isBoundary(clickX, clickY)) {
         // Adjust length
         const { startX, endX } = note;
+        const startXArr = notes.map((note) => note.startX);
+        const endXArr = notes.map((note) => note.endX);
         if (note.isBoundary(clickX, clickY) === "left") {
           window.onmousemove = (e) => {
             let tempDisXLeft = e.clientX - rect.left - clickX; // how far the mouse moved in X
             let disXLeft = getDisX(tempDisXLeft, note.startX);
-            note.startX = startX + disXLeft;
+            if (selected.includes(note.id)) {
+              selected.forEach((id) => {
+                let index = notes.findIndex((note) => note.id === id);
+                if (notes[index]) {
+                  notes[index].startX = startXArr[index] + disXLeft;
+                }
+              });
+            } else {
+              note.startX = startX + disXLeft;
+            }
           };
         } else if (note.isBoundary(clickX, clickY) === "right") {
           window.onmousemove = (e) => {
             let tempDisXRight = e.clientX - rect.left - clickX; // how far the mouse moved in X
             let disXRight = getDisX(tempDisXRight, note.endX);
-            note.endX = endX + disXRight;
+            if (selected.includes(note.id)) {
+              selected.forEach((id) => {
+                let index = notes.findIndex((note) => note.id === id);
+                if (notes[index]) {
+                  notes[index].endX = endXArr[index] + disXRight;
+                }
+              });
+            } else {
+              note.endX = endX + disXRight;
+            }
           };
         }
       } else if (note && !note.isBoundary(clickX, clickY)) {
