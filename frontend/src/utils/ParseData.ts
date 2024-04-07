@@ -8,7 +8,7 @@ export const parseLyrics = (notes: NoteProps[], lyrics: string[]) => {
   for (let i = 0; i < notes.length; i++) {
     if (i === 0 && notes[i].startX !== 0) {
       targetLyricsList.push("");
-    } else if (i < notes.length && notes[i].startX - notes[i - 1].endX > 1) {
+    } else if (i !== 0 && i < notes.length && notes[i].startX - notes[i - 1].endX > 1) {
       targetLyricsList.push("");
     }
     targetLyricsList.push(lyrics[i]);

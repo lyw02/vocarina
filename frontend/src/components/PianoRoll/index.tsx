@@ -63,6 +63,7 @@ const PianoRoll = () => {
 
     const map = getMap();
     const minLength = Math.min(refs.current.size, audioUrls.length);
+    
     refs.current.keys().forEach((i: number) => {
       if (i < minLength) {
         WaveSurfer.create({
@@ -76,7 +77,7 @@ const PianoRoll = () => {
         });
       }
     });
-  }, [wavePlotElements]);
+  }, [wavePlotElements, currentTrack]);
 
   return (
     <div className="piano-roll-wrapper" ref={pianoRollRef}>
@@ -92,7 +93,7 @@ const PianoRoll = () => {
         </div>
         <div className="canvas-component-wrapper">
           <CanvasComponent />
-          {wavePlotElements.map((element) => (
+          {wavePlotElements.map((element) => element.trackId === currentTrack && (
             <div
               key={element.id.toString()}
               id={element.id.toString()}
@@ -110,7 +111,7 @@ const PianoRoll = () => {
                 width: element.width,
                 height: noteStyle.noteHeight,
                 position: "absolute",
-                zIndex: 9,
+                zIndex: 1,
               }}
             />
           ))}

@@ -120,6 +120,7 @@ function CanvasComponent() {
       .sheet.forEach((note) => {
         dispatch(
           pushWavePlotElements({
+            trackId: currentTrack,
             id: note.id,
             left: note.startX,
             top: note.startY + noteStyle.noteHeight,

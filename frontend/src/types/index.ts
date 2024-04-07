@@ -3,6 +3,7 @@ import { Track } from "./project";
 export type editMode = "edit" | "select";
 
 export type wavePlotElement = {
+  trackId: 0;
   id: number;
   left: number;
   top: number;
