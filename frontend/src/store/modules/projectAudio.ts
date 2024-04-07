@@ -3,9 +3,10 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState: ProjectAudioState = {
   base64Arr: [],
-  base64: "",
+  base64: [],
   wavePlotElements: [],
   cursorTime: 0,
+  parsedLyricsArr: [],
 };
 
 const projectAudioStore = createSlice({
@@ -27,6 +28,9 @@ const projectAudioStore = createSlice({
     setCursorTime(state, action) {
       state.cursorTime = action.payload;
     },
+    setParsedLyricsArr(state, action) {
+      state.parsedLyricsArr = action.payload;
+    },
   },
 });
 
@@ -36,6 +40,7 @@ const {
   setWavePlotElements,
   pushWavePlotElements,
   setCursorTime,
+  setParsedLyricsArr,
 } = projectAudioStore.actions;
 
 const reducer = projectAudioStore.reducer;
@@ -46,6 +51,7 @@ export {
   setWavePlotElements,
   pushWavePlotElements,
   setCursorTime,
+  setParsedLyricsArr,
 };
 
 export default reducer;

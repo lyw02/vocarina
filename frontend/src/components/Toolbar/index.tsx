@@ -9,6 +9,7 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { processAudio } from "@/api/projectApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  setParsedLyricsArr,
   setProjectAudio,
   setProjectAudioArr,
 } from "@/store/modules/projectAudio";
@@ -19,6 +20,7 @@ import {
   setPlayingStatus,
 } from "@/store/modules/localStatus";
 import AudioContainer from "../AudioContainer";
+import { parseDuration, parseLyrics, parsePitch, parseStartTime } from "@/utils/ParseData";
 
 const sampleData = {
   tracks: [
@@ -51,7 +53,19 @@ const sampleData = {
 
 const Toolbar = () => {
   const dispatch = useDispatch();
+  const { bpm, numerator, denominator } = useSelector((state: RootState) => state.params);
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
+  const vocalTracks = tracks.filter((t) => t.trackType === "vocal");
+  const tracksDataOriginal = vocalTracks.map((t) => {
+    return {
+      trackId: t.trackId,
+      lyrics: t.trackLyrics
+        .map((s) => s.content)
+        .join(" ")
+        .split(" "),
+      sheet: t.sheet,
+    };
+  });
 
   const isGenerating = useSelector(
     (state: RootState) => state.localStatus.isGenerating
@@ -72,9 +86,24 @@ const Toolbar = () => {
 
   const handleGenerate = async () => {
     dispatch(setGeneratingStatus(true));
-    let responseData = await processAudio(sampleData);
-    let resBase64DataArr = JSON.parse(responseData).data_arr;
-    let resBase64Data = JSON.parse(responseData).final_data;
+
+    let parsedLyricsArr: { id: number; data: string[] }[] = []
+    const tracksDataProcessed = tracksDataOriginal.map((t) => {
+      const parsedLyrics = parseLyrics(t.sheet, t.lyrics)
+      parsedLyricsArr.push({id: t.trackId, data: parsedLyrics});
+      return {
+        trackId: t.trackId,
+        lyrics: parsedLyrics,
+        targetPitchList: parsePitch(t.sheet, parsedLyrics),
+        startTime: parseStartTime(t.sheet, bpm, numerator, denominator),
+        targetDurationList: parseDuration(t.sheet, bpm, numerator, parsedLyrics),
+      }
+    });
+
+    let responseData = await processAudio({tracksDataProcessed});
+    let resBase64DataArr = JSON.parse(responseData).dataArr;
+    let resBase64Data = JSON.parse(responseData).finalData;
+    dispatch(setParsedLyricsArr(parsedLyricsArr))
     dispatch(setProjectAudioArr(resBase64DataArr));
     dispatch(setProjectAudio(resBase64Data));
     dispatch(setGeneratingStatus(false));
@@ -90,6 +119,7 @@ const Toolbar = () => {
   const instAudioRef = useRef<HTMLAudioElement>(null);
 
   let base64Data = useSelector((state: RootState) => state.projectAudio.base64);
+
   let instUrl = useSelector(
     (state: RootState) =>
       state.tracks.tracks.find((t) => t.trackType === "instrumental")?.instUrl
@@ -172,12 +202,12 @@ const Toolbar = () => {
             {"Play"}
           </Button>
           <AudioContainer
-            base64Data={base64Data}
+            base64Data={base64Data.find((b) => b.id === 0)?.data}
             display="none"
             ref={audioRef1}
           />
           <AudioContainer
-            base64Data={base64Data}
+            base64Data={base64Data.find((b) => b.id === 1)?.data}
             display="none"
             ref={audioRef2}
           />

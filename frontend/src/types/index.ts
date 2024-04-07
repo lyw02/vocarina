@@ -66,10 +66,11 @@ export interface EditModeState {
 }
 
 export interface ProjectAudioState {
-  base64Arr: string[]; // Data of each note
-  base64: string; // Data of final audio
+  base64Arr: { id: number; data: string[] }[]; // Data of each note in each track
+  base64: { id: number; data: string }[]; // Data of final audio in each track
   wavePlotElements: wavePlotElement[];
   cursorTime: number;
+  parsedLyricsArr: { id: number; data: string[] }[];
 }
 
 export interface LocalStatusState {

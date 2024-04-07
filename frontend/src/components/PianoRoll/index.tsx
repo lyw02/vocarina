@@ -8,20 +8,41 @@ import { useSelector } from "react-redux";
 import { base64ToUrl } from "@/utils/AudioProcess";
 import { noteStyle } from "@/utils/Note";
 import WaveSurfer from "wavesurfer.js";
+import _ from "lodash";
 
 const PianoRoll = () => {
   const pianoRef = useRef<HTMLDivElement | null>(null);
   const composeAreaRef = useRef<HTMLDivElement | null>(null);
   const pianoRollRef = useRef<HTMLDivElement | null>(null);
 
+  const currentTrack = useSelector(
+    (state: RootState) => state.tracks.currentTrack
+  );
   const wavePlotElements = useSelector(
     (state: RootState) => state.projectAudio.wavePlotElements
   );
   const base64Arr = useSelector(
     (state: RootState) => state.projectAudio.base64Arr
-  );
+  ).find((track) => track.id === currentTrack);
+  const parsedLyricsArr = useSelector(
+    (state: RootState) => state.projectAudio.parsedLyricsArr
+  ).find((track) => track.id === currentTrack);
 
-  const audioUrls = base64Arr.map((data) => base64ToUrl(data));
+  const silentIndexArr = parsedLyricsArr?.data.map((content, i) => {
+    if (content === "") {
+      return i;
+    }
+  });
+
+  let base64ArrCopy = _.cloneDeep(base64Arr);
+  const filteredBased64DataArr = base64Arr?.data.filter(
+    (_c, i) => !silentIndexArr?.includes(i)
+  );
+  if (base64ArrCopy && filteredBased64DataArr) {
+    base64ArrCopy.data = filteredBased64DataArr;
+  }
+
+  const audioUrls = base64ArrCopy?.data.map((data) => base64ToUrl(data)) || [];
 
   const refs = useRef<any>(null);
 
