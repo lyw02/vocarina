@@ -35,10 +35,12 @@ const trackStore = createSlice({
         trackId: state.tracks.length + 1,
         trackName:
           action.payload.trackName ||
-          `Untitled track ${state.tracks.length + 1}`,
+          `Unnamed track ${state.tracks.length + 1}`,
         trackState: "normal",
         trackType: action.payload.trackType,
-        trackLyrics: [],
+        trackLyrics: [
+          { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
+        ],
         sheet: [],
       });
     },
