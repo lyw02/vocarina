@@ -211,6 +211,21 @@ const Toolbar = () => {
             display="none"
             ref={audioRef2}
           />
+          <AudioContainer
+            base64Data={base64Data.find((b) => b.id === 2)?.data}
+            display="none"
+            ref={audioRef3}
+          />
+          <AudioContainer
+            base64Data={base64Data.find((b) => b.id === 3)?.data}
+            display="none"
+            ref={audioRef4}
+          />
+          <AudioContainer
+            base64Data={base64Data.find((b) => b.id === 4)?.data}
+            display="none"
+            ref={audioRef5}
+          />
           <AudioContainer objUrl={instUrl} display="none" ref={instAudioRef} />
         </Stack>
       </Stack>
