@@ -1,6 +1,7 @@
 const baseUrl = "http://127.0.0.1:8000/";
 
 export const processAudio = async (data: any) => {
+  console.log("data:", data);
   const response = await fetch(baseUrl + "api/project/audio/process/", {
     method: "POST",
     headers: {
@@ -9,5 +10,6 @@ export const processAudio = async (data: any) => {
     },
     body: JSON.stringify(data),
   });
+  console.log("response:", response);
   return response.json();
 };

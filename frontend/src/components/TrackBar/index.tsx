@@ -2,6 +2,9 @@ import {
   createNewTrack,
   deleteTrack,
   setCurrentTrack,
+  setInstEnd,
+  setInstStart,
+  setInstUrl,
   setSheet,
   setTrackState,
 } from "@/store/modules/tracks";
@@ -23,11 +26,15 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
-import { trackState } from "@/types/project";
+import { trackState, trackType } from "@/types/project";
 import theme from "@/theme";
 import InputDialog from "../InputDialog";
 import TrackBarCanvas from "../TrackBarCanvas";
 import _ from "lodash";
+import { v4 as uuidv4 } from "uuid";
+import { useWavesurfer } from "@wavesurfer/react";
+import WaveSurfer from "wavesurfer.js";
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
 
 const TrackBar = () => {
   const dispatch = useDispatch();
@@ -40,7 +47,11 @@ const TrackBar = () => {
   const handleTrackChange = (trackId: number) => {
     dispatch(setCurrentTrack(trackId));
     dispatch(
-      setSheet({ trackId: currentTrack, sheet: tracks[currentTrack - 1].sheet })
+      setSheet({
+        trackId: currentTrack,
+        sheet:
+          tracks[tracks.findIndex((t) => t.trackId === currentTrack)].sheet,
+      })
     );
   };
 
@@ -93,17 +104,34 @@ const TrackBar = () => {
     setTrackOptionsAnchorEl(null);
   };
 
-  const handleNewTruck = () => {
+  const newTrack = (
+    trackType: trackType,
+    position: number | undefined = undefined
+  ) => {
     const index = tracks.findIndex((t) => t.trackId === optionTrackId);
     const newPosition = index !== -1 ? index + 1 : tracks.length + 1;
 
     dispatch(
       createNewTrack({
-        position: newPosition,
+        position: position || newPosition,
         trackName: "",
+        trackType: trackType,
       })
     );
     handleTrackOptionsClose();
+  };
+
+  const handleNewTruck = () => {
+    if (tracks.length <= 5) {
+      newTrack("vocal");
+    }
+  };
+
+  const handleNewInstTruck = () => {
+    const trackTypes = tracks.map((t) => t.trackType);
+    if (tracks.length <= 5 && !trackTypes.includes("instrumental")) {
+      newTrack("instrumental", tracks.length);
+    }
   };
 
   const handleEditTrackName = () => {
@@ -118,11 +146,79 @@ const TrackBar = () => {
     handleTrackOptionsClose();
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const currentFile = e.target.files[0];
+    const currentFileURL = URL.createObjectURL(currentFile);
+    dispatch(setInstUrl(currentFileURL));
+  };
+
   const [isTrackNameDialogVisible, setIsTrackNameDialogVisible] =
     useState<boolean>(false);
 
   const trackStackRef = useRef<HTMLDivElement | null>(null);
+  const instTrackWavPlotRef = useRef<HTMLDivElement | null>(null);
+  const instAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  const instUrl = useSelector(
+    (state: RootState) =>
+      state.tracks.tracks.find((t) => t.trackType === "instrumental")?.instUrl
+  );
+  const { bpm, numerator, denominator } = useSelector(
+    (state: RootState) => state.params
+  );
+
+  const measureDuration = (60 * numerator * denominator) / bpm;
+  const maxDuration = measureDuration * 62;
+  const instDuration = instAudioRef.current?.duration || 0;
+  const ratio = instDuration / maxDuration;
+  const wavePlotWidth = instTrackWavPlotRef.current?.clientWidth! * ratio;
+
+  const { wavesurfer } = useWavesurfer({
+    container: instTrackWavPlotRef,
+    height: 45,
+    width: wavePlotWidth,
+    waveColor: theme.palette.primary.light,
+    cursorWidth: 0,
+    interact: false,
+    url: instUrl,
+  });
+
+  // TODO Drag
+  useEffect(() => {
+    dispatch(setInstStart(0));
+    dispatch(setInstEnd(wavePlotWidth));
+  }, [dispatch, wavesurfer]);
+
+  const wsRegions = wavesurfer?.registerPlugin(RegionsPlugin.create());
+  const instTrackWavPlotRect =
+    instTrackWavPlotRef.current?.getBoundingClientRect();
+
+  const handleShowRegion = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    if (e.clientX - instTrackWavPlotRect!.left < wavePlotWidth) {
+      wsRegions?.addRegion({
+        start: 0,
+        end: wavePlotWidth,
+        color: "rgba(0, 0, 0, 0.3)",
+        drag: false,
+        resize: false,
+      });
+    } else {
+      wsRegions?.clearRegions();
+    }
+  };
+
+  const handleClearReagion = () => {
+    wsRegions?.clearRegions();
+  };
+
+  const handleDragRegion = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {};
+
+  // deprecated
   const distanceX: number[] = [];
   const distanceY: number[] = [];
 
@@ -130,10 +226,18 @@ const TrackBar = () => {
     let sheet = t.sheet;
 
     if (sheet.length !== 0) {
-      let minStartX = sheet.reduce((prev, current) => (prev.startX < current.startX) ? prev : current).startX;
-      let maxEndX = sheet.reduce((prev, current) => (prev.endX > current.endX) ? prev : current).endX;
-      let minStartY = sheet.reduce((prev, current) => (prev.startY < current.startY) ? prev : current).startY;
-      let maxEndY = sheet.reduce((prev, current) => (prev.endY > current.endY) ? prev : current).endY;
+      let minStartX = sheet.reduce((prev, current) =>
+        prev.startX < current.startX ? prev : current
+      ).startX;
+      let maxEndX = sheet.reduce((prev, current) =>
+        prev.endX > current.endX ? prev : current
+      ).endX;
+      let minStartY = sheet.reduce((prev, current) =>
+        prev.startY < current.startY ? prev : current
+      ).startY;
+      let maxEndY = sheet.reduce((prev, current) =>
+        prev.endY > current.endY ? prev : current
+      ).endY;
 
       distanceX.push(maxEndX - minStartX);
       distanceY.push(maxEndY - minStartY);
@@ -148,7 +252,7 @@ const TrackBar = () => {
       {tracks.map((track) => {
         return (
           <Stack
-            key={track.trackId}
+            key={`${track.trackId}-${tracks.length}-${currentTrack}`}
             ref={trackStackRef}
             direction="row"
             spacing={0}
@@ -202,9 +306,19 @@ const TrackBar = () => {
                 >
                   <Typography
                     variant="body2"
-                    sx={{ margin: "auto", userSelect: "none" }}
+                    sx={
+                      track.trackType === "vocal"
+                        ? { margin: "auto", userSelect: "none" }
+                        : {
+                            margin: "auto",
+                            userSelect: "none",
+                            textDecoration: "underline",
+                          }
+                    }
                   >
-                    {track.trackName}
+                    {track.trackType === "vocal"
+                      ? track.trackName
+                      : "Inst. track"}
                   </Typography>
                 </Box>
                 <Box component="div" sx={{ p: 0, width: "30%", height: "50%" }}>
@@ -233,36 +347,92 @@ const TrackBar = () => {
                 </Box>
               </Stack>
             </Box>
-            <TrackBarCanvas
-              trackStackRef={trackStackRef}
-              trackId={track.trackId}
-              maxDistanceX={maxDistanceX}
-              maxDistanceY={maxDistanceY}
-            />
-            <Menu
-              id="fade-menu"
-              MenuListProps={{
-                "aria-labelledby": "fade-button",
-              }}
-              anchorEl={trackOptionsAnchorEl}
-              open={isTrackOptionsOpen}
-              onClose={handleTrackOptionsClose}
-              TransitionComponent={Fade}
-            >
-              <MenuItem onClick={handleNewTruck}>New track</MenuItem>
-              <MenuItem onClick={handleEditTrackName}>Edit track name</MenuItem>
-              <MenuItem onClick={handleDeleteTruck}>Delete track</MenuItem>
-            </Menu>
-            <InputDialog
-              title="Edit Track Name"
-              formType="EditTrackNameForm"
-              isOpen={isTrackNameDialogVisible}
-              setIsOpen={setIsTrackNameDialogVisible}
-              trackId={track.trackId}
-            />
+            {track.trackType === "vocal" ? (
+              <TrackBarCanvas
+                trackStackRef={trackStackRef}
+                trackId={track.trackId}
+                maxDistanceX={maxDistanceX}
+                maxDistanceY={maxDistanceY}
+              />
+            ) : (
+              <>
+                <Box
+                  component="div"
+                  ref={instTrackWavPlotRef}
+                  onMouseOver={(e) => handleShowRegion(e)}
+                  onMouseOut={handleClearReagion}
+                  onMouseDown={(e) => handleDragRegion(e)}
+                  sx={{
+                    m: "auto 0",
+                    width: "80%",
+                    maxHeight: "7vh",
+                    borderLeft: "1px solid lightgrey",
+                  }}
+                />
+                <audio
+                  ref={instAudioRef}
+                  src={instUrl}
+                  style={{ display: "none" }}
+                />
+              </>
+            )}
           </Stack>
         );
       })}
+      <Menu
+        id="fade-menu"
+        MenuListProps={{
+          "aria-labelledby": "fade-button",
+        }}
+        anchorEl={trackOptionsAnchorEl}
+        open={isTrackOptionsOpen}
+        onClose={handleTrackOptionsClose}
+        TransitionComponent={Fade}
+      >
+        {tracks.find((t) => t.trackId === optionTrackId)?.trackType === "vocal"
+          ? [
+              <MenuItem key={uuidv4()} onClick={handleNewTruck}>
+                {"New track"}
+              </MenuItem>,
+              <MenuItem key={uuidv4()} onClick={handleNewInstTruck}>
+                {"New instrumental track"}
+              </MenuItem>,
+              <MenuItem key={uuidv4()} onClick={handleEditTrackName}>
+                {"Edit track name"}
+              </MenuItem>,
+              <MenuItem key={uuidv4()} onClick={handleDeleteTruck}>
+                {"Delete track"}
+              </MenuItem>,
+            ].map((item) => item)
+          : [
+              <MenuItem key={uuidv4()} onClick={() => {}}>
+                <Box component="div">{"Upload"}</Box>
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept="audio/wav"
+                  style={{
+                    opacity: 0,
+                    width: "100%",
+                    position: "absolute",
+                    left: 0,
+                    zIndex: 1,
+                  }}
+                  onChange={(e) => handleFileUpload(e)}
+                />
+              </MenuItem>,
+              <MenuItem key={uuidv4()} onClick={handleDeleteTruck}>
+                {"Delete track"}
+              </MenuItem>,
+            ].map((item) => item)}
+      </Menu>
+      <InputDialog
+        title="Edit Track Name"
+        formType="EditTrackNameForm"
+        isOpen={isTrackNameDialogVisible}
+        setIsOpen={setIsTrackNameDialogVisible}
+        trackId={optionTrackId || 1}
+      />
     </div>
   );
 };

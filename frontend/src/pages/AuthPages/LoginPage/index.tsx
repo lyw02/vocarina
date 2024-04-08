@@ -1,11 +1,16 @@
+import { login } from "@/api/userApi";
 import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
+import { setCurrentUser } from "@/store/modules/user";
 import theme from "@/theme";
+import { encryptPassword } from "@/utils/Encrypt";
+import { setToken } from "@/utils/token";
 import {
   Button,
   Card,
   CardActions,
   CardContent,
   CardMedia,
+  FormControl,
   Link,
   Stack,
   SxProps,
@@ -13,7 +18,8 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 interface Status {
   severity: "success" | "error" | "warning" | "info";
@@ -36,21 +42,35 @@ const LoginPage = () => {
   });
   const [promptMessage, setPromptMessage] = useState<string | null>();
 
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const handleAlertClose = () => {
     setIsAlertOpen(false);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     try {
       if (!(username && password)) {
         setPromptMessage("Please fill in all fields.");
       } else {
-        // Send login request
+        const res = await login(username, encryptPassword(password));
+        const resJson = await res.json();
         setPromptMessage(null);
-        setStatus({
-          severity: "success",
-          message: "Login successed!",
-        });
+        if (res.status === 200) {
+          setToken(resJson.token);
+          setStatus({
+            severity: "success",
+            message: "Login successed!",
+          });
+          dispatch(setCurrentUser(resJson.username));
+          navigate("/");
+        } else {
+          setStatus({
+            severity: "error",
+            message: "Login failed!",
+          });
+        }
         setIsAlertOpen(true);
       }
     } catch (error) {
@@ -77,12 +97,7 @@ const LoginPage = () => {
         message={status.message}
         severity={status.severity}
       />
-      <Card sx={{ maxWidth: 345, margin: "auto" }}>
-        {/* <CardMedia
-        sx={{ height: 140 }}
-        image="/static/images/cards/contemplative-reptile.jpg"
-        title="green iguana"
-      /> */}
+      <Card sx={{ width: "50vh", margin: "auto" }}>
         <CardContent>
           <Typography gutterBottom variant="h5" component="div">
             Login

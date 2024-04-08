@@ -8,6 +8,12 @@ import { setSheet } from "@/store/modules/tracks";
 import { ComposeAreaStyle } from "@/utils/ComposeAreaStyle";
 import { DragSelector } from "@/utils/DragSelector";
 import { setSelectedNotes } from "@/store/modules/localStatus";
+import {
+  pushWavePlotElements,
+  setCursorTime,
+  setWavePlotElements as setWavePlotElementsInState,
+} from "@/store/modules/projectAudio";
+import { Cursor } from "@/utils/Cursor";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -52,7 +58,7 @@ function CanvasComponent() {
       }
     }
     return null;
-  }
+  };
 
   const overlap = (note: Note) => {
     return notes.some(
@@ -64,7 +70,16 @@ function CanvasComponent() {
   const selectedNotes = useSelector(
     (state: RootState) => state.localStatus.selectedNotes
   );
+  const { bpm, numerator, denominator } = useSelector(
+    (state: RootState) => state.params
+  );
   let selected = _.cloneDeep(selectedNotes);
+  let cursorPos = 0;
+  // const cursorTime = useSelector(
+  //   (state: RootState) => state.projectAudio.cursorTime
+  // );
+  // cursorPos = (cursorTime * bpm * 40) / (60 * numerator * numerator * denominator);
+  const cursor = Cursor.getInstance(cursorPos, 2700);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -79,19 +94,43 @@ function CanvasComponent() {
       if (!ctx) return;
       const notesInDraw = notes;
       requestAnimationFrame(draw);
-      ctx.clearRect(0, 0, 2700, 2700); // Clear canvas
+      ctx.clearRect(0, 0, 10000, 2700); // Clear canvas
       notesInDraw.forEach((note) => {
         overlap(note) ? (note.isOverlap = true) : (note.isOverlap = false);
         note.drawNote(ctx, selectedNotes);
       });
       dragSelector.drawSelector(ctx);
+      cursor.drawCursor(ctx);
     }
 
     draw();
-  }, [notesInState, dragSelector, selected]);
+  }, [notesInState, tracks[currentTrackIndex].trackLyrics, dragSelector, cursor, selected]);
+
+  const noteAudioArr = useSelector(
+    (state: RootState) => state.projectAudio.base64Arr
+  );
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    dispatch(setWavePlotElementsInState([]));
+    tracks
+      .find((t) => t.trackId === currentTrack)!
+      .sheet.forEach((note) => {
+        dispatch(
+          pushWavePlotElements({
+            trackId: currentTrack,
+            id: note.id,
+            left: note.startX,
+            top: note.startY + noteStyle.noteHeight,
+            width: note.noteLength,
+          })
+        );
+      });
+  }, [noteAudioArr, currentTrack]);
 
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    // event.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -100,14 +139,18 @@ function CanvasComponent() {
     const clickY = event.clientY - rect.top;
     const note = getNote(clickX, clickY);
 
-    if (event.button === 2) {
+    if (event.button === 2 && note) {
       // Delete note
-      event.preventDefault();
-      if (note) {
-        const index = notes.indexOf(note);
-        if (index !== -1) {
+      const index = notes.indexOf(note);
+      if (index !== -1) {
+        if (selected.includes(note.id)) {
+          for (let i = notes.length - 1; i >= 0; i--) {
+            if (selected.includes(notes[i].id)) {
+              notes.splice(i, 1);
+            }
+          }
+        } else {
           notes.splice(index, 1);
-          event.preventDefault();
         }
       }
     }
@@ -116,22 +159,41 @@ function CanvasComponent() {
       if (note && note.isBoundary(clickX, clickY)) {
         // Adjust length
         const { startX, endX } = note;
+        const startXArr = notes.map((note) => note.startX);
+        const endXArr = notes.map((note) => note.endX);
         if (note.isBoundary(clickX, clickY) === "left") {
           window.onmousemove = (e) => {
             let tempDisXLeft = e.clientX - rect.left - clickX; // how far the mouse moved in X
             let disXLeft = getDisX(tempDisXLeft, note.startX);
-            note.startX = startX + disXLeft;
+            if (selected.includes(note.id)) {
+              selected.forEach((id) => {
+                let index = notes.findIndex((note) => note.id === id);
+                if (notes[index]) {
+                  notes[index].startX = startXArr[index] + disXLeft;
+                }
+              });
+            } else {
+              note.startX = startX + disXLeft;
+            }
           };
         } else if (note.isBoundary(clickX, clickY) === "right") {
           window.onmousemove = (e) => {
             let tempDisXRight = e.clientX - rect.left - clickX; // how far the mouse moved in X
             let disXRight = getDisX(tempDisXRight, note.endX);
-            note.endX = endX + disXRight;
+            if (selected.includes(note.id)) {
+              selected.forEach((id) => {
+                let index = notes.findIndex((note) => note.id === id);
+                if (notes[index]) {
+                  notes[index].endX = endXArr[index] + disXRight;
+                }
+              });
+            } else {
+              note.endX = endX + disXRight;
+            }
           };
         }
       } else if (note && !note.isBoundary(clickX, clickY)) {
         // Drag note
-        console.log("selected: ", selected);
         const { startX, startY, endX, endY } = note;
         const startXArr = notes.map((note) => note.startX);
         const endXArr = notes.map((note) => note.endX);
@@ -166,9 +228,9 @@ function CanvasComponent() {
 
           if (selected.includes(note.id)) {
             selected.forEach((id) => {
-              let index =  notes.findIndex((note) => note.id === id)
+              let index = notes.findIndex((note) => note.id === id);
               if (notes[index]) {
-                notes[index].startX = startXArr[index] + disX
+                notes[index].startX = startXArr[index] + disX;
                 notes[index].endX = endXArr[index] + disX;
                 notes[index].startY = startYArr[index] + disY;
                 notes[index].endY = endYArr[index] + disY;
@@ -225,6 +287,25 @@ function CanvasComponent() {
   const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (event.button === 2) {
       event.preventDefault();
+    }
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect(); // Canvas region (a rect)
+    const clickX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
+
+    if (
+      event.button === 0 &&
+      editMode === "select" &&
+      dragSelector.startX === dragSelector.endX &&
+      dragSelector.startY === dragSelector.endY // Just click, no drag
+    ) {
+      cursorPos = clickX;
+      cursor.set(cursorPos);
+      const measureDuration = (60 * numerator * denominator) / bpm;
+      const measureCount = cursorPos / 40 / numerator;
+      dispatch(setCursorTime(measureDuration * measureCount));
     }
 
     notes.forEach((note) => {

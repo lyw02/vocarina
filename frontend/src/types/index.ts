@@ -2,6 +2,14 @@ import { Track } from "./project";
 
 export type editMode = "edit" | "select";
 
+export type wavePlotElement = {
+  trackId: 0;
+  id: number;
+  left: number;
+  top: number;
+  width: number;
+};
+
 export interface PianoKey {
   id: number;
   octave: number;
@@ -30,6 +38,7 @@ export interface RootState {
   projectAudio: ProjectAudioState;
   localStatus: LocalStatusState;
   snappingMode: SnappingModeState;
+  user: UserState;
 }
 
 export interface NotesState {
@@ -59,7 +68,11 @@ export interface EditModeState {
 }
 
 export interface ProjectAudioState {
-  base64: string;
+  base64Arr: { id: number; data: string[] }[]; // Data of each note in each track
+  base64: { id: number; data: string }[]; // Data of final audio in each track
+  wavePlotElements: wavePlotElement[];
+  cursorTime: number;
+  parsedLyricsArr: { id: number; data: string[] }[];
 }
 
 export interface LocalStatusState {
@@ -71,4 +84,8 @@ export interface LocalStatusState {
 
 export interface SnappingModeState {
   snappingMode: boolean;
+}
+
+export interface UserState {
+  currentUser: string;
 }

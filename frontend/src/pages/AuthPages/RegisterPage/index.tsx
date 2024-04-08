@@ -1,11 +1,12 @@
+import { register } from "@/api/userApi";
 import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
 import theme from "@/theme";
+import { encryptPassword } from "@/utils/Encrypt";
 import {
   Button,
   Card,
   CardActions,
   CardContent,
-  CardMedia,
   Link,
   Stack,
   SxProps,
@@ -13,7 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 
 interface Status {
   severity: "success" | "error" | "warning" | "info";
@@ -36,6 +37,8 @@ const RegisterPage = () => {
   });
   const [promptMessage, setPromptMessage] = useState<string | null>();
 
+  const navigate = useNavigate();
+
   const usernameReg = /^[a-zA-Z0-9_\u4e00-\u9fa5]{4,20}$/;
   const passwordReg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,20}$/;
 
@@ -43,7 +46,7 @@ const RegisterPage = () => {
     setIsAlertOpen(false);
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
     try {
       if (!(username && password && passwordConfirmation)) {
         setPromptMessage("Please fill in all fields.");
@@ -54,12 +57,20 @@ const RegisterPage = () => {
       } else if (!usernameReg.test(username)) {
         setPromptMessage("Username is not valid.");
       } else {
-        // Send sign up request
+        const res = await register(username, encryptPassword(password));
         setPromptMessage(null);
-        setStatus({
-          severity: "success",
-          message: "Register successed!",
-        });
+        if (res.status === 201) {
+          setStatus({
+            severity: "success",
+            message: "Register successed!",
+          });
+          navigate("/login");
+        } else {
+          setStatus({
+            severity: "error",
+            message: "Register failed!",
+          });
+        }
         setIsAlertOpen(true);
       }
     } catch (error) {
@@ -86,12 +97,7 @@ const RegisterPage = () => {
         message={status.message}
         severity={status.severity}
       />
-      <Card sx={{ maxWidth: 345, margin: "auto" }}>
-        {/* <CardMedia
-          sx={{ height: 140 }}
-          image="/static/images/cards/contemplative-reptile.jpg"
-          title="green iguana"
-        /> */}
+      <Card sx={{ width: "50vh", margin: "auto" }}>
         <CardContent sx={{ paddingBottom: 0 }}>
           <Typography gutterBottom variant="h5" component="div">
             Sign Up

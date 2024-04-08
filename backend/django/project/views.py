@@ -18,6 +18,7 @@ from .process.audioProcessor import AudioProcessor
 # Create your views here.
 @csrf_exempt
 def project_api(request, project_id=None, user_id=None):
+
     if project_id is not None and request.method == 'GET':
         project = Project.objects.get(id=project_id)
         project_serializer = ProjectSerializer(project)
@@ -59,50 +60,43 @@ def project_api(request, project_id=None, user_id=None):
 
 @csrf_exempt
 def audio_process_api(request):
+
     if request.method == 'POST':
+
         try:
-            # bpm = request.POST.get('bpm')
-            # numerator = request.POST.get('numerator')
-            # denominator = request.POST.get('denominator')
-            # timebase = 60 / bpm  # time per beat
-
-            # lyrics = ast.literal_eval(request.POST.get('lyrics'))
-            # target_pitch_list = ast.literal_eval(request.POST.get('target_pitch_list'))
-            # target_duration_list = ast.literal_eval(request.POST.get('target_duration_list'))
             data = json.loads(request.body)
-            tracks = data.get("tracks", [])
-            current_track = tracks[0]
-            lyrics = current_track.get("lyrics")
-            target_pitch_list = current_track.get("target_pitch_list")
-            target_duration_list = current_track.get("target_duration_list")
+            print(data)
+            tracks = data.get("tracksDataProcessed", [])
 
-            # (AudioProcessor()
-            #     .generate(lyrics)
-            #     # .set_pitch_to_avg()
-            #     # .edit_pitch(target_pitch_list)
-            #     # .remove_silence()
-            #     # .edit_duration(target_duration_list)
-            #     # .remove_silence()
-            #     # .generate_final_audio()
-            #  )
+            base64_res_list = []
+            base64_final_list = []
+            for i, track in enumerate(tracks):
+                # current_track = tracks[i]
+                lyrics = track.get("lyrics")
+                start_time = track.get("startTime")
+                target_pitch_list = track.get("targetPitchList")
+                target_duration_list = track.get("targetDurationList")
 
-            base64_final = (AudioProcessor()
-                            .generate(lyrics)
-                            .set_pitch_to_avg()
-                            .edit_pitch(target_pitch_list)
-                            .edit_duration(target_duration_list)
-                            .remove_silence()
-                            .generate_final_audio()
-                            .base64_final)
+                audio_processor = (AudioProcessor()
+                                   .generate(lyrics, target_duration_list)
+                                   .set_pitch_to_avg(target_pitch_list)
+                                   .edit_pitch(target_pitch_list)
+                                   .edit_duration(target_duration_list, target_pitch_list)
+                                   .remove_silence(target_pitch_list)
+                                   .generate_final_audio(start_time)
+                                   )
 
-            print(f"base64_final: {base64_final}")
-            return JsonResponse(json.dumps({"data": base64_final}), safe=False, status=status.HTTP_200_OK)
+                # base64_res = audio_processor.base64_res
+                # base64_final = audio_processor.base64_final
+                base64_res_list.append({"id": track.get("trackId"), "data": audio_processor.base64_res})
+                base64_final_list.append({"id": track.get("trackId"), "data": audio_processor.base64_final})
+
+            # print(f"base64_final: {base64_final}")
+            return JsonResponse(json.dumps({
+                "dataArr": base64_res_list,
+                "finalData": base64_final_list
+            }), safe=False, status=status.HTTP_200_OK)
 
         except Exception as e:
             traceback.print_exc()
             return JsonResponse(f"Exception: {e}", safe=False, status=400)
-
-        # return JsonResponse(str(audio_stream), safe=False, status=201)
-        # return HttpResponse(audio_stream, content_type="audio/wav", status=201)
-        # return response
-        # return HttpResponse("Done", status=status.HTTP_200_OK)

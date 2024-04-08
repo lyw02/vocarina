@@ -8,6 +8,7 @@ const initialState: TracksState = {
       trackId: 1,
       trackName: "Track 1",
       trackState: "normal",
+      trackType: "vocal",
       trackLyrics: [
         { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
       ],
@@ -21,16 +22,25 @@ const trackStore = createSlice({
   initialState: initialState,
   reducers: {
     setCurrentTrack(state, action) {
-      state.currentTrack = action.payload;
+      if (
+        state.tracks[
+          state.tracks.findIndex((t) => t.trackId === action.payload)
+        ].trackType === "vocal"
+      ) {
+        state.currentTrack = action.payload;
+      }
     },
     createNewTrack(state, action) {
       state.tracks.splice(action.payload.position, 0, {
         trackId: state.tracks.length + 1,
         trackName:
           action.payload.trackName ||
-          `Untitled track ${state.tracks.length + 1}`,
+          `Unnamed track ${state.tracks.length + 1}`,
         trackState: "normal",
-        trackLyrics: [],
+        trackType: action.payload.trackType,
+        trackLyrics: [
+          { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
+        ],
         sheet: [],
       });
     },
@@ -69,6 +79,30 @@ const trackStore = createSlice({
       );
       state.tracks[trackIndex].trackName = action.payload.trackName;
     },
+    setInstUrl(state, action) {
+      const instTrack = state.tracks.find(
+        (t) => t.trackType === "instrumental"
+      );
+      if (instTrack) {
+        instTrack.instUrl = action.payload;
+      }
+    },
+    setInstStart(state, action) {
+      const instTrack = state.tracks.find(
+        (t) => t.trackType === "instrumental"
+      );
+      if (instTrack) {
+        instTrack.instStart = action.payload;
+      }
+    },
+    setInstEnd(state, action) {
+      const instTrack = state.tracks.find(
+        (t) => t.trackType === "instrumental"
+      );
+      if (instTrack) {
+        instTrack.instEnd = action.payload;
+      }
+    },
   },
 });
 
@@ -80,6 +114,9 @@ const {
   setSheet,
   setTrackState,
   setTrackName,
+  setInstUrl,
+  setInstStart,
+  setInstEnd,
 } = trackStore.actions;
 
 const reducer = trackStore.reducer;
@@ -92,6 +129,9 @@ export {
   setSheet,
   setTrackState,
   setTrackName,
+  setInstUrl,
+  setInstStart,
+  setInstEnd,
 };
 
 export default reducer;

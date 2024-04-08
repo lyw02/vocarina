@@ -1,10 +1,12 @@
 import base64
+import io
 import os
 import tempfile
 
 import azure.cognitiveservices.speech as speechsdk
 
 from dotenv import load_dotenv
+from pydub import AudioSegment
 
 from .oss import *
 
@@ -37,6 +39,18 @@ def tts_legacy(text, save_dir, save_name):
                 print("Error details: {}".format(cancellation_details.error_details))
                 print("Did you set the speech resource key and region values?")
         return None
+
+
+def generate_silence(duration: float):
+    silence = AudioSegment.silent(duration=duration*1000)
+
+    silence_file = io.BytesIO()
+    silence.export(silence_file, format="wav")
+    silence_data = silence_file.getvalue()
+    silence_base64 = base64.b64encode(silence_data).decode("utf-8")
+
+    print("[INFO] Generate silence.")
+    return silence_base64
 
 
 def tts(text, save_dir, save_name):
