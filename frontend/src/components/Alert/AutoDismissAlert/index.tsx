@@ -1,5 +1,4 @@
 import { Alert, Snackbar } from "@mui/material";
-import CheckIcon from "@mui/icons-material/Check";
 
 interface AlertComponentProps {
   message: string;
@@ -15,7 +14,7 @@ interface AutoDismissAlertProps {
 
 const AlertComponent = ({ message, severity }: AlertComponentProps) => {
   return (
-    <Alert icon={<CheckIcon fontSize="inherit" />} severity={severity}>
+    <Alert severity={severity}>
       {message}
     </Alert>
   );

@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import classnames from "classnames";
 import "./index.css";
+import { useSelector } from "react-redux";
+import { RootState } from "@/types";
+import { Box, Typography } from "@mui/material";
 
 interface NavOption {
   name: string;
@@ -22,6 +25,7 @@ const navOptions: NavOption[] = [
 
 const SiteHeader = () => {
   const [currentOption, setCurrentOption] = useState<string>("/");
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
   return (
     <div className="site-header-wrapper">
       <span className="options">
@@ -48,9 +52,20 @@ const SiteHeader = () => {
         </ul>
       </span>
       <span className="userInfo">
-        {/* <Link to="/" style={{ textDecoration: "none" }}> */}
-        <div>Sign in</div>
-        {/* </Link> */}
+        {!currentUser ? (
+          <Link to="/login" style={{ textDecoration: "none" }}>
+            <div>Sign in</div>
+          </Link>
+        ) : (
+          <Box component="div">
+            <Typography
+              variant="body2"
+              sx={{ display: "flex", marginTop: "auto", color: "white" }}
+            >
+              {currentUser}
+            </Typography>
+          </Box>
+        )}
       </span>
     </div>
   );

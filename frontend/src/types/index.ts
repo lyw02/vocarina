@@ -38,6 +38,7 @@ export interface RootState {
   projectAudio: ProjectAudioState;
   localStatus: LocalStatusState;
   snappingMode: SnappingModeState;
+  user: UserState;
 }
 
 export interface NotesState {
@@ -83,4 +84,8 @@ export interface LocalStatusState {
 
 export interface SnappingModeState {
   snappingMode: boolean;
+}
+
+export interface UserState {
+  currentUser: string;
 }

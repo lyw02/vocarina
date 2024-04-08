@@ -1,32 +1,34 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { setToken as setToken_, getToken, removeToken } from "@/utils/token";
+import { removeToken } from "@/utils/token";
+import { UserState } from "@/types";
+
+const initialState: UserState = {
+  currentUser: "",
+};
 
 const userStore = createSlice({
   name: "user",
-  initialState: {
-    token: getToken() || "",
-    currentUser: "",
-  },
+  initialState: initialState,
   reducers: {
-    setToken(state, action) {
-      state.token = action.payload;
-      setToken_(state.token);
-    },
+    // setToken(state, action) {
+    //   state.token = action.payload;
+    //   setToken_(state.token);
+    // },
     setCurrentUser(state, action) {
       state.currentUser = action.payload;
     },
     cleanLoginInfo(state) {
       removeToken();
-      state.token = "";
+      // state.token = "";
       state.currentUser = "";
     },
   },
 });
 
-const { setToken, setCurrentUser, cleanLoginInfo } = userStore.actions;
+const { setCurrentUser, cleanLoginInfo } = userStore.actions;
 
 const userReducer = userStore.reducer;
 
-export { setToken, setCurrentUser, cleanLoginInfo };
+export { setCurrentUser, cleanLoginInfo };
 
 export default userReducer;
