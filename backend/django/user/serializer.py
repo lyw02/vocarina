@@ -6,18 +6,18 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'password_hash', 'avatar', 'email', 'register_time', 'last_login', 'about')
+        exclude = ["password_hash", "is_admin"]
 
 
 class UserFollowingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserFollowing
-        fields = ('user_id', 'following_id', 'username')
+        fields = "__all__"
 
 
 class UserFollowerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserFollower
-        fields = ('user_id', 'follower_id', 'username')
+        fields = "__all__"

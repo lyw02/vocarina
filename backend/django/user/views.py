@@ -6,6 +6,7 @@ from django.http.response import JsonResponse
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -16,43 +17,6 @@ from .utils.rest_framework_jwt_serializers import jwt_payload_handler, jwt_encod
 
 from .models import User
 from .serializer import UserSerializer
-
-
-# Create your views here.
-
-
-@csrf_exempt
-@api_view(['GET', 'PUT'])
-@permission_classes([IsAuthenticated])
-def user_api(request, user_id=None):
-
-    if user_id is not None and request.method == 'GET':
-        '''Get user by id'''
-        user = User.objects.get(id=user_id)
-        user_serializer = UserSerializer(user)
-        return JsonResponse(user_serializer.data, safe=False, status=201)
-
-    elif request.method == 'GET':
-        '''Get all users'''  # TODO admin
-        users = User.objects.all()
-        users_serializer = UserSerializer(users, many=True)
-        return JsonResponse(users_serializer.data, safe=False, status=201)
-
-    elif request.method == 'PUT':
-        '''Update user'''
-        new_user = JSONParser().parse(request)
-        old_user = User.objects.get(id=new_user['id'])
-        user_serializer = UserSerializer(old_user, data=new_user)
-        if user_serializer.is_valid():
-            user_serializer.save()
-            return JsonResponse(f"User {new_user['id']} updated.", safe=False, status=201)
-        return JsonResponse(f"Failed to update user {new_user['id']}.", safe=False, status=400)
-
-    # elif user_id is not None and request.method == 'DELETE':
-    #     '''Delete user'''
-    #     user = User.objects.get(id=user_id)
-    #     user.delete()
-    #     return JsonResponse(f"User {user_id} deleted.", safe=False, status=201)
 
 
 class UserAuthView(APIView):
@@ -92,3 +56,29 @@ class UserAuthView(APIView):
                     return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
             except User.DoesNotExist:
                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class UserView(GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = "id"
+
+    def get(self, request, id=None):
+
+        if id is not None:
+            """Get a single user"""
+            serializer = self.get_serializer(instance=self.get_object())
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            """Get all users"""
+            serializer = self.get_serializer(instance=self.get_queryset(), many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, id):
+        """Update user"""
+        serializer = self.get_serializer(instance=self.get_object(), data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

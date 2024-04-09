@@ -175,7 +175,7 @@ const Toolbar = () => {
             <EditOutlinedIcon />
             {"Edit Lyrics"}
           </Button>
-          <Button variant="contained" size="small" onClick={handleGenerate}>
+          <Button variant="contained" size="small" onClick={handleGenerate} disabled={isGenerating}>
             {isGenerating ? (
               <CircularProgress
                 size={20}
