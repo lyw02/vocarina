@@ -71,7 +71,7 @@ class UserAuthView(APIView):
             try:
                 user = User.objects.create(username=username, password_hash=hashed_password)
                 user.save()
-                return Response({"message": "User created successfully"}, status=status.HTTP_201_CREATED)
+                return Response({"username": username, "message": "User created successfully"}, status=status.HTTP_201_CREATED)
             except Exception as e:
                 return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         elif request.query_params.get("action") == "login":
