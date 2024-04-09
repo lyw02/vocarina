@@ -9,11 +9,17 @@ import { base64ToUrl } from "@/utils/AudioProcess";
 import { noteStyle } from "@/utils/Note";
 import WaveSurfer from "wavesurfer.js";
 import _ from "lodash";
+import { Box, LinearProgress } from "@mui/material";
+import theme from "@/theme";
 
 const PianoRoll = () => {
   const pianoRef = useRef<HTMLDivElement | null>(null);
   const composeAreaRef = useRef<HTMLDivElement | null>(null);
   const pianoRollRef = useRef<HTMLDivElement | null>(null);
+
+  const isGenerating = useSelector(
+    (state: RootState) => state.localStatus.isGenerating
+  );
 
   const currentTrack = useSelector(
     (state: RootState) => state.tracks.currentTrack
@@ -63,7 +69,7 @@ const PianoRoll = () => {
 
     const map = getMap();
     const minLength = Math.min(refs.current.size, audioUrls.length);
-    
+
     refs.current.keys().forEach((i: number) => {
       if (i < minLength) {
         WaveSurfer.create({
@@ -80,44 +86,59 @@ const PianoRoll = () => {
   }, [wavePlotElements, currentTrack]);
 
   return (
-    <div className="piano-roll-wrapper" ref={pianoRollRef}>
-      <div className="piano-wrapper" ref={pianoRef}>
-        <Piano />
-      </div>
-      <div
-        className="compose-area-and-canvas-component-wrapper"
-        ref={composeAreaRef}
-      >
-        <div className="compose-area-wrapper">
-          <ComposeArea />
+    <>
+      {isGenerating && (
+        <Box sx={{ width: "100%", height: "100%", zIndex: 11 }}>
+          <LinearProgress
+            sx={{
+              color: theme.palette.primary.main,
+              zIndex: 11,
+            }}
+          />
+        </Box>
+      )}
+      <div className="piano-roll-wrapper" ref={pianoRollRef}>
+        <div className="piano-wrapper" ref={pianoRef}>
+          <Piano />
         </div>
-        <div className="canvas-component-wrapper">
-          <CanvasComponent />
-          {wavePlotElements.map((element) => element.trackId === currentTrack && (
-            <div
-              key={element.id.toString()}
-              id={element.id.toString()}
-              ref={(node) => {
-                const map = getMap();
-                if (node) {
-                  map.set(element.id, node);
-                } else {
-                  map.delete(element.id);
-                }
-              }}
-              style={{
-                left: element.left,
-                top: element.top,
-                width: element.width,
-                height: noteStyle.noteHeight,
-                position: "absolute",
-                zIndex: 1,
-              }}
-            />
-          ))}
+        <div
+          className="compose-area-and-canvas-component-wrapper"
+          ref={composeAreaRef}
+        >
+          <div className="compose-area-wrapper">
+            <ComposeArea />
+          </div>
+          <div className="canvas-component-wrapper">
+            <CanvasComponent />
+            {wavePlotElements.map(
+              (element) =>
+                element.trackId === currentTrack && (
+                  <div
+                    key={element.id.toString()}
+                    id={element.id.toString()}
+                    ref={(node) => {
+                      const map = getMap();
+                      if (node) {
+                        map.set(element.id, node);
+                      } else {
+                        map.delete(element.id);
+                      }
+                    }}
+                    style={{
+                      left: element.left,
+                      top: element.top,
+                      width: element.width,
+                      height: noteStyle.noteHeight,
+                      position: "absolute",
+                      zIndex: 1,
+                    }}
+                  />
+                )
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

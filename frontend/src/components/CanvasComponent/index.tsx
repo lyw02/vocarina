@@ -14,6 +14,8 @@ import {
   setWavePlotElements as setWavePlotElementsInState,
 } from "@/store/modules/projectAudio";
 import { Cursor } from "@/utils/Cursor";
+import { Box, LinearProgress } from "@mui/material";
+import theme from "@/theme";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -24,6 +26,9 @@ function CanvasComponent() {
   const editMode = useSelector((state: RootState) => state.editMode.editMode);
   const snappingMode = useSelector(
     (state: RootState) => state.snappingMode.snappingMode
+  );
+  const isGenerating = useSelector(
+    (state: RootState) => state.localStatus.isGenerating
   );
   const currentTrackIndex = tracks.findIndex((t) => t.trackId === currentTrack);
   const notesInState = tracks[currentTrackIndex].sheet;
@@ -87,7 +92,7 @@ function CanvasComponent() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = 3000;
+    canvas.width = 10000;
     canvas.height = 2700;
 
     function draw() {
@@ -104,7 +109,13 @@ function CanvasComponent() {
     }
 
     draw();
-  }, [notesInState, tracks[currentTrackIndex].trackLyrics, dragSelector, cursor, selected]);
+  }, [
+    notesInState,
+    tracks[currentTrackIndex].trackLyrics,
+    dragSelector,
+    cursor,
+    selected,
+  ]);
 
   const noteAudioArr = useSelector(
     (state: RootState) => state.projectAudio.base64Arr
@@ -374,14 +385,30 @@ function CanvasComponent() {
   };
 
   return (
-    <canvas
-      className="compose-area-canvas"
-      ref={canvasRef}
-      onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onContextMenu={handleContextMenu}
-    />
+    <>
+      {isGenerating && (
+        <div className="progress-wrapper">
+          <Box sx={{ width: "100%", height: "100%", backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
+            <LinearProgress
+              sx={{
+                color: theme.palette.primary.main,
+                position: "absolute",
+                top: "50%",
+                zIndex: 11,
+              }}
+            />
+          </Box>
+        </div>
+      )}
+      <canvas
+        className="compose-area-canvas"
+        ref={canvasRef}
+        onMouseMove={handleMouseMove}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onContextMenu={handleContextMenu}
+      />
+    </>
   );
 }
 
