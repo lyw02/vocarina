@@ -7,18 +7,128 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse, StreamingHttpResponse, HttpResponse
 from rest_framework import status
+from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
 
-from .models import Project
-from .serializer import ProjectSerializer
+from .models import Project, Track, Note
+from .serializer import ProjectSerializer, TrackSerializer, NoteSerializer
 
 from .process.audioProcessor import AudioProcessor
 
 
-# Create your views here.
+class ProjectView(GenericAPIView):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    lookup_field = "id"
+
+    def get(self, request, id=None):
+
+        try:
+
+            if id is not None and request.query_params.get("action") == "load":
+                """Get detail of a single project"""
+                print("here")
+                serializer = self.get_serializer(instance=self.get_object())
+                print(f"serializer.data.id: {serializer.data.get('id')}")
+                tracks = Track.objects.filter(project_id=serializer.data.get("id"))
+                print(f"len(tracks): {len(tracks)}")
+                if len(tracks) > 1:
+                    tracks_serializer = TrackSerializer(tracks, many=True)
+                    tracks_res = []
+                    print("tracks_serializer.data: ", tracks_serializer.data)
+                    for track_data in tracks_serializer.data:
+                        notes = Note.objects.filter(track_id=track_data.get("id"))
+                        print("len(notes): ", len(notes))
+                        notes_res = []
+                        if len(notes) > 1:
+                            notes_serializer = NoteSerializer(notes, many=True)
+                        else:
+                            notes_serializer = NoteSerializer(notes[0])
+                        notes_res.append(notes_serializer.data)
+                        tracks_res.append({**track_data, "sheet": notes_res})
+                    return Response({**serializer.data, "tracks": tracks_res}, status=status.HTTP_200_OK)
+                else:
+                    tracks_serializer = TrackSerializer(tracks[0])
+                    notes = Note.objects.filter(track_id=tracks_serializer.data.get("id"))
+                    notes_res = []
+                    if len(notes) > 1:
+                        notes_serializer = NoteSerializer(instance=notes, many=True)
+                    else:
+                        notes_serializer = NoteSerializer(notes[0])
+                    notes_res.append(notes_serializer.data[0])
+                    print(f"notes_res: {notes_res}")
+                    return Response({**serializer.data, "tracks": [{**tracks_serializer.data, "sheet": notes_res}]},
+                                    status=status.HTTP_200_OK)
+            elif id is not None:
+                """Get a single project"""
+                serializer = self.get_serializer(instance=self.get_object())
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                """Get all projects"""
+                serializer = self.get_serializer(instance=self.get_queryset(), many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"message": e}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request):
+        """Save new project"""
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            # Validate project
+            tracks_data = request.data.get("tracks")
+            tracks_res = []
+            for track_data in tracks_data:
+                # Validate each track
+                track_data_to_serialize = {
+                    "track_id": track_data.get("trackId"),
+                    "project_id": serializer.data.get("id"),
+                    "inst_url": "",
+                    "track_name": track_data.get("trackName"),
+                    "status": track_data.get("trackState"),
+                    "track_type": track_data.get("trackType"),
+                }
+                track_serializer = TrackSerializer(data=track_data_to_serialize)
+                if track_serializer.is_valid():
+                    track_serializer.save()
+                    notes_data = track_data.get("sheet")
+                    notes_res = []
+                    for note_data in notes_data:
+                        # Validate each note
+                        note_serializer = NoteSerializer(
+                            data={"track_id": track_serializer.validated_data.get("track_id"), **note_data})
+                        if note_serializer.is_valid():
+                            notes_res.append({**note_serializer.validated_data,
+                                              "track_id": track_serializer.validated_data.get("track_id")})
+                            note_serializer.save()
+                        else:
+                            return Response({"scope": "note", "message": note_serializer.errors},
+                                            status=status.HTTP_400_BAD_REQUEST)
+                    tracks_res.append({**track_serializer.data, "sheet": notes_res})
+                else:
+                    return Response({"scope": "track", "message": track_serializer.errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response({**serializer.data, "tracks": tracks_res}, status=status.HTTP_200_OK)
+        else:
+            return Response({"scope": "project", "message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, id):
+        """Update project"""
+
+        def _diff():
+            ...
+
+        serializer = self.get_serializer(instance=self.get_object(), data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @csrf_exempt
 def project_api(request, project_id=None, user_id=None):
-
     if project_id is not None and request.method == 'GET':
         project = Project.objects.get(id=project_id)
         project_serializer = ProjectSerializer(project)
@@ -60,7 +170,6 @@ def project_api(request, project_id=None, user_id=None):
 
 @csrf_exempt
 def audio_process_api(request):
-
     if request.method == 'POST':
 
         try:
