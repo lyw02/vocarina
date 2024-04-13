@@ -1,3 +1,5 @@
+import { getReq, postReq } from "./utils";
+
 const baseUrl = "http://127.0.0.1:8000/";
 
 export const processAudio = async (data: any) => {
@@ -6,10 +8,31 @@ export const processAudio = async (data: any) => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Origin: "http://localhost:5173", // 与Django中配置的CORS_ALLOWED_ORIGINS相匹配
+      Origin: "http://localhost:5173", // Align with CORS_ALLOWED_ORIGINS in Django settings
     },
     body: JSON.stringify(data),
   });
   console.log("response:", response);
   return response.json();
+};
+
+export const saveProject = async (data: any) => {
+  const response = await fetch(baseUrl + "api/project/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response;
+}
+
+export const listProject = async (userId: number) => {
+  const response = await getReq(`api/project/?user_id=${userId}`);
+  return response;
+};
+
+export const loadProject = async (projectId: number) => {
+  const response = await getReq(`api/project/${projectId}/?action=load`);
+  return response;
 };

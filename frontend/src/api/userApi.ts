@@ -1,11 +1,11 @@
-import { fetchData } from "./utils";
+import { postReq } from "./utils";
 
 export const register = async (username: string, password: string) => {
-  const response = await fetchData("api/user/auth/?action=register", "POST", { username, password });
+  const response = await postReq("api/user/auth/?action=register", { username, password });
   return response;
 };
 
 export const login = async (username: string, password: string) => {
-  const response = await fetchData("api/user/auth/?action=login", "POST", { username, password });
+  const response = await postReq("api/user/auth/?action=login", { username, password });
   return response;
 };

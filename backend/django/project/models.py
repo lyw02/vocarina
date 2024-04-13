@@ -48,7 +48,7 @@ class Note(models.Model):
     pitch = models.FloatField()
     start_time = models.FloatField()
     end_time = models.FloatField()
-    lyrics = models.CharField(max_length=50)
+    lyrics = models.CharField(max_length=50, blank=True)
 
 
 class Params(models.Model):

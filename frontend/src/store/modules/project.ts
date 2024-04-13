@@ -1,43 +1,28 @@
-import { ProjectState, RootState } from "@/types";
+import { ProjectState } from "@/types";
 import { createSlice } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
-
-// const initParams = useSelector((state: RootState) => state.params);
 
 const initialState: ProjectState = {
-  tracks: [],
-  params: {numerator: 4, denominator: 4, bpm: 120}
-  // params: initParams,
+  projectName: "Untitled Project",
+  projectId: null,
 };
 
 const projectStore = createSlice({
   name: "project",
   initialState: initialState,
   reducers: {
-    // setProject(state, action) {
-    //   try {
-    //     state.project = action.payload;
-    //   } catch (error) {
-    //     console.error("Error:", error);
-    //   }
-    // },
-    // setParams(state, action) {
-    //   try {
-    //     state.params = action.payload;
-    //   } catch (error) {
-    //     console.error("Error:", error);
-    //   }
-    // },
-    setTracks(state, action) {
-      // TODO
+    setProjectName(state, action) {
+      state.projectName = action.payload;
+    },
+    setProjectId(state, action) {
+      state.projectId = action.payload;
     },
   },
 });
 
-const { setTracks } = projectStore.actions;
+const { setProjectName, setProjectId } = projectStore.actions;
 
 const reducer = projectStore.reducer;
 
-export { setTracks };
+export { setProjectName, setProjectId };
 
 export default reducer;

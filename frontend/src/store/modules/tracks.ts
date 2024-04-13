@@ -103,6 +103,9 @@ const trackStore = createSlice({
         instTrack.instEnd = action.payload;
       }
     },
+    setTracks(state, action) {
+      state.tracks = action.payload;
+    },
   },
 });
 
@@ -117,6 +120,7 @@ const {
   setInstUrl,
   setInstStart,
   setInstEnd,
+  setTracks,
 } = trackStore.actions;
 
 const reducer = trackStore.reducer;
@@ -132,6 +136,7 @@ export {
   setInstUrl,
   setInstStart,
   setInstEnd,
+  setTracks,
 };
 
 export default reducer;

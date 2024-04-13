@@ -6,7 +6,7 @@ import traceback
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import JsonResponse, StreamingHttpResponse, HttpResponse
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -17,29 +17,30 @@ from .serializer import ProjectSerializer, TrackSerializer, NoteSerializer
 from .process.audioProcessor import AudioProcessor
 
 
+# class ProjectViewSet(viewsets.ModelViewSet):
+#     queryset = Project.objects.all()
+#     serializer_class = ProjectSerializer
+
+
 class ProjectView(GenericAPIView):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     lookup_field = "id"
 
     def get(self, request, id=None):
-
+        user_id = request.query_params.get("user_id")
+        print(f"user_id: {user_id}")
         try:
 
             if id is not None and request.query_params.get("action") == "load":
                 """Get detail of a single project"""
-                print("here")
                 serializer = self.get_serializer(instance=self.get_object())
-                print(f"serializer.data.id: {serializer.data.get('id')}")
                 tracks = Track.objects.filter(project_id=serializer.data.get("id"))
-                print(f"len(tracks): {len(tracks)}")
                 if len(tracks) > 1:
                     tracks_serializer = TrackSerializer(tracks, many=True)
                     tracks_res = []
-                    print("tracks_serializer.data: ", tracks_serializer.data)
                     for track_data in tracks_serializer.data:
                         notes = Note.objects.filter(track_id=track_data.get("id"))
-                        print("len(notes): ", len(notes))
                         notes_res = []
                         if len(notes) > 1:
                             notes_serializer = NoteSerializer(notes, many=True)
@@ -49,23 +50,31 @@ class ProjectView(GenericAPIView):
                         tracks_res.append({**track_data, "sheet": notes_res})
                     return Response({**serializer.data, "tracks": tracks_res}, status=status.HTTP_200_OK)
                 else:
-                    tracks_serializer = TrackSerializer(tracks[0])
-                    notes = Note.objects.filter(track_id=tracks_serializer.data.get("id"))
+                    tracks_serializer = TrackSerializer(instance=tracks, many=True)
+                    notes = Note.objects.filter(track_id=tracks_serializer.data[0].get("id"))
                     notes_res = []
                     if len(notes) > 1:
                         notes_serializer = NoteSerializer(instance=notes, many=True)
                     else:
                         notes_serializer = NoteSerializer(notes[0])
-                    notes_res.append(notes_serializer.data[0])
-                    print(f"notes_res: {notes_res}")
-                    return Response({**serializer.data, "tracks": [{**tracks_serializer.data, "sheet": notes_res}]},
-                                    status=status.HTTP_200_OK)
+                    for data in notes_serializer.data:
+                        notes_res.append(data)
+                    tracks_data = tracks_serializer.data
+                    for track_data in tracks_data:
+                        track_data["sheet"] = notes_res
+                    return Response({**serializer.data, "tracks": tracks_data}, status=status.HTTP_200_OK)
             elif id is not None:
                 """Get a single project"""
                 serializer = self.get_serializer(instance=self.get_object())
                 return Response(serializer.data, status=status.HTTP_200_OK)
+            elif user_id is not None and isinstance(int(user_id), int):
+                """Get all projects of a user"""
+                print("Get all projects of a user")
+                serializer = self.get_serializer(instance=self.get_queryset().filter(user_id=user_id), many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 """Get all projects"""
+                print("Get all projects")
                 serializer = self.get_serializer(instance=self.get_queryset(), many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
@@ -76,6 +85,7 @@ class ProjectView(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             # Validate project
+            serializer.save()
             tracks_data = request.data.get("tracks")
             tracks_res = []
             for track_data in tracks_data:
@@ -85,30 +95,33 @@ class ProjectView(GenericAPIView):
                     "project_id": serializer.data.get("id"),
                     "inst_url": "",
                     "track_name": track_data.get("trackName"),
-                    "status": track_data.get("trackState"),
+                    "status": track_data.get("status"),
                     "track_type": track_data.get("trackType"),
                 }
                 track_serializer = TrackSerializer(data=track_data_to_serialize)
                 if track_serializer.is_valid():
-                    track_serializer.save()
+                    track_object = track_serializer.save()
                     notes_data = track_data.get("sheet")
                     notes_res = []
                     for note_data in notes_data:
                         # Validate each note
+                        print(f"track_object.id: {track_object.id}")
                         note_serializer = NoteSerializer(
-                            data={"track_id": track_serializer.validated_data.get("track_id"), **note_data})
+                            data={"track_id": track_object.id, **note_data})
+
                         if note_serializer.is_valid():
                             notes_res.append({**note_serializer.validated_data,
-                                              "track_id": track_serializer.validated_data.get("track_id")})
+                                              "track_id": track_object.id})
                             note_serializer.save()
                         else:
+                            print(f"note_serializer.validated_data: {note_serializer.data}")
                             return Response({"scope": "note", "message": note_serializer.errors},
                                             status=status.HTTP_400_BAD_REQUEST)
                     tracks_res.append({**track_serializer.data, "sheet": notes_res})
                 else:
                     return Response({"scope": "track", "message": track_serializer.errors},
                                     status=status.HTTP_400_BAD_REQUEST)
-            serializer.save()
+            # serializer.save()
             return Response({**serializer.data, "tracks": tracks_res}, status=status.HTTP_200_OK)
         else:
             return Response({"scope": "project", "message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

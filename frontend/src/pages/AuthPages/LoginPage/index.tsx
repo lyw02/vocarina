@@ -1,7 +1,8 @@
 import { login } from "@/api/userApi";
 import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
-import { setCurrentUser } from "@/store/modules/user";
+import { setCurrentUser, setCurrentUserId } from "@/store/modules/user";
 import theme from "@/theme";
+import { AlertStatus } from "@/types";
 import { encryptPassword } from "@/utils/Encrypt";
 import { setToken } from "@/utils/token";
 import {
@@ -21,11 +22,6 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 
-interface Status {
-  severity: "success" | "error" | "warning" | "info";
-  message: string;
-}
-
 const linkStyle: SxProps = {
   textDecoration: "none",
   userSelect: "none",
@@ -36,7 +32,7 @@ const LoginPage = () => {
   const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [status, setStatus] = useState<Status>({
+  const [status, setStatus] = useState<AlertStatus>({
     severity: "error",
     message: "Login failed!",
   });
@@ -56,6 +52,7 @@ const LoginPage = () => {
       } else {
         const res = await login(username, encryptPassword(password));
         const resJson = await res.json();
+        console.log("resJson in login: ", resJson)
         setPromptMessage(null);
         if (res.status === 200) {
           setToken(resJson.token);
@@ -64,14 +61,17 @@ const LoginPage = () => {
             message: "Login successed!",
           });
           dispatch(setCurrentUser(resJson.username));
+          dispatch(setCurrentUserId(resJson.id));
+          setIsAlertOpen(true);
           navigate("/");
         } else {
           setStatus({
             severity: "error",
             message: "Login failed!",
           });
+          setIsAlertOpen(true);
         }
-        setIsAlertOpen(true);
+        
       }
     } catch (error) {
       console.log(error);

@@ -1,26 +1,50 @@
-import { useRef, useState } from "react";
-import { Button, CircularProgress, Stack } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Menu,
+  MenuItem,
+  Stack,
+  Typography,
+} from "@mui/material";
 import "./index.css";
 import LyricsDialog from "../InputDialog/LyricsDialog";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import PauseCircleFilledIcon from "@mui/icons-material/PauseCircleFilled";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import { processAudio } from "@/api/projectApi";
+import {
+  listProject,
+  loadProject,
+  processAudio,
+  saveProject,
+} from "@/api/projectApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setParsedLyricsArr,
   setProjectAudio,
   setProjectAudioArr,
 } from "@/store/modules/projectAudio";
-import { RootState } from "@/types";
+import { AlertStatus, RootState } from "@/types";
 import {
   setGeneratedStatus,
   setGeneratingStatus,
   setPlayingStatus,
 } from "@/store/modules/localStatus";
 import AudioContainer from "../AudioContainer";
-import { parseDuration, parseLyrics, parsePitch, parseStartTime } from "@/utils/ParseData";
+import {
+  parseDuration,
+  parseLyrics,
+  parsePitch,
+  parseStartTime,
+} from "@/utils/ParseData";
+import AutoDismissAlert from "../Alert/AutoDismissAlert";
+import { noteStyle } from "@/utils/Note";
+import { pitchFrequency } from "@/utils/PitchFrequency";
+import { SimpleDialog } from "../SimpleDialog";
+import { setProjectId } from "@/store/modules/project";
+import { setTracks } from "@/store/modules/tracks";
 
 const sampleData = {
   tracks: [
@@ -53,7 +77,15 @@ const sampleData = {
 
 const Toolbar = () => {
   const dispatch = useDispatch();
-  const { bpm, numerator, denominator } = useSelector((state: RootState) => state.params);
+  const { bpm, numerator, denominator } = useSelector(
+    (state: RootState) => state.params
+  );
+  const projectName = useSelector(
+    (state: RootState) => state.project.projectName
+  );
+  const currentUserId = useSelector(
+    (state: RootState) => state.user.currentUserId
+  );
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const vocalTracks = tracks.filter((t) => t.trackType === "vocal");
   const tracksDataOriginal = vocalTracks.map((t) => {
@@ -87,23 +119,35 @@ const Toolbar = () => {
   const handleGenerate = async () => {
     dispatch(setGeneratingStatus(true));
 
-    let parsedLyricsArr: { id: number; data: string[] }[] = []
+    let parsedLyricsArr: { id: number; data: string[] }[] = [];
     const tracksDataProcessed = tracksDataOriginal.map((t) => {
-      const parsedLyrics = parseLyrics(t.sheet, t.lyrics)
-      parsedLyricsArr.push({id: t.trackId, data: parsedLyrics});
+      console.log("t.lyrics: ", t.lyrics);
+      let parsedLyrics;
+      if (t.lyrics.length === 1 && t.lyrics[0] === "") {
+        parsedLyrics = t.sheet.map((n) => n.lyrics)
+      } else {
+        parsedLyrics = parseLyrics(t.sheet, t.lyrics);
+      }
+      parsedLyricsArr.push({ id: t.trackId, data: parsedLyrics });
+      console.log("parsedLyrics: ", parsedLyrics);
       return {
         trackId: t.trackId,
         lyrics: parsedLyrics,
         targetPitchList: parsePitch(t.sheet, parsedLyrics),
         startTime: parseStartTime(t.sheet, bpm, numerator, denominator),
-        targetDurationList: parseDuration(t.sheet, bpm, numerator, parsedLyrics),
-      }
+        targetDurationList: parseDuration(
+          t.sheet,
+          bpm,
+          numerator,
+          parsedLyrics
+        ),
+      };
     });
 
-    let responseData = await processAudio({tracksDataProcessed});
+    let responseData = await processAudio({ tracksDataProcessed });
     let resBase64DataArr = JSON.parse(responseData).dataArr;
     let resBase64Data = JSON.parse(responseData).finalData;
-    dispatch(setParsedLyricsArr(parsedLyricsArr))
+    dispatch(setParsedLyricsArr(parsedLyricsArr));
     dispatch(setProjectAudioArr(resBase64DataArr));
     dispatch(setProjectAudio(resBase64Data));
     dispatch(setGeneratingStatus(false));
@@ -157,16 +201,210 @@ const Toolbar = () => {
     }
   });
 
+  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
+  const [alertStatus, setAlertStatus] = useState<AlertStatus>({
+    severity: "error",
+    message: "",
+  });
+  const handleAlertClose = () => {
+    setIsAlertOpen(false);
+  };
+
+  // Project options
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const measureLength = 40 * numerator;
+  const measureDuration = (60 * numerator * denominator) / bpm;
+
+  const handleSaveProject = async () => {
+    if (!currentUserId) {
+      setAlertStatus({
+        severity: "error",
+        message: "Please sign in first",
+      });
+      setIsAlertOpen(true);
+      return;
+    }
+    const tracksData = tracks.map((t) => ({
+      trackId: t.trackId,
+      trackName: t.trackName,
+      status: t.trackState === "normal" ? 1 : t.trackState === "muted" ? 2 : 3,
+      trackType: t.trackType,
+      sheet: t.sheet.map((n) => {
+        let noteIndex = Math.floor((2700 - n.endY) / noteStyle.noteHeight);
+        let octave = Math.floor(noteIndex / 12);
+        let key = octave === 0 ? noteIndex : noteIndex % 12;
+        return {
+          note_id: n.id,
+          start_time:
+            (Math.min(n.startX, n.endX) * measureDuration) / measureLength,
+          end_time:
+            (Math.max(n.startX, n.endX) * measureDuration) / measureLength,
+          pitch: pitchFrequency[octave][key],
+          lyrics: n.lyrics,
+        };
+      }),
+    }));
+    const data = {
+      project_name: projectName,
+      user_id: currentUserId,
+      status: 1,
+      tracks: tracksData,
+    };
+    console.log("data in save: ", data);
+    const res = await saveProject(data);
+    if (res.status === 200) {
+      console.log("ok");
+    } else {
+      console.log("error");
+    }
+    handleClose();
+  };
+
+  // Import project dialog
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importDialogSelectedValue, setImportDialogSelectedValue] = useState<
+    number | null
+  >(null);
+  const [importDialogItem, setImportDialogItem] = useState([]);
+
+  const handleImportDialogClickOpen = () => {
+    setIsImportDialogOpen(true);
+  };
+
+  const handleImportDialogClose = (value: number | null) => {
+    setIsImportDialogOpen(false);
+    setImportDialogSelectedValue(value);
+    if (value) {
+      handleLoadProject(value);
+    }
+    handleClose();
+  };
+
+  const handleLoadProject = async (value: number) => {
+    dispatch(setProjectId(value));
+    const res = await loadProject(value);
+    const resJson = await res.json();
+    if (res.status === 200) {
+      console.log("resJson: ", resJson);
+      const parsedTracksData = resJson.tracks.map((t: any) => {
+        const findIndexIn2DArray = (arr: number[][], targetValue: number) => {
+          for (let i = 0; i < arr.length; i++) {
+            const innerArray = arr[i];
+            for (let j = 0; j < innerArray.length; j++) {
+              if (innerArray[j] === targetValue) {
+                return [i, j];
+              }
+            }
+          }
+          return null;
+        };
+        const parsedSheetData = t.sheet.map((n: any) => {
+          console.log(
+            "findIndexIn2DArray(pitchFrequency, n.pitch): ",
+            findIndexIn2DArray(pitchFrequency, n.pitch)
+          );
+          return {
+            id: n.note_id,
+            startX: (n.start_time * measureLength) / measureDuration,
+            startY:
+              2700 -
+              (findIndexIn2DArray(pitchFrequency, n.pitch)![0] * 12 +
+                findIndexIn2DArray(pitchFrequency, n.pitch)![1] + 1) *
+                noteStyle.noteHeight,
+            endX: (n.end_time * measureLength) / measureDuration,
+            endY:
+              2700 -
+              (findIndexIn2DArray(pitchFrequency, n.pitch)![0] * 12 +
+                findIndexIn2DArray(pitchFrequency, n.pitch)![1] + 1) *
+                noteStyle.noteHeight +
+              noteStyle.noteHeight,
+            isOverlap: false,
+            noteLength:
+              ((n.end_time - n.start_time) * measureLength) / measureDuration,
+            lyrics: n.lyrics,
+          };
+        });
+        return {
+          trackId: t.track_id,
+          trackName: t.track_name,
+          trackState:
+            t.status === 1 ? "normal" : t.status === 2 ? "muted" : "solo",
+          trackType: t.track_type,
+          sheet: parsedSheetData,
+          trackLyrics: [],
+        };
+      });
+      dispatch(setTracks(parsedTracksData));
+    } else {
+      console.log("error");
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (currentUserId) {
+        const projectList = await listProject(currentUserId);
+        const projectListJson = await projectList.json();
+        setImportDialogItem(projectListJson);
+      } else {
+      }
+    };
+    fetchData();
+    console.log("importDialogItem: ", importDialogItem);
+  }, [isImportDialogOpen]);
+
   return (
     <div className="toolbar-wrapper">
+      <AutoDismissAlert
+        isAlertOpen={isAlertOpen}
+        handleAlertClose={handleAlertClose}
+        message={alertStatus.message}
+        severity={alertStatus.severity}
+      />
+      <SimpleDialog
+        title="Import project"
+        selectedValue={importDialogSelectedValue}
+        open={isImportDialogOpen}
+        onClose={handleImportDialogClose}
+        items={importDialogItem.map((item) => (
+          <ImportDialogItem item={item} />
+        ))}
+      />
       <Stack justifyContent="space-between" direction="row">
         <Stack spacing={2} direction="row">
-          <Button variant="outlined" size="small">
-            {"Save Project"}
+          <Button
+            id="basic-button"
+            aria-controls={open ? "basic-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={open ? "true" : undefined}
+            onClick={handleClick}
+            sx={{ textTransform: "none" }}
+          >
+            {projectName}
           </Button>
-          <Button variant="outlined" size="small">
-            {"Import Project"}
-          </Button>
+          <Menu
+            id="basic-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            MenuListProps={{
+              "aria-labelledby": "basic-button",
+            }}
+          >
+            <MenuItem onClick={handleClose}>{"Edit project name"}</MenuItem>
+            <MenuItem onClick={handleSaveProject}>{"Save project"}</MenuItem>
+            <MenuItem onClick={handleImportDialogClickOpen}>
+              {"Import project"}
+            </MenuItem>
+          </Menu>
           <Button
             variant="outlined"
             size="small"
@@ -175,7 +413,12 @@ const Toolbar = () => {
             <EditOutlinedIcon />
             {"Edit Lyrics"}
           </Button>
-          <Button variant="contained" size="small" onClick={handleGenerate} disabled={isGenerating}>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+          >
             {isGenerating ? (
               <CircularProgress
                 size={20}
@@ -234,6 +477,31 @@ const Toolbar = () => {
         setIsOpen={setIsLyricsDialogVisible}
       />
     </div>
+  );
+};
+
+const ImportDialogItem = (item: any) => {
+  return (
+    <Stack
+      direction="row"
+      sx={{ width: "50vw", justifyContent: "space-between" }}
+    >
+      <Box component="div">
+        <Typography variant="body1">{item.item.project_name}</Typography>
+      </Box>
+      <Box component="div">
+        <Typography variant="body1">
+          {"Created at "}
+          {item.item.create_date.substring(0, 10)}
+        </Typography>
+      </Box>
+      <Box component="div">
+        <Typography variant="body1">
+          {"Edited at "}
+          {item.item.last_update.substring(0, 10)}
+        </Typography>
+      </Box>
+    </Stack>
   );
 };
 
