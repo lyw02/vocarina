@@ -14,6 +14,7 @@ import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import PauseCircleFilledIcon from "@mui/icons-material/PauseCircleFilled";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import PublishIcon from '@mui/icons-material/Publish';
 import {
   listProject,
   loadProject,
@@ -124,7 +125,7 @@ const Toolbar = () => {
       console.log("t.lyrics: ", t.lyrics);
       let parsedLyrics;
       if (t.lyrics.length === 1 && t.lyrics[0] === "") {
-        parsedLyrics = t.sheet.map((n) => n.lyrics)
+        parsedLyrics = t.sheet.map((n) => n.lyrics);
       } else {
         parsedLyrics = parseLyrics(t.sheet, t.lyrics);
       }
@@ -317,13 +318,15 @@ const Toolbar = () => {
             startY:
               2700 -
               (findIndexIn2DArray(pitchFrequency, n.pitch)![0] * 12 +
-                findIndexIn2DArray(pitchFrequency, n.pitch)![1] + 1) *
+                findIndexIn2DArray(pitchFrequency, n.pitch)![1] +
+                1) *
                 noteStyle.noteHeight,
             endX: (n.end_time * measureLength) / measureDuration,
             endY:
               2700 -
               (findIndexIn2DArray(pitchFrequency, n.pitch)![0] * 12 +
-                findIndexIn2DArray(pitchFrequency, n.pitch)![1] + 1) *
+                findIndexIn2DArray(pitchFrequency, n.pitch)![1] +
+                1) *
                 noteStyle.noteHeight +
               noteStyle.noteHeight,
             isOverlap: false,
@@ -430,7 +433,7 @@ const Toolbar = () => {
             {"Generate"}
           </Button>
         </Stack>
-        <Stack direction="row">
+        <Stack direction="row" spacing={2}>
           <Button
             disabled={!isGenerated}
             onClick={handlePlay}
@@ -442,7 +445,16 @@ const Toolbar = () => {
             ) : (
               <PlayCircleFilledIcon sx={{ marginRight: "5px" }} />
             )}
-            {"Play"}
+            {isPlaying ? "Pause" : "Play"}
+          </Button>
+          <Button
+            disabled={!isGenerated}
+            onClick={() => {}}
+            variant="contained"
+            size="small"
+          >
+            <PublishIcon sx={{ marginRight: "5px" }} />
+            {"Publish"}
           </Button>
           <AudioContainer
             base64Data={base64Data.find((b) => b.id === 0)?.data}
