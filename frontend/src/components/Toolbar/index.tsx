@@ -49,6 +49,7 @@ import { setTracks } from "@/store/modules/tracks";
 import { publishProject } from "@/api/communityApi";
 import { Sentence } from "@/types/project";
 import { useNavigate } from "react-router-dom";
+import InputDialog from "../InputDialog";
 
 const sampleData = {
   tracks: [
@@ -358,6 +359,7 @@ const Toolbar = () => {
       dispatch(setTracks(parsedTracksData));
     } else {
       console.log("error");
+      raiseAlert("error", "Error");
     }
   };
 
@@ -385,13 +387,26 @@ const Toolbar = () => {
     // navigate("/community");
   };
 
+  const [isPrjNameDialogVisible, setIsPrjNameDialogVisible] =
+    useState<boolean>(false);
+  const handleEditProjectName = () => {
+    setIsPrjNameDialogVisible(true);
+    handleClose();
+  };
+
+  const [loaded, setLoaded] = useState(false); // First time rendered
   useEffect(() => {
     const fetchData = async () => {
-      if (currentUserId) {
-        const projectList = await listProject(currentUserId);
-        const projectListJson = await projectList.json();
-        setImportDialogItem(projectListJson);
+      if (loaded) {
+        if (currentUserId) {
+          const projectList = await listProject(currentUserId);
+          const projectListJson = await projectList.json();
+          setImportDialogItem(projectListJson);
+        } else {
+          raiseAlert("error", "Please sign in first");
+        }
       } else {
+        setLoaded(true);
       }
     };
     fetchData();
@@ -415,6 +430,12 @@ const Toolbar = () => {
           <ImportDialogItem item={item} />
         ))}
       />
+      <InputDialog
+        title="Edit Project Name"
+        formType="EditProjectNameForm"
+        isOpen={isPrjNameDialogVisible}
+        setIsOpen={setIsPrjNameDialogVisible}
+      />
       <Stack justifyContent="space-between" direction="row">
         <Stack spacing={2} direction="row">
           <Button
@@ -436,7 +457,9 @@ const Toolbar = () => {
               "aria-labelledby": "basic-button",
             }}
           >
-            <MenuItem onClick={handleClose}>{"Edit project name"}</MenuItem>
+            <MenuItem onClick={handleEditProjectName}>
+              {"Edit project name"}
+            </MenuItem>
             <MenuItem onClick={handleSaveProject}>{"Save project"}</MenuItem>
             <MenuItem onClick={handleImportDialogClickOpen}>
               {"Import project"}
