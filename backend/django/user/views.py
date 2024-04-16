@@ -16,7 +16,7 @@ from rest_framework.views import APIView
 from .utils.rest_framework_jwt_serializers import jwt_payload_handler, jwt_encode_handler
 
 from .models import User
-from .serializer import UserSerializer
+from .serializers import UserSerializer
 
 
 class UserAuthView(APIView):

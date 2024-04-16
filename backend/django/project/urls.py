@@ -19,4 +19,3 @@ urlpatterns = [
 
     path('api/project/audio/process/', views.audio_process_api)
 ]
-

@@ -12,7 +12,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 
 from .models import Project, Track, Note
-from .serializer import ProjectSerializer, TrackSerializer, NoteSerializer
+from .serializers import ProjectSerializer, TrackSerializer, NoteSerializer
 
 from .process.audioProcessor import AudioProcessor
 

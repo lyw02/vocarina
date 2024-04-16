@@ -14,7 +14,7 @@ import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
 import PauseCircleFilledIcon from "@mui/icons-material/PauseCircleFilled";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import PublishIcon from '@mui/icons-material/Publish';
+import PublishIcon from "@mui/icons-material/Publish";
 import {
   listProject,
   loadProject,
@@ -46,6 +46,9 @@ import { pitchFrequency } from "@/utils/PitchFrequency";
 import { SimpleDialog } from "../SimpleDialog";
 import { setProjectId } from "@/store/modules/project";
 import { setTracks } from "@/store/modules/tracks";
+import { publishProject } from "@/api/communityApi";
+import { Sentence } from "@/types/project";
+import { useNavigate } from "react-router-dom";
 
 const sampleData = {
   tracks: [
@@ -78,15 +81,26 @@ const sampleData = {
 
 const Toolbar = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { bpm, numerator, denominator } = useSelector(
     (state: RootState) => state.params
   );
   const projectName = useSelector(
     (state: RootState) => state.project.projectName
   );
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUserId
   );
+
+  const raiseAlert = (severity: AlertStatus["severity"], message: string) => {
+    setAlertStatus({
+      severity: severity,
+      message: message,
+    });
+    setIsAlertOpen(true);
+  };
+
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const vocalTracks = tracks.filter((t) => t.trackType === "vocal");
   const tracksDataOriginal = vocalTracks.map((t) => {
@@ -226,11 +240,7 @@ const Toolbar = () => {
 
   const handleSaveProject = async () => {
     if (!currentUserId) {
-      setAlertStatus({
-        severity: "error",
-        message: "Please sign in first",
-      });
-      setIsAlertOpen(true);
+      raiseAlert("error", "Please sign in first");
       return;
     }
     const tracksData = tracks.map((t) => ({
@@ -351,6 +361,30 @@ const Toolbar = () => {
     }
   };
 
+  const handlePublish = async () => {
+    if (!currentUserId) {
+      raiseAlert("error", "Please sign in first");
+      return;
+    }
+    const lyrics: { [id: number]: Sentence[] } = {};
+    tracks.forEach((t) => {
+      lyrics[t.trackId] = t.trackLyrics;
+    });
+    const res = await publishProject(
+      currentUser,
+      currentUserId,
+      projectName,
+      base64Data.map((item) => item.data),
+      lyrics
+    );
+    if (res.status === 200) {
+      raiseAlert("success", "Success");
+    } else {
+      raiseAlert("error", "Failed");
+    }
+    // navigate("/community");
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (currentUserId) {
@@ -449,7 +483,7 @@ const Toolbar = () => {
           </Button>
           <Button
             disabled={!isGenerated}
-            onClick={() => {}}
+            onClick={handlePublish}
             variant="contained"
             size="small"
           >
