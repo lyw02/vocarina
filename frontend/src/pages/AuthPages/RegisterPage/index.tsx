@@ -13,8 +13,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
+import "../index.css";
 
 interface Status {
   severity: "success" | "error" | "warning" | "info";
@@ -36,6 +38,7 @@ const RegisterPage = () => {
     message: "Register failed!",
   });
   const [promptMessage, setPromptMessage] = useState<string | null>();
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const navigate = useNavigate();
 
@@ -47,6 +50,7 @@ const RegisterPage = () => {
   };
 
   const handleSignUp = async () => {
+    const recaptchaValue = recaptchaRef.current?.getValue();
     try {
       if (!(username && password && passwordConfirmation)) {
         setPromptMessage("Please fill in all fields.");
@@ -57,7 +61,11 @@ const RegisterPage = () => {
       } else if (!usernameReg.test(username)) {
         setPromptMessage("Username is not valid.");
       } else {
-        const res = await register(username, encryptPassword(password));
+        const res = await register(
+          username,
+          encryptPassword(password),
+          recaptchaValue
+        );
         setPromptMessage(null);
         if (res.status === 201) {
           setStatus({
@@ -81,6 +89,8 @@ const RegisterPage = () => {
       });
     }
   };
+
+  console.log(import.meta.env.VITE_REACT_APP_RECAPTCHA_CLIENT_KEY)
 
   return (
     <div
@@ -128,6 +138,13 @@ const RegisterPage = () => {
               type="password"
               value={passwordConfirmation}
               onChange={(e) => setPasswordConfirmation(e.target.value)}
+            />
+            <ReCAPTCHA
+              style={{marginTop: "2vh"}}
+              sitekey={
+                import.meta.env.VITE_REACT_APP_RECAPTCHA_CLIENT_KEY
+              }
+              ref={recaptchaRef}
             />
             <Typography
               gutterBottom

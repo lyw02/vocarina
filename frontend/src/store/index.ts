@@ -11,7 +11,7 @@ import snappingModeReducer from "./modules/snappingMode";
 
 const store = configureStore({
   reducer: {
-    notes: notesReducer,
+    // notes: notesReducer,
     params: paramsReducer,
     user: userReducer,
     tracks: tracksReducer,

@@ -10,8 +10,6 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardMedia,
-  FormControl,
   Link,
   Stack,
   SxProps,
@@ -21,6 +19,7 @@ import {
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import "../index.css";
 
 const linkStyle: SxProps = {
   textDecoration: "none",
