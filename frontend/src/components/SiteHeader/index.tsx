@@ -132,7 +132,12 @@ const SiteHeader = () => {
           <MenuItem disabled>
             <Typography textAlign="center">{currentUser}</Typography>
           </MenuItem>
-          <MenuItem onClick={handleCloseUserMenu}>
+          <MenuItem
+            onClick={() => {
+              navigate("/profile");
+              handleCloseUserMenu();
+            }}
+          >
             <Typography textAlign="center">{"Profile"}</Typography>
           </MenuItem>
           <MenuItem onClick={handleCloseUserMenu}>

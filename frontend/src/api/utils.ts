@@ -18,3 +18,13 @@ export const getReq = async (path: string) => {
     },
   });
 };
+
+export const putReq = async (path: string, body: object) => {
+  return await fetch(baseUrl + path, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+};

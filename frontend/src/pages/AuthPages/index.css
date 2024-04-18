@@ -1,4 +1,4 @@
-body {
+.auth-page-wrapper {
   background: linear-gradient(-45deg, #ee7752, #f193b7, #23a6d5, #23d5ab);
   background-size: 400% 400%;
   animation: gradient 15s ease infinite;

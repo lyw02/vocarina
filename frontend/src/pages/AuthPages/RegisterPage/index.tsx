@@ -93,88 +93,89 @@ const RegisterPage = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}
-    >
-      <AutoDismissAlert
-        isAlertOpen={isAlertOpen}
-        handleAlertClose={handleAlertClose}
-        message={status.message}
-        severity={status.severity}
-      />
-      <Card sx={{ width: "50vh", margin: "auto" }}>
-        <CardContent sx={{ paddingBottom: 0 }}>
-          <Typography gutterBottom variant="h5" component="div">
-            Sign Up
-          </Typography>
-          <Stack direction="column" justifyContent="space-between">
-            <TextField
-              required
-              id="username-field"
-              label="Username"
-              variant="standard"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <TextField
-              required
-              id="password-field"
-              label="Password"
-              variant="standard"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <TextField
-              required
-              id="password-confirmation-field"
-              label="Password Confirmation"
-              variant="standard"
-              type="password"
-              value={passwordConfirmation}
-              onChange={(e) => setPasswordConfirmation(e.target.value)}
-            />
-            <ReCAPTCHA
-              style={{marginTop: "2vh"}}
-              sitekey={
-                import.meta.env.VITE_REACT_APP_RECAPTCHA_CLIENT_KEY
-              }
-              ref={recaptchaRef}
-            />
-            <Typography
-              gutterBottom
-              variant="caption"
-              color={theme.palette.primary.main}
-              component="span"
-            >
-              {promptMessage}
+    <div className="auth-page-wrapper">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <AutoDismissAlert
+          isAlertOpen={isAlertOpen}
+          handleAlertClose={handleAlertClose}
+          message={status.message}
+          severity={status.severity}
+        />
+        <Card sx={{ width: "50vh", margin: "auto" }}>
+          <CardContent sx={{ paddingBottom: 0 }}>
+            <Typography gutterBottom variant="h5" component="div">
+              Sign Up
             </Typography>
-            <Stack direction="row" justifyContent="space-between">
+            <Stack direction="column" justifyContent="space-between">
+              <TextField
+                required
+                id="username-field"
+                label="Username"
+                variant="standard"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <TextField
+                required
+                id="password-field"
+                label="Password"
+                variant="standard"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <TextField
+                required
+                id="password-confirmation-field"
+                label="Password Confirmation"
+                variant="standard"
+                type="password"
+                value={passwordConfirmation}
+                onChange={(e) => setPasswordConfirmation(e.target.value)}
+              />
+              <ReCAPTCHA
+                style={{ marginTop: "2vh" }}
+                sitekey={import.meta.env.VITE_REACT_APP_RECAPTCHA_CLIENT_KEY}
+                ref={recaptchaRef}
+                hl="en"
+              />
               <Typography
                 gutterBottom
-                variant="overline"
+                variant="caption"
+                color={theme.palette.primary.main}
                 component="span"
-                sx={{ marginTop: "auto", paddingBottom: 0 }}
               >
-                Already have an account?{" "}
-                <Link sx={linkStyle} component={RouterLink} to="/login">
-                  Login
-                </Link>
+                {promptMessage}
               </Typography>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography
+                  gutterBottom
+                  variant="overline"
+                  component="span"
+                  sx={{ marginTop: "auto", paddingBottom: 0 }}
+                >
+                  Already have an account?{" "}
+                  <Link sx={linkStyle} component={RouterLink} to="/login">
+                    Login
+                  </Link>
+                </Typography>
+              </Stack>
             </Stack>
-          </Stack>
-        </CardContent>
-        <CardActions sx={{ paddingTop: 0 }}>
-          <Button size="small" onClick={handleSignUp}>
-            Sign Up
-          </Button>
-        </CardActions>
-      </Card>
+          </CardContent>
+          <CardActions sx={{ paddingTop: 0 }}>
+            <Button size="small" onClick={handleSignUp}>
+              Sign Up
+            </Button>
+          </CardActions>
+        </Card>
+      </div>
     </div>
   );
 };
