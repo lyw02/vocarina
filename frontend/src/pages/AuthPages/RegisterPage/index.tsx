@@ -66,6 +66,7 @@ const RegisterPage = () => {
           encryptPassword(password),
           recaptchaValue
         );
+        const resJson = await res.json();
         setPromptMessage(null);
         if (res.status === 201) {
           setStatus({
@@ -74,6 +75,7 @@ const RegisterPage = () => {
           });
           navigate("/login");
         } else {
+          console.log(resJson.error);
           setStatus({
             severity: "error",
             message: "Register failed!",
@@ -89,8 +91,6 @@ const RegisterPage = () => {
       });
     }
   };
-
-  console.log(import.meta.env.VITE_REACT_APP_RECAPTCHA_CLIENT_KEY)
 
   return (
     <div

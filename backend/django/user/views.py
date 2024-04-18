@@ -40,7 +40,7 @@ class UserAuthView(APIView):
             if not username or not password:
                 return Response({"error": "Username and password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            recaptcha_response = request.POST.get("recaptcha")
+            recaptcha_response = request.data.get("recaptcha")
             data = {
                 "secret": RECAPTCHA_KEY,
                 "response": recaptcha_response
