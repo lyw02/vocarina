@@ -16,6 +16,10 @@ import HomeIcon from "@mui/icons-material/Home";
 import { container, card } from "./style";
 import MyPlaylist from "@/components/MyPlaylist";
 import MyMusic from "@/components/MyMusic";
+import { Outlet } from "react-router-dom";
+import MusicPlayerBanner from "@/components/MusicPlayerBanner";
+import { RootState } from "@/types";
+import { useSelector } from "react-redux";
 
 interface TabPanelProps {
   children?: ReactNode;
@@ -64,63 +68,63 @@ const CommunityHomePage = () => {
     setTabValue(index);
   };
 
+  const isPlaying = useSelector(
+    (state: RootState) => state.musicPanel.isPlaying
+  );
+  const title = useSelector((state: RootState) => state.musicPanel.title);
+  const artist = useSelector((state: RootState) => state.musicPanel.artist);
+  const mudicSrc = useSelector((state: RootState) => state.musicPanel.src);
+
   return (
-    <Grid container spacing={2} sx={container}>
-      <Grid item xs={3}>
-        <Card sx={card}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <IconButton aria-label="home" size="small">
-              <HomeIcon />
-            </IconButton>
-            <Box
-              component="form"
-              sx={{
-                "& > :not(style)": { m: 1, width: "25ch" },
-              }}
-              noValidate
-              autoComplete="off"
-            >
-              <TextField label="Search" variant="outlined" />
+    <>
+      {isPlaying && mudicSrc !== null && (
+        <MusicPlayerBanner title={title} artist={artist} audioUrl={mudicSrc} />
+      )}
+      <Stack direction="row" spacing={2} sx={{ margin: "20px" }}>
+        <Stack direction="column" spacing={2} sx={{ width: "25vw" }}>
+          <Card sx={card}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <IconButton aria-label="home" size="small">
+                <HomeIcon />
+              </IconButton>
+              <Box
+                component="form"
+                sx={{
+                  "& > :not(style)": { m: 1, width: "25ch" },
+                }}
+                noValidate
+                autoComplete="off"
+              >
+                <TextField label="Search" size="small" variant="outlined" />
+              </Box>
+            </Stack>
+          </Card>
+          <Card sx={card}>
+            <Box sx={{ width: "100%" }}>
+              <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                textColor="primary"
+                indicatorColor="primary"
+                aria-label="My Music/Playlist tab"
+              >
+                <Tab value={0} label="My Music" />
+                <Tab value={1} label="My Playlist" />
+              </Tabs>
+              <TabPanel value={tabValue} index={0} dir={theme.direction}>
+                {/* <MyMusic /> */}
+              </TabPanel>
+              <TabPanel value={tabValue} index={1} dir={theme.direction}>
+                <MyPlaylist />
+              </TabPanel>
             </Box>
-          </Stack>
-        </Card>
-      </Grid>
-      <Grid item xs={9}>
-        <Card sx={[card, { height: "100%" }]}>
-          <Typography variant="h4" gutterBottom>
-            Browse
-          </Typography>
-        </Card>
-      </Grid>
-      <Grid item xs={3}>
-        <Card sx={card}>
-          <Box sx={{ width: "100%" }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              textColor="primary"
-              indicatorColor="primary"
-              aria-label="My Music/Playlist tab"
-            >
-              <Tab value={0} label="My Music" />
-              <Tab value={1} label="My Playlist" />
-            </Tabs>
-            {/* <SwipeableViews
-              axis={theme.direction === "rtl" ? "x-reverse" : "x"}
-              index={tabValue}
-              onChangeIndex={handleChangeTabPanelIndex}
-            > */}
-            <TabPanel value={tabValue} index={0} dir={theme.direction}>
-              <MyMusic />
-            </TabPanel>
-            <TabPanel value={tabValue} index={1} dir={theme.direction}>
-              <MyPlaylist />
-            </TabPanel>
-            {/* </SwipeableViews> */}
-          </Box>
-        </Card>
-      </Grid>
-    </Grid>
+          </Card>
+        </Stack>
+        <Box sx={{ width: "100%" }}>
+          <Outlet />
+        </Box>
+      </Stack>
+    </>
   );
 };
 

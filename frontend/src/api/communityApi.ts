@@ -1,5 +1,5 @@
 import { Sentence } from "@/types/project";
-import { postReq } from "./utils";
+import { getReq, postReq } from "./utils";
 
 export const publishProject = async (
   username: string,
@@ -17,3 +17,8 @@ export const publishProject = async (
   });
   return response;
 };
+
+export const getAllMusic = async () => {
+  const response = await getReq("api/music/");
+  return response;
+}

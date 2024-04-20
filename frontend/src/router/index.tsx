@@ -2,6 +2,7 @@ import LoginPage from "@/pages/AuthPages/LoginPage";
 import ProfilePage from "@/pages/AuthPages/ProfilePage";
 import RegisterPage from "@/pages/AuthPages/RegisterPage";
 import CommunityHomePage from "@/pages/CommunityHomePage";
+import BrowseMusicList from "@/pages/CommunityHomePage/BrowseMusicList";
 import HomePage from "@/pages/HomePage";
 import ProducePage from "@/pages/ProducePage";
 import { Navigate, createBrowserRouter } from "react-router-dom";
@@ -31,6 +32,12 @@ const router = createBrowserRouter([
       {
         path: "community",
         element: <CommunityHomePage />,
+        children: [
+          {
+            path: "",
+            element: <BrowseMusicList />
+          },
+        ]
       },
     ],
   },

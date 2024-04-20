@@ -90,7 +90,7 @@ def get_file_object(object_file_path: str):
 
 
 def get_file_url(filepath: str):
-    url = bucket.sign_url("GET", filepath, 3600, slash_safe=True)
+    url = bucket.sign_url("GET", filepath, 3600 * 24 * 365, slash_safe=True)
 
     return url
 

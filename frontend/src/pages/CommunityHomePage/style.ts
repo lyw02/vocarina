@@ -1,7 +1,7 @@
 import { SxProps, SystemStyleObject } from "@mui/system";
 
 const container: SxProps = {
-  marginTop: "5px",
+  margin: "5px",
 } as const;
 
 const card: SystemStyleObject = {

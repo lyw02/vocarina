@@ -1,71 +1,62 @@
-import { useState, useRef, useEffect } from "react";
+import { Box, IconButton, Slider, Typography } from "@mui/material";
+import { TinyText, Widget } from "./style";
+import MusicVisualizer from "../MusicVisualizer";
+import { useEffect, useRef, useState } from "react";
 import {
-  Button,
-  Slider,
-  Grid,
-  useTheme,
-  Box,
-  Typography,
-  IconButton,
-  Stack,
-} from "@mui/material";
-import {
-  FastForwardRounded,
-  FastRewindRounded,
   PauseRounded,
   PlayArrowRounded,
-  VolumeDownRounded,
-  VolumeUpRounded,
 } from "@mui/icons-material";
-import {
-  CoverImage,
-  timeSliderSx,
-  TinyText,
-  volumeSliderSx,
-  Widget,
-} from "./style";
-import AudioContainer from "../AudioContainer";
-import MusicVisualizer from "../MusicVisualizer";
+import { ClickAwayListener } from "@mui/base/ClickAwayListener";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/types";
+import { setIsPlaying, setSrc } from "@/store/modules/musicPanel";
 
 interface MusicPlayerBannerProps {
   initialVolume?: number;
   initialPlaying?: boolean;
   title: string;
   artist: string;
-  coverUrl: string;
+  // coverUrl: string;
   audioUrl: string;
 }
 
 const MusicPlayerBanner = ({
   title,
   artist,
-  coverUrl,
+  // coverUrl,
   audioUrl,
 }: MusicPlayerBannerProps) => {
-  const theme = useTheme();
-  const [currentTime, setCurrentTime] = useState<number>(0);
-  const [totalDuration, setTotalDuration] = useState<number>(0);
-  const [paused, setPaused] = useState(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const timeoutRef = useRef<number | null>(null);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [playing, setPlaying] = useState(false);
 
-  const playMusic = () => {
-    if (audioRef.current) {
-      audioRef.current.play();
-    }
-    setPaused(false);
-  };
+  const dispatch = useDispatch();
+  const isOpen = useSelector(
+    (state: RootState) => state.musicPanel.isPlaying
+  );
 
-  const pauseMusic = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    setPaused(true);
-  };
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const handlePlayPause = () => {
-    paused ? playMusic() : pauseMusic();
-  };
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.crossOrigin = "anonymous";
+    audio.addEventListener("loadedmetadata", () => setDuration(audio.duration));
+    audio.addEventListener("timeupdate", () =>
+      setCurrentTime(audio.currentTime)
+    );
+    audio.addEventListener("ended", () => setPlaying(false));
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", () =>
+        setDuration(audio.duration)
+      );
+      audio.removeEventListener("timeupdate", () =>
+        setCurrentTime(audio.currentTime)
+      );
+      audio.removeEventListener("ended", () => setPlaying(false));
+    };
+  }, []);
 
   const formatDuration = (value: number) => {
     const minute = Math.floor(value / 60);
@@ -73,67 +64,52 @@ const MusicPlayerBanner = ({
     return `${minute}:${secondLeft < 10 ? `0${secondLeft}` : secondLeft}`;
   };
 
-  const [isDragging, setIsDragging] = useState(false);
-
-  const handleTimeSliderChange = (_: any, value: number) => {
-    setIsDragging(true);
-    setCurrentTime(value as number);
-  };
-
-  const handleTimeSliderChangeCommit = (_: any, value: number) => {
-    setIsDragging(false);
-    audioRef.current!.currentTime = value;
-  };
-
-  const mainIconColor = theme.palette.mode === "dark" ? "#fff" : "#000";
-
-  const lightIconColor =
-    theme.palette.mode === "dark" ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)";
-
-  useEffect(() => {
+  const handlePlayPause = () => {
     const audio = audioRef.current;
-    if (!audio) {
-      return;
-    }
-
-    audio.onloadedmetadata = () => {
-      setTotalDuration(audio.duration);
-    };
-
-    audio.ontimeupdate = () => {
-      if (!isDragging) {
-        setCurrentTime(audio.currentTime);
-      }
-    };
-
-    // audio.ontimeupdate = () => {
-    //   if (timeoutRef.current) {
-    //     clearTimeout(timeoutRef.current);
-    //   }
-
-    //   timeoutRef.current = window.setTimeout(() => {
-    //     setCurrentTime(audio.currentTime);
-    //   }, 100); // 100ms 防抖动处理
-
-    //   return () => {
-    //     clearTimeout(timeoutRef.current!);
-    //   };
-    // };
-
-    return () => {
+    if (!audio) return;
+    if (playing) {
       audio.pause();
-    };
-  }, [audioUrl]);
+    } else {
+      audio.play();
+    }
+    setPlaying(!playing);
+  };
 
+  const handleTimeSliderChange = (
+    _event: Event,
+    newValue: number | number[],
+    activeThumb: number
+  ) => {
+    if (activeThumb !== 0) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    let newTime = Array.isArray(newValue) ? newValue[0] : newValue;
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const handleClickAway = () => {
+    if (isOpen) {
+      dispatch(setIsPlaying(false));
+      dispatch(setSrc(null));
+    }
+  };
   return (
+    <ClickAwayListener onClickAway={handleClickAway}>
+
     <Box sx={{ width: "100%", overflow: "hidden" }}>
-      <AudioContainer audioRef={audioRef} audioSrc={audioUrl} />
+      <audio ref={audioRef} style={{ display: "none" }} controls>
+        <source src={audioUrl} type="audio/wav" />
+      </audio>
       <Widget>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <Box>
-            <CoverImage>
-              <img alt="can't win - Chilling Sunday" src={coverUrl} />
-            </CoverImage>
             <Box sx={{ ml: 1.5, minWidth: 0 }}>
               <Typography
                 variant="caption"
@@ -151,73 +127,36 @@ const MusicPlayerBanner = ({
             <MusicVisualizer audioElement={audioRef.current} />
           </Box>
         </Box>
-        <Slider
-          aria-label="time-indicator"
-          size="small"
-          value={isDragging ? currentTime : currentTime}
-          min={0}
-          step={1}
-          max={totalDuration}
-          onChange={(_, value) => handleTimeSliderChange(_, value as number)}
-          onChangeCommitted={(_, value) =>
-            handleTimeSliderChangeCommit(_, value as number)
-          }
-          sx={timeSliderSx}
-        />
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mt: -2,
-          }}
-        >
-          <TinyText>{formatDuration(currentTime)}</TinyText>
-          <TinyText>-{formatDuration(totalDuration - currentTime)}</TinyText>
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mt: -1,
-          }}
-        >
-          <IconButton aria-label="previous song">
-            <FastRewindRounded fontSize="large" htmlColor={mainIconColor} />
-          </IconButton>
-          <IconButton
-            aria-label={paused ? "play" : "pause"}
-            onClick={handlePlayPause}
-          >
-            {paused ? (
-              <PlayArrowRounded
-                sx={{ fontSize: "3rem" }}
-                htmlColor={mainIconColor}
-              />
+        <Box sx={{justifyContent: "center"}}>
+          <IconButton onClick={handlePlayPause}>
+            {playing ? (
+              <PauseRounded sx={{ fontSize: "3rem" }} htmlColor="black" />
             ) : (
-              <PauseRounded
-                sx={{ fontSize: "3rem" }}
-                htmlColor={mainIconColor}
-              />
+              <PlayArrowRounded sx={{ fontSize: "3rem" }} htmlColor="black" />
             )}
           </IconButton>
-          <IconButton aria-label="next song">
-            <FastForwardRounded fontSize="large" htmlColor={mainIconColor} />
-          </IconButton>
+          <Slider
+            value={currentTime}
+            onChange={handleTimeSliderChange}
+            max={duration}
+            step={0.01}
+            sx={{ margin: "10px 0" }}
+          />
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mt: -2,
+            }}
+          >
+            <TinyText>{formatDuration(currentTime)}</TinyText>
+            <TinyText>-{formatDuration(duration - currentTime)}</TinyText>
+          </Box>
         </Box>
-        <Stack
-          spacing={2}
-          direction="row"
-          sx={{ mb: 1, px: 1 }}
-          alignItems="center"
-        >
-          <VolumeDownRounded htmlColor={lightIconColor} />
-          <Slider aria-label="Volume" defaultValue={30} sx={volumeSliderSx} />
-          <VolumeUpRounded htmlColor={lightIconColor} />
-        </Stack>
       </Widget>
     </Box>
+    </ClickAwayListener>
   );
 };
 

@@ -1,5 +1,4 @@
-import { IconButton, List, ListItem } from "@mui/material";
-import { useState } from "react";
+import { List, ListItem } from "@mui/material";
 import MyMusicItem from "../MyMusicItem";
 
 interface MusicItem {
@@ -7,30 +6,14 @@ interface MusicItem {
   title: string;
   artist: string;
   cover: string;
+  src: string;
 }
 
-const MyMusic = () => {
-  const musicList: MusicItem[] = [
-    {
-      id: 0,
-      title: "Title",
-      artist: "Someone",
-      cover: "https://images.unsplash.com/photo-1522770179533-24471fcdba45",
-    },
-    {
-      id: 1,
-      title: "Title",
-      artist: "Someone",
-      cover: "https://images.unsplash.com/photo-1522770179533-24471fcdba45",
-    },
-    {
-      id: 2,
-      title: "Title",
-      artist: "Someone",
-      cover: "https://images.unsplash.com/photo-1522770179533-24471fcdba45",
-    },
-  ];
+interface MyMusicProps {
+  musicList: MusicItem[]
+}
 
+const MyMusic = ({musicList}: MyMusicProps) => {
   return (
     <List
       sx={{
@@ -49,6 +32,7 @@ const MyMusic = () => {
               title={item.title}
               artist={item.artist}
               cover={item.cover}
+              src={item.src}
             />
           </ListItem>
         );

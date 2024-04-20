@@ -8,6 +8,7 @@ from .serializers import MusicSerializer
 from .utils.mixing import mix
 from .utils.oss import get_file_url, get_file_by_url
 from user.models import User
+from user.serializers import UserSerializer
 
 
 class MusicView(GenericAPIView):
@@ -20,7 +21,7 @@ class MusicView(GenericAPIView):
         if request.query_params.get("action") == "publish":
 
             mix_res = mix(request.data.get("username"), request.data.get("project_name"), request.data.get("data"))
-            file_url = get_file_url(request.data.get("project_name"))
+            file_url = get_file_url(f"music/{request.data.get('username')}/{request.data.get('project_name')}.wav")
             user_id = request.data.get("user_id")
             user = User.objects.get(id=user_id)
             print(f"user.id: {user.id}")
@@ -46,3 +47,17 @@ class MusicView(GenericAPIView):
                 print(f"serializer.errors: {serializer.errors}")
                 return Response({"message": serializer.errors},
                                 status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        serializer = self.get_serializer(instance=self.get_queryset(), many=True)
+        res = []
+        for music in serializer.data:
+            user_id = music.get("user_id")
+            try:
+                user = User.objects.get(id=user_id)
+                username = user.username
+            except User.DoesNotExist:
+                username = None
+            music["username"] = username
+            res.append(music)
+        return Response(res, status=status.HTTP_200_OK)

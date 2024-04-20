@@ -44,6 +44,7 @@ export interface RootState {
   localStatus: LocalStatusState;
   snappingMode: SnappingModeState;
   user: UserState;
+  musicPanel: MusicPanelState;
 }
 
 export interface NotesState {
@@ -94,4 +95,11 @@ export interface SnappingModeState {
 export interface UserState {
   currentUser: string;
   currentUserId: number | null;
+}
+
+export interface MusicPanelState {
+  src: string | null;
+  isPlaying: boolean;
+  title: string;
+  artist: string;
 }
