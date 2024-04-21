@@ -186,7 +186,17 @@ const CommunityHomePage = () => {
                 )}
               </TabPanel>
               <TabPanel value={tabValue} index={1} dir={theme.direction}>
-                <MyPlaylist />
+                {currentUserId ? (
+                  <MyPlaylist />
+                ) : (
+                  <Link to="/login">
+                    <Button>
+                      <Typography color={theme.palette.grey[500]}>
+                        {"Sign in"}
+                      </Typography>
+                    </Button>
+                  </Link>
+                )}
               </TabPanel>
             </Box>
           </Card>

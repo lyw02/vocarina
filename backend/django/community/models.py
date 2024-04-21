@@ -21,8 +21,9 @@ class Music(models.Model):
 
 class Playlist(models.Model):
     id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey("user.User", on_delete=models.CASCADE)
-    music_id = models.ManyToManyField("Music")
+    user_id = models.ForeignKey("user.User", related_name="created_playlists", on_delete=models.CASCADE)
+    saved_user_id = models.ManyToManyField("user.User", related_name="saved_playlists")
+    music_id = models.ManyToManyField("Music", related_name="belonged_playlists")
 
     title = models.CharField(max_length=64)
     description = models.TextField()

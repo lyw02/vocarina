@@ -1,22 +1,23 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
 
-// img: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e'
+interface MyPlaylistItemProps {
+  name: string;
+  count: number;
+}
 
-const MyPlaylistItem = () => {
+const MyPlaylistItem = ({name, count}: MyPlaylistItemProps) => {
   return (
     <Box sx={{ width: "100%" }}>
       <Stack direction="row" spacing={1}>
         <img
-          src="https://images.unsplash.com/photo-1551963831-b3b1ca40c98e"
+          src="https://picsum.photos/seed/playlist/200"
           loading="lazy"
           style={{ width: "60px", height: "60px" }}
         />
         <Stack direction="column" spacing={0}>
-          <Typography variant="body1">Playlist Name</Typography>
-          <Typography variant="caption">50 songs</Typography>
-          <Typography variant="caption">Updated 3 days ago</Typography>
+          <Typography variant="body1">{name}</Typography>
+          <Typography variant="caption">{count}{" songs"}</Typography>
         </Stack>
-        <Button>Delete</Button>
       </Stack>
     </Box>
   );

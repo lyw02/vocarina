@@ -1,4 +1,5 @@
 import {
+  Button,
   Collapse,
   IconButton,
   List,
@@ -8,45 +9,47 @@ import {
   Stack,
 } from "@mui/material";
 import MyPlaylistItem from "../MyPlaylistItem";
-import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { ExpandLess, ExpandMore, AddCircleOutline } from "@mui/icons-material";
+import SearchIcon from "@mui/icons-material/Search";
 import { Dispatch, SetStateAction, useState } from "react";
+import theme from "@/theme";
+import { useNavigate } from "react-router-dom";
 
 interface SubList {
   id: number;
   text: string;
-  listItems: object[] | number[];
+  listItems: { name: string; count: number }[];
   flag: boolean;
   flagSetter: Dispatch<SetStateAction<boolean>>;
 }
 
-// interface ListItem {
-//   id: number;
-//   playlistName: string;
-//   songCount: number;
-//   lastUpdate: string;
-//   creater: string | number;
-// }
+const createdListItems: SubList["listItems"] = [];
+const savedListItems: SubList["listItems"] = [];
 
 const MyPlaylist = () => {
   const [isCreatedListOpen, setIsCreatedListOpen] = useState<boolean>(true);
   const [isSavedListOpen, setIsSavedListOpen] = useState<boolean>(true);
 
+  const navigate = useNavigate();
+
   const subLists: SubList[] = [
     {
       id: 0,
       text: "Created",
-      listItems: [0, 1, 2, 3, 4],
+      listItems: createdListItems,
       flag: isCreatedListOpen,
       flagSetter: setIsCreatedListOpen,
     },
     {
       id: 1,
       text: "Saved",
-      listItems: [0, 1, 2],
+      listItems: savedListItems,
       flag: isSavedListOpen,
       flagSetter: setIsSavedListOpen,
     },
   ];
+
+  const handleCreatePlaylist = () => {};
 
   return (
     <List
@@ -74,10 +77,30 @@ const MyPlaylist = () => {
               {item.listItems.map((i) => {
                 return (
                   <ListItem key={`item-${i}`}>
-                    <MyPlaylistItem />
+                    <MyPlaylistItem name={i.name} count={i.count} />
                   </ListItem>
                 );
               })}
+              <ListItem>
+                <Button
+                  variant="text"
+                  sx={{ color: theme.palette.grey[500] }}
+                  startIcon={
+                    item.text === "Created" ? (
+                      <AddCircleOutline />
+                    ) : (
+                      <SearchIcon />
+                    )
+                  }
+                  onClick={
+                    item.text === "Created"
+                      ? handleCreatePlaylist
+                      : () => navigate("/community/playlist")
+                  }
+                >
+                  {item.text === "Created" ? "New" : "Find more"}
+                </Button>
+              </ListItem>
             </Collapse>
           </div>
         );
