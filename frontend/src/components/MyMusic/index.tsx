@@ -25,7 +25,8 @@ const MyMusic = ({musicList}: MyMusicProps) => {
       }}
       subheader={<li />}
     >
-      {musicList.map((item) => {
+      {musicList.reverse().map((item) => {
+        console.log("item.src: ", item.src)
         return (
           <ListItem key={`item-${item.id}`}>
             <MyMusicItem

@@ -26,4 +26,6 @@ def mix(username: str, filename: str, base64_arr: list[str]):
     buffer = io.BytesIO()
     combined.export(buffer, format="wav")
 
-    upload_file_directly(rf"music/{username}/{filename}.wav", buffer)
+    path_in_oss = rf"music/{username}/{filename}.wav"
+    upload_file_directly(path_in_oss, buffer)
+    return path_in_oss

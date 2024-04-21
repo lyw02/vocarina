@@ -17,18 +17,22 @@ class MusicView(GenericAPIView):
     lookup_field = "id"
 
     def post(self, request):
+        """
+        query param: action
+            publish -> publish new music
+        """
 
         if request.query_params.get("action") == "publish":
 
             mix_res = mix(request.data.get("username"), request.data.get("project_name"), request.data.get("data"))
-            file_url = get_file_url(f"music/{request.data.get('username')}/{request.data.get('project_name')}.wav")
+            # file_url = get_file_url(f"music/{request.data.get('username')}/{request.data.get('project_name')}.wav")
             user_id = request.data.get("user_id")
             user = User.objects.get(id=user_id)
             print(f"user.id: {user.id}")
             data_to_ser = {
                 "user_id": user.id,
                 "title": request.data.get("project_name"),
-                "audio_url": file_url,
+                "audio_url": mix_res,  # Path in OSS
                 "lyrics": request.data.get("lyrics"),
                 "composed_by": request.data.get("composed_by"),
                 "lyrics_by": request.data.get("lyrics_by"),
@@ -49,6 +53,7 @@ class MusicView(GenericAPIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
+        """Get all musics"""
         serializer = self.get_serializer(instance=self.get_queryset(), many=True)
         res = []
         for music in serializer.data:
@@ -59,5 +64,6 @@ class MusicView(GenericAPIView):
             except User.DoesNotExist:
                 username = None
             music["username"] = username
+            music["url"] = get_file_url(f"music/{username}/{music.get('title')}")
             res.append(music)
         return Response(res, status=status.HTTP_200_OK)

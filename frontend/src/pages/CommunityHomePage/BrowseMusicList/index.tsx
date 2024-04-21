@@ -7,6 +7,7 @@ import MyMusic from "@/components/MyMusic";
 interface MusicResponse {
   arranged_by: string | null;
   audio_url: string;
+  url: string;
   composed_by: string | null;
   credits: string | null;
   id: number;
@@ -39,7 +40,7 @@ const BrowseMusicList = () => {
       id: m.id,
       title: m.title,
       artist: m.username,
-      src: m.audio_url,
+      src: m.url,
       cover: "https://picsum.photos/200",
     };
   });

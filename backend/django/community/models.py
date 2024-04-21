@@ -10,7 +10,7 @@ class Music(models.Model):
     lyrics_by = models.CharField(max_length=50, blank=True, null=True)
     arranged_by = models.CharField(max_length=50, blank=True, null=True)
     credits = models.JSONField(blank=True, null=True)
-    audio_url = models.URLField(max_length=1024)
+    audio_url = models.CharField(max_length=1024)
     lyrics = models.JSONField()
     publish_time = models.DateTimeField(auto_now_add=True)
     play_count = models.IntegerField(default=0)
