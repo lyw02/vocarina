@@ -20,7 +20,7 @@ class MusicView(GenericAPIView):
 
     def post(self, request):
         """
-        query param: action
+        @query param "action"
             publish -> publish new music
         """
 
@@ -55,9 +55,23 @@ class MusicView(GenericAPIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
-        """Get all musics"""
-        queryset = self.filter_queryset(self.get_queryset())
+        """
+        @query param "page" *required
+        @query param "user_id"
+            <None> -> Get all musics
+            <int> -> Get all musics of a user
+        """
+
+        user_id = request.query_params.get("user_id")
+        if user_id is not None and isinstance(int(user_id), int):
+            # Get all musics of a user
+            queryset = self.get_queryset().filter(user_id=user_id)
+        else:
+            # Get all musics
+            queryset = self.get_queryset()
+        queryset = self.filter_queryset(queryset)
         page = self.paginate_queryset(queryset)
+
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             res = []

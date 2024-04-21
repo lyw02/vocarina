@@ -22,3 +22,8 @@ export const getAllMusic = async (page: number) => {
   const response = await getReq(`api/music/?page=${page}`);
   return response;
 }
+
+export const getAllMusicOfUser = async (id: number, page: number) => {
+  const response = await getReq(`api/music/?user_id=${id}&page=${page}`);
+  return response;
+}

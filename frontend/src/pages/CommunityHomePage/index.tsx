@@ -5,6 +5,7 @@ import {
   Card,
   Grid,
   IconButton,
+  Pagination,
   Stack,
   Tab,
   Tabs,
@@ -21,6 +22,7 @@ import MusicPlayerBanner from "@/components/MusicPlayerBanner";
 import { RootState } from "@/types";
 import { useSelector } from "react-redux";
 import { MusicResponse } from "@/types/community";
+import { getAllMusicOfUser } from "@/api/communityApi";
 
 interface TabPanelProps {
   children?: ReactNode;
@@ -58,6 +60,9 @@ const a11yProps = (index: number) => {
 
 const CommunityHomePage = () => {
   const theme = useTheme();
+  const currentUserId = useSelector(
+    (state: RootState) => state.user.currentUserId
+  );
   const [tabValue, setTabValue] = useState<number>(0);
   const [tabPanelIndex, setTabPanelIndex] = useState<number>(0);
 
@@ -73,34 +78,55 @@ const CommunityHomePage = () => {
     (state: RootState) => state.musicPanel.isPanelOpen
   );
   const panelTitle = useSelector((state: RootState) => state.musicPanel.title);
-  const panelArtist = useSelector((state: RootState) => state.musicPanel.artist);
+  const panelArtist = useSelector(
+    (state: RootState) => state.musicPanel.artist
+  );
   const panelMusicSrc = useSelector((state: RootState) => state.musicPanel.src);
 
-  // const [musicList, setMusicList] = useState<MusicResponse[]>([]);
-  // useEffect(() => {
-  //   const fetchMusicData = async () => {
-  //     const res = await getAllMusic();
-  //     const resJson = await res.json();
-  //     console.log(resJson);
-  //     setMusicList(resJson);
-  //   };
-  //   fetchMusicData();
-  // }, []);
+  // My Music List
+  const [musicList, setMusicList] = useState<MusicResponse[]>([]);
+  const [totalPagesMusic, setTotalPagesMusic] = useState<number>(1);
+  const [pageMusic, setPageMusic] = useState<number>(1);
 
-  // const musicListRes = musicList.map((m) => {
-  //   return {
-  //     id: m.id,
-  //     title: m.title,
-  //     artist: m.username,
-  //     src: m.url,
-  //     cover: "https://picsum.photos/200",
-  //   };
-  // });
+  const fetchMusicData = async (page: number) => {
+    if (!currentUserId) return;
+    const res = await getAllMusicOfUser(currentUserId, page);
+    const resJson = await res.json();
+    console.log(resJson);
+    setMusicList(resJson.results);
+    setTotalPagesMusic(resJson.total_pages);
+  };
+
+  useEffect(() => {
+    (async () => await fetchMusicData(1))();
+  }, []);
+
+  const handleMyMusicPageChange = async (
+    _event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    await fetchMusicData(value);
+    setPageMusic(value);
+  };
+
+  const musicListRes = musicList.map((m) => {
+    return {
+      id: m.id,
+      title: m.title,
+      artist: m.username,
+      src: m.url,
+      cover: "https://picsum.photos/200",
+    };
+  });
 
   return (
     <>
       {isPanelOpen && panelMusicSrc !== null && (
-        <MusicPlayerBanner title={panelTitle} artist={panelArtist} audioUrl={panelMusicSrc} />
+        <MusicPlayerBanner
+          title={panelTitle}
+          artist={panelArtist}
+          audioUrl={panelMusicSrc}
+        />
       )}
       <Stack direction="row" spacing={2} sx={{ margin: "20px" }}>
         <Stack direction="column" spacing={2} sx={{ width: "25vw" }}>
@@ -134,7 +160,15 @@ const CommunityHomePage = () => {
                 <Tab value={1} label="My Playlist" />
               </Tabs>
               <TabPanel value={tabValue} index={0} dir={theme.direction}>
-                {/* <MyMusic /> */}
+                <MyMusic musicList={musicListRes} />
+                <Pagination
+                  count={totalPagesMusic}
+                  page={pageMusic}
+                  onChange={handleMyMusicPageChange}
+                  variant="outlined"
+                  size="small"
+                  color="primary"
+                />
               </TabPanel>
               <TabPanel value={tabValue} index={1} dir={theme.direction}>
                 <MyPlaylist />
