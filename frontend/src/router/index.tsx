@@ -37,6 +37,14 @@ const router = createBrowserRouter([
             path: "",
             element: <BrowseMusicList />
           },
+          {
+            path: "music",
+            element: <BrowseMusicList />
+          },
+          {
+            path: "playlist",
+            element: <div>Browse playlists</div>
+          },
         ]
       },
     ],

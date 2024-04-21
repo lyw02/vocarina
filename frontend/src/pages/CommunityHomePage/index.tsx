@@ -2,6 +2,7 @@ import { ReactNode, SyntheticEvent, useEffect, useState } from "react";
 // import SwipeableViews from "react-swipeable-views";
 import {
   Box,
+  Button,
   Card,
   Grid,
   IconButton,
@@ -17,7 +18,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import { container, card } from "./style";
 import MyPlaylist from "@/components/MyPlaylist";
 import MyMusic from "@/components/MyMusic";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import MusicPlayerBanner from "@/components/MusicPlayerBanner";
 import { RootState } from "@/types";
 import { useSelector } from "react-redux";
@@ -135,15 +136,17 @@ const CommunityHomePage = () => {
               <IconButton aria-label="home" size="small">
                 <HomeIcon />
               </IconButton>
-              <Box
-                component="form"
-                sx={{
-                  "& > :not(style)": { m: 1, width: "25ch" },
-                }}
-                noValidate
-                autoComplete="off"
-              >
-                <TextField label="Search" size="small" variant="outlined" />
+              <Box>
+                <Link to="/community/music">
+                  <Button>
+                    <Typography>{"Music"}</Typography>
+                  </Button>
+                </Link>
+                <Link to="/community/playlist">
+                  <Button>
+                    <Typography>{"Playlist"}</Typography>
+                  </Button>
+                </Link>
               </Box>
             </Stack>
           </Card>
@@ -160,15 +163,27 @@ const CommunityHomePage = () => {
                 <Tab value={1} label="My Playlist" />
               </Tabs>
               <TabPanel value={tabValue} index={0} dir={theme.direction}>
-                <MyMusic musicList={musicListRes} />
-                <Pagination
-                  count={totalPagesMusic}
-                  page={pageMusic}
-                  onChange={handleMyMusicPageChange}
-                  variant="outlined"
-                  size="small"
-                  color="primary"
-                />
+                {currentUserId ? (
+                  <>
+                    <MyMusic musicList={musicListRes} />
+                    <Pagination
+                      count={totalPagesMusic}
+                      page={pageMusic}
+                      onChange={handleMyMusicPageChange}
+                      variant="outlined"
+                      size="small"
+                      color="primary"
+                    />
+                  </>
+                ) : (
+                  <Link to="/login">
+                    <Button>
+                      <Typography color={theme.palette.grey[500]}>
+                        {"Sign in"}
+                      </Typography>
+                    </Button>
+                  </Link>
+                )}
               </TabPanel>
               <TabPanel value={tabValue} index={1} dir={theme.direction}>
                 <MyPlaylist />
