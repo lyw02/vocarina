@@ -1,4 +1,4 @@
-import { ReactNode, SyntheticEvent, useState } from "react";
+import { ReactNode, SyntheticEvent, useEffect, useState } from "react";
 // import SwipeableViews from "react-swipeable-views";
 import {
   Box,
@@ -20,6 +20,7 @@ import { Outlet } from "react-router-dom";
 import MusicPlayerBanner from "@/components/MusicPlayerBanner";
 import { RootState } from "@/types";
 import { useSelector } from "react-redux";
+import { MusicResponse } from "@/types/community";
 
 interface TabPanelProps {
   children?: ReactNode;
@@ -68,17 +69,38 @@ const CommunityHomePage = () => {
     setTabValue(index);
   };
 
-  const isPlaying = useSelector(
-    (state: RootState) => state.musicPanel.isPlaying
+  const isPanelOpen = useSelector(
+    (state: RootState) => state.musicPanel.isPanelOpen
   );
-  const title = useSelector((state: RootState) => state.musicPanel.title);
-  const artist = useSelector((state: RootState) => state.musicPanel.artist);
-  const mudicSrc = useSelector((state: RootState) => state.musicPanel.src);
+  const panelTitle = useSelector((state: RootState) => state.musicPanel.title);
+  const panelArtist = useSelector((state: RootState) => state.musicPanel.artist);
+  const panelMusicSrc = useSelector((state: RootState) => state.musicPanel.src);
+
+  // const [musicList, setMusicList] = useState<MusicResponse[]>([]);
+  // useEffect(() => {
+  //   const fetchMusicData = async () => {
+  //     const res = await getAllMusic();
+  //     const resJson = await res.json();
+  //     console.log(resJson);
+  //     setMusicList(resJson);
+  //   };
+  //   fetchMusicData();
+  // }, []);
+
+  // const musicListRes = musicList.map((m) => {
+  //   return {
+  //     id: m.id,
+  //     title: m.title,
+  //     artist: m.username,
+  //     src: m.url,
+  //     cover: "https://picsum.photos/200",
+  //   };
+  // });
 
   return (
     <>
-      {isPlaying && mudicSrc !== null && (
-        <MusicPlayerBanner title={title} artist={artist} audioUrl={mudicSrc} />
+      {isPanelOpen && panelMusicSrc !== null && (
+        <MusicPlayerBanner title={panelTitle} artist={panelArtist} audioUrl={panelMusicSrc} />
       )}
       <Stack direction="row" spacing={2} sx={{ margin: "20px" }}>
         <Stack direction="column" spacing={2} sx={{ width: "25vw" }}>

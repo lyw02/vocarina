@@ -18,7 +18,7 @@ export const publishProject = async (
   return response;
 };
 
-export const getAllMusic = async () => {
-  const response = await getReq("api/music/");
+export const getAllMusic = async (page: number) => {
+  const response = await getReq(`api/music/?page=${page}`);
   return response;
 }

@@ -99,7 +99,7 @@ export interface UserState {
 
 export interface MusicPanelState {
   src: string | null;
-  isPlaying: boolean;
+  isPanelOpen: boolean;
   title: string;
   artist: string;
 }

@@ -1,38 +1,33 @@
 import { getAllMusic } from "@/api/communityApi";
 import { useEffect, useState } from "react";
 import { card } from "../style";
-import { Card } from "@mui/material";
+import { Card, Pagination } from "@mui/material";
 import MyMusic from "@/components/MyMusic";
-
-interface MusicResponse {
-  arranged_by: string | null;
-  audio_url: string;
-  url: string;
-  composed_by: string | null;
-  credits: string | null;
-  id: number;
-  like_count: number;
-  lyrics: any;
-  lyrics_by: string | null;
-  play_count: number;
-  publish_time: string;
-  save_count: number;
-  status: number;
-  title: string;
-  user_id: number;
-  username: string;
-}
+import { MusicResponse } from "@/types/community";
 
 const BrowseMusicList = () => {
   const [musicList, setMusicList] = useState<MusicResponse[]>([]);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [page, setPage] = useState<number>(1);
+
+  const fetchMusicData = async (page: number) => {
+    const res = await getAllMusic(page);
+    const resJson = await res.json();
+    console.log(resJson);
+    setMusicList(resJson.results);
+    setTotalPages(resJson.total_pages);
+  };
+
+  const handleChange = async (
+    _event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    await fetchMusicData(value);
+    setPage(value);
+  };
+
   useEffect(() => {
-    const fetchMusicData = async () => {
-      const res = await getAllMusic();
-      const resJson = await res.json();
-      console.log(resJson);
-      setMusicList(resJson);
-    };
-    fetchMusicData();
+    (async () => await fetchMusicData(1))();
   }, []);
 
   const musicListRes = musicList.map((m) => {
@@ -48,6 +43,16 @@ const BrowseMusicList = () => {
   return (
     <Card sx={[card, { height: "100%" }]}>
       <MyMusic musicList={musicListRes} />
+      <Pagination
+        count={totalPages}
+        page={page}
+        onChange={handleChange}
+        variant="outlined"
+        size="small"
+        color="primary"
+        showFirstButton
+        showLastButton
+      />
     </Card>
   );
 };

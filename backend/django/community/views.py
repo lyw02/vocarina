@@ -4,6 +4,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
 from .models import Music
+from .pagination import StandardResultsSetPagination
 from .serializers import MusicSerializer
 from .utils.mixing import mix
 from .utils.oss import get_file_url, get_file_by_url
@@ -15,6 +16,7 @@ class MusicView(GenericAPIView):
     queryset = Music.objects.all()
     serializer_class = MusicSerializer
     lookup_field = "id"
+    pagination_class = StandardResultsSetPagination
 
     def post(self, request):
         """
@@ -54,16 +56,21 @@ class MusicView(GenericAPIView):
 
     def get(self, request):
         """Get all musics"""
-        serializer = self.get_serializer(instance=self.get_queryset(), many=True)
-        res = []
-        for music in serializer.data:
-            user_id = music.get("user_id")
-            try:
-                user = User.objects.get(id=user_id)
-                username = user.username
-            except User.DoesNotExist:
-                username = None
-            music["username"] = username
-            music["url"] = get_file_url(f"music/{username}/{music.get('title')}")
-            res.append(music)
-        return Response(res, status=status.HTTP_200_OK)
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            res = []
+            for music in serializer.data:
+                user_id = music.get("user_id")
+                try:
+                    user = User.objects.get(id=user_id)
+                    username = user.username
+                except User.DoesNotExist:
+                    username = None
+                music["username"] = username
+                music["url"] = get_file_url(f"music/{username}/{music.get('title')}")
+                res.append(music)
+            return self.get_paginated_response(res)
+        else:
+            return Response("No Data", status=status.HTTP_404_NOT_FOUND)

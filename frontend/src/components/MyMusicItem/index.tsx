@@ -1,6 +1,6 @@
 import {
   setArtist,
-  setIsPlaying,
+  setIsPanelOpen,
   setSrc,
   setTitle,
 } from "@/store/modules/musicPanel";
@@ -20,7 +20,7 @@ const MyMusicItem = ({ title, artist, cover, src }: MyMusicItemProps) => {
   const dispatch = useDispatch();
 
   const handlePlay = () => {
-    dispatch(setIsPlaying(true));
+    dispatch(setIsPanelOpen(true));
     dispatch(setTitle(title));
     dispatch(setArtist(artist));
     dispatch(setSrc(src));
