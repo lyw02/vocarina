@@ -3,6 +3,7 @@ import ProfilePage from "@/pages/AuthPages/ProfilePage";
 import RegisterPage from "@/pages/AuthPages/RegisterPage";
 import CommunityHomePage from "@/pages/CommunityHomePage";
 import BrowseMusicList from "@/pages/CommunityHomePage/BrowseMusicList";
+import BrowsePlaylistList from "@/pages/CommunityHomePage/BrowsePlaylistList";
 import HomePage from "@/pages/HomePage";
 import ProducePage from "@/pages/ProducePage";
 import { Navigate, createBrowserRouter } from "react-router-dom";
@@ -43,7 +44,7 @@ const router = createBrowserRouter([
           },
           {
             path: "playlist",
-            element: <div>Browse playlists</div>
+            element: <BrowsePlaylistList />
           },
         ]
       },

@@ -1,11 +1,13 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
+    CreateAPIView
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.response import Response
 
-from .models import Music
+from .models import Music, Playlist
 from .pagination import StandardResultsSetPagination
-from .serializers import MusicSerializer
+from .serializers import MusicSerializer, PlaylistSerializer
 from .utils.mixing import mix
 from .utils.oss import get_file_url, get_file_by_url
 from user.models import User
@@ -23,7 +25,6 @@ class MusicView(GenericAPIView):
         @query param "action"
             publish -> publish new music
         """
-
         if request.query_params.get("action") == "publish":
 
             mix_res = mix(request.data.get("username"), request.data.get("project_name"), request.data.get("data"))
@@ -61,7 +62,6 @@ class MusicView(GenericAPIView):
             <None> -> Get all musics
             <int> -> Get all musics of a user
         """
-
         user_id = request.query_params.get("user_id")
         if user_id is not None and isinstance(int(user_id), int):
             # Get all musics of a user
@@ -88,3 +88,72 @@ class MusicView(GenericAPIView):
             return self.get_paginated_response(res)
         else:
             return Response("No Data", status=status.HTTP_404_NOT_FOUND)
+
+
+class PlaylistView(ListModelMixin, CreateModelMixin, GenericAPIView):
+    queryset = Playlist.objects.all()
+    serializer_class = PlaylistSerializer
+    lookup_field = "id"
+    pagination_class = StandardResultsSetPagination
+
+    def get(self, request, *args, **kwargs):
+        """Get all playlists"""
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """Create a new playlist"""
+        user_id = request.data.get("user_id")
+        print(user_id)
+        if not user_id:
+            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+        data_to_ser = {
+            "user_id": user_id,
+            "title": request.data.get("title"),
+            "description": request.data.get("description"),
+            "cover": f"https://picsum.photos/seed/{request.data.get('title')}/200"
+        }
+        serializer = self.get_serializer(data=data_to_ser)
+        if serializer.is_valid():
+            serializer.save()
+            return Response("Success", status=status.HTTP_200_OK)
+        else:
+            print(f"serializer.errors: {serializer.errors}")
+            return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class UserPlaylistsView(ListAPIView):
+#     """Get all playlists of a user"""
+#     serializer_class = PlaylistSerializer
+#
+#     def get_queryset(self):
+#         user_id = self.kwargs["user_id"]
+#         return Playlist.objects.filter(user_id=user_id)
+#
+#
+# class PlaylistMusicView(ListAPIView):
+#     """Get all musics in a playlist"""
+#     serializer_class = MusicSerializer
+#
+#     def get_queryset(self):
+#         playlist_id = self.kwargs["playlist_id"]
+#         playlist = get_object_or_404(Playlist, id=playlist_id)
+#         return playlist.music_id.all()
+#
+#
+# # 往一个歌单中新增修改或删除音乐
+# class PlaylistMusicUpdateView(CreateAPIView, RetrieveUpdateDestroyAPIView):
+#     """Add, update or delete music in a playlist"""
+#     queryset = Playlist.objects.all()
+#     serializer_class = PlaylistSerializer
+#
+#
+# # 用户收藏其他用户创建的歌单
+# class UserSavePlaylistView(UpdateAPIView):
+#     queryset = Playlist.objects.all()
+#     serializer_class = PlaylistSerializer
+#
+#     def update(self, request, *args, **kwargs):
+#         playlist = self.get_object()
+#         user = request.user  # 假设你已经设置了身份验证
+#         playlist.saved_user_id.add(user)
+#         return super().update(request, *args, **kwargs)

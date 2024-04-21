@@ -21,9 +21,28 @@ export const publishProject = async (
 export const getAllMusic = async (page: number) => {
   const response = await getReq(`api/music/?page=${page}`);
   return response;
-}
+};
 
 export const getAllMusicOfUser = async (id: number, page: number) => {
   const response = await getReq(`api/music/?user_id=${id}&page=${page}`);
   return response;
-}
+};
+
+export const getAllPlaylists = async (page: number) => {
+  const response = await getReq(`api/playlist/?page=${page}`);
+  return response;
+};
+
+export const createPlaylist = async (
+  userId: number,
+  title: string,
+  description: string | undefined
+) => {
+  console.log(userId, title, description);
+  const response = await postReq(`api/playlist/`, {
+    user_id: userId,
+    title: title,
+    description: description,
+  });
+  return response;
+};

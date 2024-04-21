@@ -23,7 +23,7 @@ import MusicPlayerBanner from "@/components/MusicPlayerBanner";
 import { RootState } from "@/types";
 import { useSelector } from "react-redux";
 import { MusicResponse } from "@/types/community";
-import { getAllMusicOfUser } from "@/api/communityApi";
+import { getAllMusicOfUser, getAllPlaylists } from "@/api/communityApi";
 
 interface TabPanelProps {
   children?: ReactNode;

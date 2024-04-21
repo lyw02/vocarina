@@ -22,11 +22,11 @@ class Music(models.Model):
 class Playlist(models.Model):
     id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey("user.User", related_name="created_playlists", on_delete=models.CASCADE)
-    saved_user_id = models.ManyToManyField("user.User", related_name="saved_playlists")
-    music_id = models.ManyToManyField("Music", related_name="belonged_playlists")
+    saved_user_id = models.ManyToManyField("user.User", blank=True, null=True, related_name="saved_playlists")
+    music_id = models.ManyToManyField("Music", blank=True, null=True, related_name="belonged_playlists")
 
     title = models.CharField(max_length=64)
-    description = models.TextField()
+    description = models.TextField(blank=True, null=True)
     cover = models.CharField(max_length=128)
     create_time = models.DateTimeField(auto_now_add=True)
     last_update = models.DateTimeField(auto_now=True)
