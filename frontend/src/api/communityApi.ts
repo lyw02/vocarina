@@ -46,3 +46,20 @@ export const createPlaylist = async (
   });
   return response;
 };
+
+export const savePlaylist = async (userId: number, playlistId: number) => {
+  const response = await postReq(`api/user/${userId}/playlist/`, {
+    playlist_id: playlistId,
+  });
+  return response;
+};
+
+export const getCreatedPlaylist = async (userId: number) => {
+  const response = await getReq(`api/user/${userId}/created_playlist/`);
+  return response;
+};
+
+export const getSavedPlaylist = async (userId: number) => {
+  const response = await getReq(`api/user/${userId}/saved_playlist/`);
+  return response;
+};

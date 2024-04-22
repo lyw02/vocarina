@@ -121,6 +121,37 @@ class PlaylistView(ListModelMixin, CreateModelMixin, GenericAPIView):
             return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class SavePlaylistView(GenericAPIView, CreateModelMixin):
+    queryset = Playlist.objects.all()
+    serializer_class = PlaylistSerializer
+
+    def post(self, request, *args, **kwargs):
+        """Save playlist"""
+        user = User.objects.get(id=self.kwargs["id"])
+        playlist = Playlist.objects.get(id=request.data["playlist_id"])
+        playlist.saved_user_id.add(user)
+        playlist.save()
+        return Response(self.get_serializer(playlist).data, status=status.HTTP_201_CREATED)
+
+
+class CreatedPlaylistView(ListAPIView):
+    serializer_class = PlaylistSerializer
+
+    def get_queryset(self):
+        """Get created playlists"""
+        user = User.objects.get(id=self.kwargs["id"])
+        return Playlist.objects.filter(user_id=user)
+
+
+class SavedPlaylistView(ListAPIView):
+    serializer_class = PlaylistSerializer
+
+    def get_queryset(self):
+        """Get saved playlists"""
+        user = User.objects.get(id=self.kwargs["id"])
+        return user.saved_playlists.all()
+
+
 # class UserPlaylistsView(ListAPIView):
 #     """Get all playlists of a user"""
 #     serializer_class = PlaylistSerializer

@@ -16,38 +16,64 @@ import {
 import MyPlaylistItem from "../MyPlaylistItem";
 import { ExpandLess, ExpandMore, AddCircleOutline } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import theme from "@/theme";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/types";
-import { createPlaylist } from "@/api/communityApi";
+import { createPlaylist, getCreatedPlaylist, getSavedPlaylist } from "@/api/communityApi";
 import { useAlert } from "@/utils/CustomHooks";
 import AutoDismissAlert from "../Alert/AutoDismissAlert";
 
 interface SubList {
   id: number;
   text: string;
-  listItems: { title: string; count: number; cover: string }[];
+  listItems: {
+    id: number;
+    user_id: number;
+    title: string;
+    count: number;
+    cover: string;
+  }[];
   flag: boolean;
   flagSetter: Dispatch<SetStateAction<boolean>>;
 }
 
-const createdListItems: SubList["listItems"] = [];
-const savedListItems: SubList["listItems"] = [];
+// const createdListItems: SubList["listItems"] = [];
+// const savedListItems: SubList["listItems"] = [];
 
 const MyPlaylist = () => {
   const [isCreatedListOpen, setIsCreatedListOpen] = useState<boolean>(true);
   const [isSavedListOpen, setIsSavedListOpen] = useState<boolean>(true);
   const [isNewDialogOpen, setIsNewDialogOpen] = useState<boolean>(false);
-  const [title, setTitle] = useState<string>("");
+  const [playlistTitle, setPlaylistTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [createdListItems, setCreatedListItems] = useState<
+    SubList["listItems"]
+  >([]);
+  const [savedListItems, setSavedListItems] = useState<SubList["listItems"]>(
+    []
+  );
 
   const navigate = useNavigate();
   const { isAlertOpen, alertStatus, handleAlertClose, raiseAlert } = useAlert();
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUserId
   );
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUserId) return;
+      const createdRes = await getCreatedPlaylist(currentUserId);
+      const savedRes = await getSavedPlaylist(currentUserId);
+      const createdResJson = await createdRes.json();
+      const savedResJson = await savedRes.json();
+      console.log(savedResJson)
+      setCreatedListItems(createdResJson);
+      setSavedListItems(savedResJson);
+    };
+    fetchData();
+  }, [isCreatedListOpen, isSavedListOpen, playlistTitle]);
 
   const subLists: SubList[] = [
     {
@@ -72,12 +98,13 @@ const MyPlaylist = () => {
 
   const handleDialogSubmit = async () => {
     if (!currentUserId) return;
-    const res = await createPlaylist(currentUserId, title, description);
+    const res = await createPlaylist(currentUserId, playlistTitle, description);
     if (res.status === 200) {
       raiseAlert("success", "Playlist created");
     } else {
       raiseAlert("error", "Failed");
     }
+    setIsNewDialogOpen(false);
   };
 
   return (
@@ -114,9 +141,12 @@ const MyPlaylist = () => {
                   return (
                     <ListItem key={`item-${i}`}>
                       <MyPlaylistItem
+                        id={i.id}
+                        userId={i.user_id}
                         title={i.title}
                         count={i.count}
                         cover={i.cover}
+                        showSaveButton={false}
                       />
                     </ListItem>
                   );
@@ -156,7 +186,7 @@ const MyPlaylist = () => {
               placeholder="Title"
               variant="standard"
               required
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => setPlaylistTitle(e.target.value)}
             />
             <TextField
               id="description"

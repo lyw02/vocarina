@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { card } from "../style";
 import { Card, List, ListItem, Pagination } from "@mui/material";
 import MyPlaylistItem from "@/components/MyPlaylistItem";
-import { it } from "node:test";
 
 const BrowsePlaylistList = () => {
   const [playlistList, setPlaylistList] = useState<any>([]);
@@ -33,6 +32,7 @@ const BrowsePlaylistList = () => {
   const playlistListRes = playlistList.map((p: any) => {
     return {
       id: p.id,
+      userId: p.user_id,
       title: p.title,
       creater: p.username,
       cover: p.cover,
@@ -56,10 +56,13 @@ const BrowsePlaylistList = () => {
           return (
             <ListItem key={`item-${item.id}`}>
               <MyPlaylistItem
+                id={item.id}
+                userId={item.userId}
                 title={item.title}
                 // count={item.count}
                 cover={item.cover}
                 description={item.description}
+                showSaveButton={true}
               />
             </ListItem>
           );

@@ -1,8 +1,8 @@
-import { Box, IconButton, Slider, Typography } from "@mui/material";
+import { Box, Button, IconButton, Slider, Typography } from "@mui/material";
 import { TinyText, Widget } from "./style";
 import MusicVisualizer from "../MusicVisualizer";
 import { useEffect, useRef, useState } from "react";
-import { PauseRounded, PlayArrowRounded } from "@mui/icons-material";
+import { AddCircleOutlineRounded, PauseRounded, PlayArrowRounded } from "@mui/icons-material";
 import { ClickAwayListener } from "@mui/base/ClickAwayListener";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/types";
@@ -119,6 +119,9 @@ const MusicPlayerBanner = ({
                 </Typography>
               </Box>
             </Box>
+            {/* <Button sx={{ p: 0 }}>
+              <AddCircleOutlineRounded />
+            </Button> */}
             <Box>
               <MusicVisualizer audioElement={audioRef.current} />
             </Box>
@@ -130,6 +133,9 @@ const MusicPlayerBanner = ({
               ) : (
                 <PlayArrowRounded sx={{ fontSize: "3rem" }} htmlColor="black" />
               )}
+            </IconButton>
+            <IconButton>
+              <AddCircleOutlineRounded />
             </IconButton>
             <Slider
               value={currentTime}
