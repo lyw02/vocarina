@@ -78,6 +78,9 @@ const CommunityHomePage = () => {
   const isPanelOpen = useSelector(
     (state: RootState) => state.musicPanel.isPanelOpen
   );
+  const panelMusicId = useSelector(
+    (state: RootState) => state.musicPanel.musicId
+  );
   const panelTitle = useSelector((state: RootState) => state.musicPanel.title);
   const panelArtist = useSelector(
     (state: RootState) => state.musicPanel.artist
@@ -122,8 +125,9 @@ const CommunityHomePage = () => {
 
   return (
     <>
-      {isPanelOpen && panelMusicSrc !== null && (
+      {isPanelOpen && panelMusicId && panelMusicSrc !== null && (
         <MusicPlayerBanner
+          id={panelMusicId}
           title={panelTitle}
           artist={panelArtist}
           audioUrl={panelMusicSrc}

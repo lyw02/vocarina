@@ -100,6 +100,7 @@ export interface UserState {
 export interface MusicPanelState {
   src: string | null;
   isPanelOpen: boolean;
+  musicId: number | null;
   title: string;
   artist: string;
 }

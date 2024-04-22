@@ -7,10 +7,13 @@ import { ClickAwayListener } from "@mui/base/ClickAwayListener";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/types";
 import { setIsPanelOpen, setSrc } from "@/store/modules/musicPanel";
+import CommentIcon from '@mui/icons-material/Comment';
+import { Link } from "react-router-dom";
 
 interface MusicPlayerBannerProps {
   initialVolume?: number;
   initialPlaying?: boolean;
+  id: number;
   title: string;
   artist: string;
   // coverUrl: string;
@@ -18,6 +21,7 @@ interface MusicPlayerBannerProps {
 }
 
 const MusicPlayerBanner = ({
+  id,
   title,
   artist,
   // coverUrl,
@@ -119,9 +123,6 @@ const MusicPlayerBanner = ({
                 </Typography>
               </Box>
             </Box>
-            {/* <Button sx={{ p: 0 }}>
-              <AddCircleOutlineRounded />
-            </Button> */}
             <Box>
               <MusicVisualizer audioElement={audioRef.current} />
             </Box>
@@ -137,6 +138,11 @@ const MusicPlayerBanner = ({
             <IconButton>
               <AddCircleOutlineRounded />
             </IconButton>
+            <Link to={`/community/music/${id}/comments`}>
+              <IconButton>
+                <CommentIcon />
+              </IconButton>
+            </Link>
             <Slider
               value={currentTime}
               onChange={handleTimeSliderChange}

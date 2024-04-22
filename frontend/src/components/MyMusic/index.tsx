@@ -30,6 +30,7 @@ const MyMusic = ({musicList}: MyMusicProps) => {
         return (
           <ListItem key={`item-${item.id}`}>
             <MyMusicItem
+              id={item.id}
               title={item.title}
               artist={item.artist}
               cover={item.cover}

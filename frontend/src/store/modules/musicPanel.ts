@@ -4,6 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState: MusicPanelState = {
   src: null,
   isPanelOpen: false,
+  musicId: null,
   title: "",
   artist: "",
 };
@@ -24,13 +25,17 @@ const musicPanelStore = createSlice({
     setArtist(state, action) {
       state.artist = action.payload;
     },
+    setMusicId(state, action) {
+      state.musicId = action.payload;
+    },
   },
 });
 
-const { setSrc, setIsPanelOpen, setTitle, setArtist } = musicPanelStore.actions;
+const { setSrc, setIsPanelOpen, setTitle, setArtist, setMusicId } =
+  musicPanelStore.actions;
 
 const reducer = musicPanelStore.reducer;
 
-export { setSrc, setIsPanelOpen, setTitle, setArtist };
+export { setSrc, setIsPanelOpen, setTitle, setArtist, setMusicId };
 
 export default reducer;

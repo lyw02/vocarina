@@ -1,6 +1,7 @@
 import {
   setArtist,
   setIsPanelOpen,
+  setMusicId,
   setSrc,
   setTitle,
 } from "@/store/modules/musicPanel";
@@ -10,17 +11,19 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 
 interface MyMusicItemProps {
+  id: number;
   title: string;
   artist: string;
   cover: string;
   src: string;
 }
 
-const MyMusicItem = ({ title, artist, cover, src }: MyMusicItemProps) => {
+const MyMusicItem = ({ id, title, artist, cover, src }: MyMusicItemProps) => {
   const dispatch = useDispatch();
 
   const handlePlay = () => {
     dispatch(setIsPanelOpen(true));
+    dispatch(setMusicId(id));
     dispatch(setTitle(title));
     dispatch(setArtist(artist));
     dispatch(setSrc(src));

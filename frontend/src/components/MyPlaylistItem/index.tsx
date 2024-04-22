@@ -1,10 +1,20 @@
 import { AddCircleOutlineRounded } from "@mui/icons-material";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import AutoDismissAlert from "../Alert/AutoDismissAlert";
 import { useAlert } from "@/utils/CustomHooks";
 import { useSelector } from "react-redux";
 import { RootState } from "@/types";
 import { savePlaylist } from "@/api/communityApi";
+import theme from "@/theme";
+import { useNavigate } from "react-router";
+import CommentIcon from "@mui/icons-material/Comment";
+import { Link } from "react-router-dom";
 
 interface MyPlaylistItemProps {
   id: number;
@@ -29,7 +39,11 @@ const MyPlaylistItem = ({
     (state: RootState) => state.user.currentUserId
   );
   const { isAlertOpen, alertStatus, handleAlertClose, raiseAlert } = useAlert();
-  const handleSavePlaylist = async () => {
+  const navigate = useNavigate();
+  const handleSavePlaylist = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
+    e.stopPropagation();
     if (!currentUserId) {
       raiseAlert("error", "Please sign in first");
       return;
@@ -50,8 +64,16 @@ const MyPlaylistItem = ({
         message={alertStatus.message}
         severity={alertStatus.severity}
       />
-      <Box sx={{ width: "100%" }}>
-        <Stack direction="row" spacing={1}>
+      <Box
+        onClick={() => navigate(`/community/playlist/${id}/comments`)}
+        sx={{
+          width: "100%",
+          "&:hover": {
+            backgroundColor: theme.palette.grey[200],
+          },
+        }}
+      >
+        <Stack direction="row" spacing={1} alignItems="center">
           <img
             src={cover}
             loading="lazy"
@@ -59,14 +81,18 @@ const MyPlaylistItem = ({
           />
           <Stack direction="column" spacing={0}>
             <Typography variant="body1">{title}</Typography>
-            {/* <Typography variant="caption">{count}{" songs"}</Typography> */}
             <Typography variant="caption">{description}</Typography>
           </Stack>
-          {(currentUserId !== userId && showSaveButton) && (
-            <Button onClick={handleSavePlaylist} sx={{ p: 0 }}>
+          {currentUserId !== userId && showSaveButton && (
+            <Button onClick={(e) => handleSavePlaylist(e)}>
               <AddCircleOutlineRounded />
             </Button>
           )}
+          {/* <Link to={`/community/music/${id}/comments`}>
+            <Button>
+              <CommentIcon />
+            </Button>
+          </Link> */}
         </Stack>
       </Box>
     </>
