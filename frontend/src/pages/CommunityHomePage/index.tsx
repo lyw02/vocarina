@@ -24,6 +24,7 @@ import { RootState } from "@/types";
 import { useSelector } from "react-redux";
 import { MusicResponse } from "@/types/community";
 import { getAllMusicOfUser, getAllPlaylists } from "@/api/communityApi";
+import logo from "../../assets/logo.png"
 
 interface TabPanelProps {
   children?: ReactNode;
@@ -137,9 +138,7 @@ const CommunityHomePage = () => {
         <Stack direction="column" spacing={2} sx={{ width: "25vw" }}>
           <Card sx={card}>
             <Stack direction="row" alignItems="center" spacing={1}>
-              <IconButton aria-label="home" size="small">
-                <HomeIcon />
-              </IconButton>
+              <img src={logo} alt="logo" style={{ maxWidth: "40px"}} />
               <Box>
                 <Link to="/community/music">
                   <Button>
