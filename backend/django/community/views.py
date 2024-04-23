@@ -3,8 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
-    CreateAPIView, ListCreateAPIView
-from rest_framework.mixins import ListModelMixin, CreateModelMixin
+    CreateAPIView, ListCreateAPIView, RetrieveAPIView
+from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin
 from rest_framework.response import Response
 
 from .models import Music, Playlist, Comment, Reply
@@ -123,9 +123,51 @@ class PlaylistView(ListModelMixin, CreateModelMixin, GenericAPIView):
             return Response({"message": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class PlaylistDetailView(RetrieveAPIView):
+    """Get detail of a single playlist"""
+    queryset = Playlist.objects.all()
+    serializer_class = PlaylistSerializer
+    lookup_field = "id"
+
+
+class PlaylistMusicView(ListAPIView, GenericAPIView, UpdateModelMixin):
+    queryset = Playlist.objects.all()
+    serializer_class = MusicSerializer
+    lookup_field = "id"
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        """Get all music of a playlist"""
+        playlist_id = self.kwargs["id"]
+        playlist = Playlist.objects.get(id=playlist_id)
+        return playlist.music_id.all()
+
+    def post(self, request, *args, **kwargs):
+        """Save a music to a playlist"""
+        self.serializer_class = PlaylistSerializer
+        playlist_id = self.kwargs["id"]
+        playlist = Playlist.objects.get(id=playlist_id)
+        music_id = request.data.get("musicId")
+        music = Music.objects.get(id=music_id)
+
+        if music:
+            playlist.music_id.add(music)
+            playlist.save()
+            return Response(self.get_serializer(playlist).data, status=status.HTTP_200_OK)
+
+        return Response({"error": "Music not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
 class SavePlaylistView(GenericAPIView, CreateModelMixin):
     queryset = Playlist.objects.all()
     serializer_class = PlaylistSerializer
+    # pagination_class = StandardResultsSetPagination
+
+    def get(self, request, *args, **kwargs):
+        """Get all created playlists of a user"""
+        user = User.objects.get(id=self.kwargs["id"])
+        playlists = Playlist.objects.filter(user_id=user)
+        return Response(self.get_serializer(playlists, many=True).data, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         """Save playlist"""

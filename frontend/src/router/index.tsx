@@ -5,6 +5,7 @@ import CommunityHomePage from "@/pages/CommunityHomePage";
 import BrowseMusicList from "@/pages/CommunityHomePage/BrowseMusicList";
 import BrowsePlaylistList from "@/pages/CommunityHomePage/BrowsePlaylistList";
 import CommentList from "@/pages/CommunityHomePage/CommentList";
+import PlaylistDetail from "@/pages/CommunityHomePage/PlaylistDetail";
 import HomePage from "@/pages/HomePage";
 import ProducePage from "@/pages/ProducePage";
 import { Navigate, createBrowserRouter } from "react-router-dom";
@@ -53,7 +54,7 @@ const router = createBrowserRouter([
           },
           {
             path: "playlist/:id/",
-            element: <>Playlist details</>
+            element: <PlaylistDetail />
           },
           // {
           //   path: "playlist/:id/comments",

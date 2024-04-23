@@ -24,6 +24,7 @@ import { RootState } from "@/types";
 import { createPlaylist, getCreatedPlaylist, getSavedPlaylist } from "@/api/communityApi";
 import { useAlert } from "@/utils/CustomHooks";
 import AutoDismissAlert from "../Alert/AutoDismissAlert";
+import { v4 as uuidv4 } from "uuid"
 
 interface SubList {
   id: number;
@@ -139,7 +140,7 @@ const MyPlaylist = () => {
               <Collapse in={item.flag} timeout="auto" unmountOnExit>
                 {item.listItems.map((i) => {
                   return (
-                    <ListItem key={`item-${i}`}>
+                    <ListItem key={uuidv4()}>
                       <MyPlaylistItem
                         id={i.id}
                         userId={i.user_id}

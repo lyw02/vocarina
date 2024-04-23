@@ -65,7 +65,7 @@ const MyPlaylistItem = ({
         severity={alertStatus.severity}
       />
       <Box
-        onClick={() => navigate(`/community/playlist/${id}/comments`)}
+        onClick={() => navigate(`/community/playlist/${id}`)}
         sx={{
           width: "100%",
           "&:hover": {

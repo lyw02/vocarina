@@ -33,6 +33,29 @@ export const getAllPlaylists = async (page: number) => {
   return response;
 };
 
+export const getAllPlaylistsOfUser = async (id: number) => {
+  const response = await getReq(`api/user/${id}/playlist/`);
+  return response;
+};
+
+export const getPlaylistDetail = async (id: number) => {
+  const response = await getReq(`api/playlist/${id}/`);
+  return response;
+};
+
+export const getPlaylistMusic = async (id: number, page: number) => {
+  const response = await getReq(`api/playlist/${id}/music/?page=${page}`);
+  return response;
+};
+
+export const addMusicToPlaylist = async (
+  playlistId: number,
+  musicId: number
+) => {
+  const response = await postReq(`api/playlist/${playlistId}/music/`, { musicId });
+  return response;
+};
+
 export const createPlaylist = async (
   userId: number,
   title: string,

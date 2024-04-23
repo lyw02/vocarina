@@ -119,7 +119,7 @@ const CommunityHomePage = () => {
       title: m.title,
       artist: m.username,
       src: m.url,
-      cover: "https://picsum.photos/200",
+      cover:` https://picsum.photos/seed/${m.title}/200`,
     };
   });
 
