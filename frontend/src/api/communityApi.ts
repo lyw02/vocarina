@@ -118,6 +118,17 @@ export const likeComment = async (
   return response;
 };
 
+export const likeMusic = async (
+  musicId: number,
+  userId: number
+) => {
+  const response = await postReq(
+    `api/music/${musicId}/like/`,
+    { userId }
+  );
+  return response;
+};
+
 export const getCommentLikeStatus = async (
   musicId: number,
   commentId: number,
@@ -125,6 +136,16 @@ export const getCommentLikeStatus = async (
 ) => {
   const response = await getReq(
     `api/music/${musicId}/comment/${commentId}/like/?userId=${userId}`
+  );
+  return response;
+};
+
+export const getMusicLikeStatus = async (
+  musicId: number,
+  userId: number
+) => {
+  const response = await getReq(
+    `api/music/${musicId}/like/?userId=${userId}`
   );
   return response;
 };

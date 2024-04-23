@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path('api/music/', views.MusicView.as_view()),
+    path('api/music/<int:id>/like/', views.LikedMusicCreateView.as_view(), name='music_like'),
     path('api/music/<int:id>/comment/', views.CommentListCreateView.as_view(), name='music_comment'),
     path('api/music/<int:id>/comment/<int:comment_id>/like/', views.LikedCommentCreateView.as_view(), name='music_comment_like'),
     path('api/playlist/', views.PlaylistView.as_view()),

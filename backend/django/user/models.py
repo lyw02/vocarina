@@ -33,9 +33,9 @@ class LikedComment(models.Model):
 
 class LikedMusic(models.Model):
     user_id = models.ForeignKey("User", on_delete=models.CASCADE)
-    comment_id = models.ForeignKey("community.Music", on_delete=models.CASCADE)
+    music_id = models.ForeignKey("community.Music", on_delete=models.CASCADE)
 
 
 class LikedPlaylist(models.Model):
     user_id = models.ForeignKey("User", on_delete=models.CASCADE)
-    comment_id = models.ForeignKey("community.Music", on_delete=models.CASCADE)
+    playlist_id = models.ForeignKey("community.Music", on_delete=models.CASCADE)

@@ -87,13 +87,13 @@ const ProfilePage = () => {
               <UserInfoPanel />
             </CustomTabPanel>
             <CustomTabPanel value={tabValue} index={1}>
-              My Projects
+              {"No Data"}
             </CustomTabPanel>
             <CustomTabPanel value={tabValue} index={2}>
-              My Musics
+              {"No Data"}
             </CustomTabPanel>
             <CustomTabPanel value={tabValue} index={3}>
-              My Playlists
+              {"No Data"}
             </CustomTabPanel>
           </CardContent>
         </Card>

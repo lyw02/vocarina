@@ -12,8 +12,8 @@ from .pagination import StandardResultsSetPagination
 from .serializers import MusicSerializer, PlaylistSerializer, CommentSerializer, ReplySerializer
 from .utils.mixing import mix
 from .utils.oss import get_file_url, get_file_by_url
-from user.models import User, LikedComment
-from user.serializers import UserSerializer, LikedCommentSerializer
+from user.models import User, LikedComment, LikedMusic
+from user.serializers import UserSerializer, LikedCommentSerializer, LikedMusicSerializer
 
 
 class MusicView(GenericAPIView):
@@ -267,4 +267,33 @@ class LikedCommentCreateView(CreateAPIView):
         comment_id = kwargs.get("comment_id")
         is_liked = LikedComment.objects.filter(user_id=user_id, comment_id=comment_id).exists()
         likes_count = LikedComment.objects.filter(comment_id=comment_id).count()
+        return Response({"is_liked": is_liked, "likes_count": likes_count}, status=status.HTTP_200_OK)
+
+
+class LikedMusicCreateView(CreateAPIView):
+    """
+    POST: Like a music
+    GET: Whether the music has been liked by user, and total like count
+    """
+    queryset = LikedMusic.objects.all()
+    serializer_class = LikedMusicSerializer
+    lookup_field = "id"
+
+    def post(self, request, *args, **kwargs):
+        user_id = self.request.data.get("userId")
+        music_id = self.kwargs["id"]
+        print(music_id)
+        user = User.objects.get(id=user_id)
+        music = Music.objects.get(id=music_id)
+        like, created = LikedMusic.objects.get_or_create(user_id=user, music_id=music)
+        if created:
+            return Response({"message": "Success"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"message": "Already liked"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, *args, **kwargs):
+        user_id = request.query_params.get("userId")
+        music_id = kwargs.get("id")
+        is_liked = LikedMusic.objects.filter(user_id=user_id, music_id=music_id).exists()
+        likes_count = LikedMusic.objects.filter(music_id=music_id).count()
         return Response({"is_liked": is_liked, "likes_count": likes_count}, status=status.HTTP_200_OK)

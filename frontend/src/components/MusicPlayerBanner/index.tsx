@@ -5,6 +5,7 @@ import {
   Menu,
   MenuItem,
   Slider,
+  Stack,
   Typography,
 } from "@mui/material";
 import { TinyText, Widget } from "./style";
@@ -21,10 +22,16 @@ import { RootState } from "@/types";
 import { setIsPanelOpen, setSrc } from "@/store/modules/musicPanel";
 import CommentIcon from "@mui/icons-material/Comment";
 import { Link } from "react-router-dom";
-import { addMusicToPlaylist, getAllPlaylistsOfUser } from "@/api/communityApi";
+import {
+  addMusicToPlaylist,
+  getAllPlaylistsOfUser,
+  likeMusic,
+} from "@/api/communityApi";
 import { useAlert } from "@/utils/CustomHooks";
 import AutoDismissAlert from "../Alert/AutoDismissAlert";
 import { v4 as uuidv4 } from "uuid";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import theme from "@/theme";
 
 interface PlaylistMenuItem {
   id: number;
@@ -50,6 +57,8 @@ const MusicPlayerBanner = ({
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [likeCount, setLikeCount] = useState<number>(0);
 
   const dispatch = useDispatch();
   const { isAlertOpen, alertStatus, handleAlertClose, raiseAlert } = useAlert();
@@ -154,13 +163,27 @@ const MusicPlayerBanner = ({
   const handleItemClick = async (playlistId: number) => {
     const res = await addMusicToPlaylist(playlistId, id);
     if (res.ok) {
-      raiseAlert("success", "Success")
+      raiseAlert("success", "Success");
     }
     handleMenuClose();
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  // Like music
+  const handleLike = async () => {
+    if (!id) return;
+    if (!currentUserId) {
+      raiseAlert("error", "Please sign in first");
+      return;
+    }
+    const res = await likeMusic(id, currentUserId);
+    if (res.status === 201) {
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
   };
 
   return (
@@ -203,24 +226,39 @@ const MusicPlayerBanner = ({
               </Box>
             </Box>
             <Box sx={{ justifyContent: "center" }}>
-              <IconButton onClick={handlePlayPause}>
-                {playing ? (
-                  <PauseRounded sx={{ fontSize: "3rem" }} htmlColor="black" />
-                ) : (
-                  <PlayArrowRounded
-                    sx={{ fontSize: "3rem" }}
-                    htmlColor="black"
-                  />
-                )}
-              </IconButton>
-              <IconButton onClick={handleMenuOpen}>
-                <AddCircleOutlineRounded />
-              </IconButton>
-              <Link to={`/community/music/${id}/comments`}>
-                <IconButton>
-                  <CommentIcon />
+              <Stack direction="row" spacing={1} alignItems="center">
+                <IconButton onClick={handlePlayPause}>
+                  {playing ? (
+                    <PauseRounded sx={{ fontSize: "3rem" }} htmlColor="black" />
+                  ) : (
+                    <PlayArrowRounded
+                      sx={{ fontSize: "3rem" }}
+                      htmlColor="black"
+                    />
+                  )}
                 </IconButton>
-              </Link>
+                <IconButton onClick={handleMenuOpen}>
+                  <AddCircleOutlineRounded />
+                </IconButton>
+                <Link to={`/community/music/${id}/comments`}>
+                  <IconButton>
+                    <CommentIcon />
+                  </IconButton>
+                </Link>
+
+                <IconButton
+                  size="small"
+                  sx={{
+                    color: isLiked
+                      ? theme.palette.primary.main
+                      : theme.palette.grey[400],
+                  }}
+                  onClick={handleLike}
+                >
+                  <ThumbUpIcon />
+                </IconButton>
+                <Typography sx={{ ml: 0 }}>{likeCount}</Typography>
+              </Stack>
               <Slider
                 value={currentTime}
                 onChange={handleTimeSliderChange}
@@ -243,7 +281,9 @@ const MusicPlayerBanner = ({
           </Widget>
           <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}>
             {playlistMenuItems.map((item) => (
-              <MenuItem key={uuidv4()} onClick={() => handleItemClick(item.id)}>{item.title}</MenuItem>
+              <MenuItem key={uuidv4()} onClick={() => handleItemClick(item.id)}>
+                {item.title}
+              </MenuItem>
             ))}
           </Menu>
         </Box>
