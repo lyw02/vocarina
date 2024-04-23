@@ -13,8 +13,10 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import ReCAPTCHA from "react-google-recaptcha";
+import "../index.css";
 
 interface Status {
   severity: "success" | "error" | "warning" | "info";
@@ -36,6 +38,7 @@ const RegisterPage = () => {
     message: "Register failed!",
   });
   const [promptMessage, setPromptMessage] = useState<string | null>();
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const navigate = useNavigate();
 
@@ -47,6 +50,7 @@ const RegisterPage = () => {
   };
 
   const handleSignUp = async () => {
+    const recaptchaValue = recaptchaRef.current?.getValue();
     try {
       if (!(username && password && passwordConfirmation)) {
         setPromptMessage("Please fill in all fields.");
@@ -57,7 +61,12 @@ const RegisterPage = () => {
       } else if (!usernameReg.test(username)) {
         setPromptMessage("Username is not valid.");
       } else {
-        const res = await register(username, encryptPassword(password));
+        const res = await register(
+          username,
+          encryptPassword(password),
+          recaptchaValue
+        );
+        const resJson = await res.json();
         setPromptMessage(null);
         if (res.status === 201) {
           setStatus({
@@ -66,6 +75,7 @@ const RegisterPage = () => {
           });
           navigate("/login");
         } else {
+          console.log(resJson.error);
           setStatus({
             severity: "error",
             message: "Register failed!",
@@ -83,81 +93,89 @@ const RegisterPage = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}
-    >
-      <AutoDismissAlert
-        isAlertOpen={isAlertOpen}
-        handleAlertClose={handleAlertClose}
-        message={status.message}
-        severity={status.severity}
-      />
-      <Card sx={{ width: "50vh", margin: "auto" }}>
-        <CardContent sx={{ paddingBottom: 0 }}>
-          <Typography gutterBottom variant="h5" component="div">
-            Sign Up
-          </Typography>
-          <Stack direction="column" justifyContent="space-between">
-            <TextField
-              required
-              id="username-field"
-              label="Username"
-              variant="standard"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <TextField
-              required
-              id="password-field"
-              label="Password"
-              variant="standard"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <TextField
-              required
-              id="password-confirmation-field"
-              label="Password Confirmation"
-              variant="standard"
-              type="password"
-              value={passwordConfirmation}
-              onChange={(e) => setPasswordConfirmation(e.target.value)}
-            />
-            <Typography
-              gutterBottom
-              variant="caption"
-              color={theme.palette.primary.main}
-              component="span"
-            >
-              {promptMessage}
+    <div className="auth-page-wrapper">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <AutoDismissAlert
+          isAlertOpen={isAlertOpen}
+          handleAlertClose={handleAlertClose}
+          message={status.message}
+          severity={status.severity}
+        />
+        <Card sx={{ width: "50vh", margin: "auto" }}>
+          <CardContent sx={{ paddingBottom: 0 }}>
+            <Typography gutterBottom variant="h5" component="div">
+              Sign Up
             </Typography>
-            <Stack direction="row" justifyContent="space-between">
+            <Stack direction="column" justifyContent="space-between">
+              <TextField
+                required
+                id="username-field"
+                label="Username"
+                variant="standard"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <TextField
+                required
+                id="password-field"
+                label="Password"
+                variant="standard"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <TextField
+                required
+                id="password-confirmation-field"
+                label="Password Confirmation"
+                variant="standard"
+                type="password"
+                value={passwordConfirmation}
+                onChange={(e) => setPasswordConfirmation(e.target.value)}
+              />
+              <ReCAPTCHA
+                style={{ marginTop: "2vh" }}
+                sitekey={import.meta.env.VITE_REACT_APP_RECAPTCHA_CLIENT_KEY}
+                ref={recaptchaRef}
+                hl="en"
+              />
               <Typography
                 gutterBottom
-                variant="overline"
+                variant="caption"
+                color={theme.palette.primary.main}
                 component="span"
-                sx={{ marginTop: "auto", paddingBottom: 0 }}
               >
-                Already have an account?{" "}
-                <Link sx={linkStyle} component={RouterLink} to="/login">
-                  Login
-                </Link>
+                {promptMessage}
               </Typography>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography
+                  gutterBottom
+                  variant="overline"
+                  component="span"
+                  sx={{ marginTop: "auto", paddingBottom: 0 }}
+                >
+                  Already have an account?{" "}
+                  <Link sx={linkStyle} component={RouterLink} to="/login">
+                    Login
+                  </Link>
+                </Typography>
+              </Stack>
             </Stack>
-          </Stack>
-        </CardContent>
-        <CardActions sx={{ paddingTop: 0 }}>
-          <Button size="small" onClick={handleSignUp}>
-            Sign Up
-          </Button>
-        </CardActions>
-      </Card>
+          </CardContent>
+          <CardActions sx={{ paddingTop: 0 }}>
+            <Button size="small" onClick={handleSignUp}>
+              Sign Up
+            </Button>
+          </CardActions>
+        </Card>
+      </div>
     </div>
   );
 };

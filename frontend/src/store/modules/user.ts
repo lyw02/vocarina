@@ -4,6 +4,7 @@ import { UserState } from "@/types";
 
 const initialState: UserState = {
   currentUser: "",
+  currentUserId: null,
 };
 
 const userStore = createSlice({
@@ -17,6 +18,9 @@ const userStore = createSlice({
     setCurrentUser(state, action) {
       state.currentUser = action.payload;
     },
+    setCurrentUserId(state, action) {
+      state.currentUserId = action.payload;
+    },
     cleanLoginInfo(state) {
       removeToken();
       // state.token = "";
@@ -25,10 +29,10 @@ const userStore = createSlice({
   },
 });
 
-const { setCurrentUser, cleanLoginInfo } = userStore.actions;
+const { setCurrentUser, setCurrentUserId, cleanLoginInfo } = userStore.actions;
 
 const userReducer = userStore.reducer;
 
-export { setCurrentUser, cleanLoginInfo };
+export { setCurrentUser, setCurrentUserId, cleanLoginInfo };
 
 export default userReducer;

@@ -1,7 +1,8 @@
 import { login } from "@/api/userApi";
 import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
-import { setCurrentUser } from "@/store/modules/user";
+import { setCurrentUser, setCurrentUserId } from "@/store/modules/user";
 import theme from "@/theme";
+import { AlertStatus } from "@/types";
 import { encryptPassword } from "@/utils/Encrypt";
 import { setToken } from "@/utils/token";
 import {
@@ -9,8 +10,6 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardMedia,
-  FormControl,
   Link,
   Stack,
   SxProps,
@@ -20,11 +19,7 @@ import {
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-
-interface Status {
-  severity: "success" | "error" | "warning" | "info";
-  message: string;
-}
+import "../index.css";
 
 const linkStyle: SxProps = {
   textDecoration: "none",
@@ -36,7 +31,7 @@ const LoginPage = () => {
   const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [status, setStatus] = useState<Status>({
+  const [status, setStatus] = useState<AlertStatus>({
     severity: "error",
     message: "Login failed!",
   });
@@ -56,6 +51,7 @@ const LoginPage = () => {
       } else {
         const res = await login(username, encryptPassword(password));
         const resJson = await res.json();
+        console.log("resJson in login: ", resJson);
         setPromptMessage(null);
         if (res.status === 200) {
           setToken(resJson.token);
@@ -64,14 +60,16 @@ const LoginPage = () => {
             message: "Login successed!",
           });
           dispatch(setCurrentUser(resJson.username));
+          dispatch(setCurrentUserId(resJson.id));
+          setIsAlertOpen(true);
           navigate("/");
         } else {
           setStatus({
             severity: "error",
             message: "Login failed!",
           });
+          setIsAlertOpen(true);
         }
-        setIsAlertOpen(true);
       }
     } catch (error) {
       console.log(error);
@@ -83,69 +81,71 @@ const LoginPage = () => {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-      }}
-    >
-      <AutoDismissAlert
-        isAlertOpen={isAlertOpen}
-        handleAlertClose={handleAlertClose}
-        message={status.message}
-        severity={status.severity}
-      />
-      <Card sx={{ width: "50vh", margin: "auto" }}>
-        <CardContent>
-          <Typography gutterBottom variant="h5" component="div">
-            Login
-          </Typography>
-          <Stack direction="column" justifyContent="space-between">
-            <TextField
-              required
-              id="username-field"
-              label="Username"
-              variant="standard"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <TextField
-              required
-              id="password-field"
-              label="Password"
-              variant="standard"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Typography
-              gutterBottom
-              variant="caption"
-              component="span"
-              color={theme.palette.primary.main}
-            >
-              {promptMessage}
+    <div className="auth-page-wrapper">
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <AutoDismissAlert
+          isAlertOpen={isAlertOpen}
+          handleAlertClose={handleAlertClose}
+          message={status.message}
+          severity={status.severity}
+        />
+        <Card sx={{ width: "50vh", margin: "auto" }}>
+          <CardContent>
+            <Typography gutterBottom variant="h5" component="div">
+              Login
             </Typography>
-            <Stack direction="row" justifyContent="space-between">
-              <Typography gutterBottom variant="overline" component="span">
-                <Link sx={linkStyle} component={RouterLink} to="/register">
-                  Sign up
-                </Link>
+            <Stack direction="column" justifyContent="space-between">
+              <TextField
+                required
+                id="username-field"
+                label="Username"
+                variant="standard"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <TextField
+                required
+                id="password-field"
+                label="Password"
+                variant="standard"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Typography
+                gutterBottom
+                variant="caption"
+                component="span"
+                color={theme.palette.primary.main}
+              >
+                {promptMessage}
               </Typography>
-              <Typography gutterBottom variant="overline" component="span">
-                <Link sx={linkStyle}>Forget password</Link>
-              </Typography>
+              <Stack direction="row" justifyContent="space-between">
+                <Typography gutterBottom variant="overline" component="span">
+                  <Link sx={linkStyle} component={RouterLink} to="/register">
+                    Sign up
+                  </Link>
+                </Typography>
+                <Typography gutterBottom variant="overline" component="span">
+                  <Link sx={linkStyle}>Forget password</Link>
+                </Typography>
+              </Stack>
             </Stack>
-          </Stack>
-        </CardContent>
-        <CardActions>
-          <Button size="small" onClick={handleLogin}>
-            Login
-          </Button>
-        </CardActions>
-      </Card>
+          </CardContent>
+          <CardActions>
+            <Button size="small" onClick={handleLogin}>
+              Login
+            </Button>
+          </CardActions>
+        </Card>
+      </div>
     </div>
   );
 };

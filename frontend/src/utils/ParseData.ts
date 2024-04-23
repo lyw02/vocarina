@@ -27,7 +27,7 @@ export const parsePitch = (notes: NoteProps[], lyrics: string[]) => {
         (2700 - notes[index].endY) / noteStyle.noteHeight
       );
       let octave = Math.floor(noteIndex / 12);
-      let key = octave === 0 ? noteIndex : noteIndex % octave;
+      let key = octave === 0 ? noteIndex : noteIndex % 12;
       targetPitchList.push(pitchFrequency[octave][key]);
       index++;
     }

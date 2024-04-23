@@ -10,6 +10,11 @@ export type wavePlotElement = {
   width: number;
 };
 
+export interface AlertStatus {
+  severity: "success" | "error" | "warning" | "info";
+  message: string;
+}
+
 export interface PianoKey {
   id: number;
   octave: number;
@@ -39,6 +44,7 @@ export interface RootState {
   localStatus: LocalStatusState;
   snappingMode: SnappingModeState;
   user: UserState;
+  musicPanel: MusicPanelState;
 }
 
 export interface NotesState {
@@ -59,8 +65,8 @@ export interface TracksState {
 }
 
 export interface ProjectState {
-  tracks: Track[];
-  params: ParamsState;
+  projectName: string;
+  projectId: number | null;
 }
 
 export interface EditModeState {
@@ -88,4 +94,13 @@ export interface SnappingModeState {
 
 export interface UserState {
   currentUser: string;
+  currentUserId: number | null;
+}
+
+export interface MusicPanelState {
+  src: string | null;
+  isPanelOpen: boolean;
+  musicId: number | null;
+  title: string;
+  artist: string;
 }

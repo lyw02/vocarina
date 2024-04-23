@@ -8,10 +8,11 @@ import editModeReducer from "./modules/editMode";
 import projectAudioReducer from "./modules/projectAudio";
 import localStatusReducer from "./modules/localStatus";
 import snappingModeReducer from "./modules/snappingMode";
+import musicPanelReducer from "./modules/musicPanel";
 
 const store = configureStore({
   reducer: {
-    notes: notesReducer,
+    // notes: notesReducer,
     params: paramsReducer,
     user: userReducer,
     tracks: tracksReducer,
@@ -20,6 +21,7 @@ const store = configureStore({
     projectAudio: projectAudioReducer,
     localStatus: localStatusReducer,
     snappingMode: snappingModeReducer,
+    musicPanel: musicPanelReducer,
   },
 });
 

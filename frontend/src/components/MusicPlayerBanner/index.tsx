@@ -1,71 +1,96 @@
-import { useState, useRef, useEffect } from "react";
 import {
-  Button,
-  Slider,
-  Grid,
-  useTheme,
   Box,
-  Typography,
+  Button,
   IconButton,
+  Menu,
+  MenuItem,
+  Slider,
   Stack,
+  Typography,
 } from "@mui/material";
+import { TinyText, Widget } from "./style";
+import MusicVisualizer from "../MusicVisualizer";
+import { useEffect, useRef, useState } from "react";
 import {
-  FastForwardRounded,
-  FastRewindRounded,
+  AddCircleOutlineRounded,
   PauseRounded,
   PlayArrowRounded,
-  VolumeDownRounded,
-  VolumeUpRounded,
 } from "@mui/icons-material";
+import { ClickAwayListener } from "@mui/base/ClickAwayListener";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/types";
+import { setIsPanelOpen, setSrc } from "@/store/modules/musicPanel";
+import CommentIcon from "@mui/icons-material/Comment";
+import { Link } from "react-router-dom";
 import {
-  CoverImage,
-  timeSliderSx,
-  TinyText,
-  volumeSliderSx,
-  Widget,
-} from "./style";
-import AudioContainer from "../AudioContainer";
-import MusicVisualizer from "../MusicVisualizer";
+  addMusicToPlaylist,
+  getAllPlaylistsOfUser,
+  likeMusic,
+} from "@/api/communityApi";
+import { useAlert } from "@/utils/CustomHooks";
+import AutoDismissAlert from "../Alert/AutoDismissAlert";
+import { v4 as uuidv4 } from "uuid";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import theme from "@/theme";
 
+interface PlaylistMenuItem {
+  id: number;
+  title: string;
+}
 interface MusicPlayerBannerProps {
   initialVolume?: number;
   initialPlaying?: boolean;
+  id: number;
   title: string;
   artist: string;
-  coverUrl: string;
+  // coverUrl: string;
   audioUrl: string;
 }
 
 const MusicPlayerBanner = ({
+  id,
   title,
   artist,
-  coverUrl,
+  // coverUrl,
   audioUrl,
 }: MusicPlayerBannerProps) => {
-  const theme = useTheme();
-  const [currentTime, setCurrentTime] = useState<number>(0);
-  const [totalDuration, setTotalDuration] = useState<number>(0);
-  const [paused, setPaused] = useState(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const timeoutRef = useRef<number | null>(null);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [likeCount, setLikeCount] = useState<number>(0);
 
-  const playMusic = () => {
-    if (audioRef.current) {
-      audioRef.current.play();
-    }
-    setPaused(false);
-  };
+  const dispatch = useDispatch();
+  const { isAlertOpen, alertStatus, handleAlertClose, raiseAlert } = useAlert();
+  const isOpen = useSelector(
+    (state: RootState) => state.musicPanel.isPanelOpen
+  );
+  const currentUserId = useSelector(
+    (state: RootState) => state.user.currentUserId
+  );
 
-  const pauseMusic = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    setPaused(true);
-  };
+  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const handlePlayPause = () => {
-    paused ? playMusic() : pauseMusic();
-  };
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.crossOrigin = "anonymous";
+    audio.addEventListener("loadedmetadata", () => setDuration(audio.duration));
+    audio.addEventListener("timeupdate", () =>
+      setCurrentTime(audio.currentTime)
+    );
+    audio.addEventListener("ended", () => setPlaying(false));
+
+    return () => {
+      audio.removeEventListener("loadedmetadata", () =>
+        setDuration(audio.duration)
+      );
+      audio.removeEventListener("timeupdate", () =>
+        setCurrentTime(audio.currentTime)
+      );
+      audio.removeEventListener("ended", () => setPlaying(false));
+    };
+  }, []);
 
   const formatDuration = (value: number) => {
     const minute = Math.floor(value / 60);
@@ -73,151 +98,197 @@ const MusicPlayerBanner = ({
     return `${minute}:${secondLeft < 10 ? `0${secondLeft}` : secondLeft}`;
   };
 
-  const [isDragging, setIsDragging] = useState(false);
-
-  const handleTimeSliderChange = (_: any, value: number) => {
-    setIsDragging(true);
-    setCurrentTime(value as number);
-  };
-
-  const handleTimeSliderChangeCommit = (_: any, value: number) => {
-    setIsDragging(false);
-    audioRef.current!.currentTime = value;
-  };
-
-  const mainIconColor = theme.palette.mode === "dark" ? "#fff" : "#000";
-
-  const lightIconColor =
-    theme.palette.mode === "dark" ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)";
-
-  useEffect(() => {
+  const handlePlayPause = () => {
     const audio = audioRef.current;
-    if (!audio) {
+    if (!audio) return;
+    if (playing) {
+      audio.pause();
+    } else {
+      audio.play();
+    }
+    setPlaying(!playing);
+  };
+
+  const handleTimeSliderChange = (
+    _event: Event,
+    newValue: number | number[],
+    activeThumb: number
+  ) => {
+    if (activeThumb !== 0) return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    let newTime = Array.isArray(newValue) ? newValue[0] : newValue;
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const handleClickAway = () => {
+    if (isOpen) {
+      dispatch(setIsPanelOpen(false));
+      dispatch(setSrc(null));
+    }
+  };
+
+  // Playlist menu
+  const [playlistMenuItems, setPlaylistMenuItems] = useState<
+    PlaylistMenuItem[]
+  >([]);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
+  console.log("menuOpen: ", menuOpen);
+
+  const fetchPlaylists = async (userId: number) => {
+    const res = await getAllPlaylistsOfUser(userId);
+    const resJson = await res.json();
+    const menuItems = resJson.map(
+      (item: { id: number; title: string; [key: string]: any }) => {
+        return {
+          id: item.id,
+          title: item.title,
+        };
+      }
+    );
+    setPlaylistMenuItems(menuItems);
+  };
+
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!currentUserId) {
+      raiseAlert("error", "Please sign in first");
       return;
     }
+    fetchPlaylists(currentUserId);
+    setAnchorEl(event.currentTarget);
+  };
 
-    audio.onloadedmetadata = () => {
-      setTotalDuration(audio.duration);
-    };
+  const handleItemClick = async (playlistId: number) => {
+    const res = await addMusicToPlaylist(playlistId, id);
+    if (res.ok) {
+      raiseAlert("success", "Success");
+    }
+    handleMenuClose();
+  };
 
-    audio.ontimeupdate = () => {
-      if (!isDragging) {
-        setCurrentTime(audio.currentTime);
-      }
-    };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
 
-    // audio.ontimeupdate = () => {
-    //   if (timeoutRef.current) {
-    //     clearTimeout(timeoutRef.current);
-    //   }
-
-    //   timeoutRef.current = window.setTimeout(() => {
-    //     setCurrentTime(audio.currentTime);
-    //   }, 100); // 100ms 防抖动处理
-
-    //   return () => {
-    //     clearTimeout(timeoutRef.current!);
-    //   };
-    // };
-
-    return () => {
-      audio.pause();
-    };
-  }, [audioUrl]);
+  // Like music
+  const handleLike = async () => {
+    if (!id) return;
+    if (!currentUserId) {
+      raiseAlert("error", "Please sign in first");
+      return;
+    }
+    const res = await likeMusic(id, currentUserId);
+    if (res.status === 201) {
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
+  };
 
   return (
-    <Box sx={{ width: "100%", overflow: "hidden" }}>
-      <AudioContainer audioRef={audioRef} audioSrc={audioUrl} />
-      <Widget>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Box>
-            <CoverImage>
-              <img alt="can't win - Chilling Sunday" src={coverUrl} />
-            </CoverImage>
-            <Box sx={{ ml: 1.5, minWidth: 0 }}>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                fontWeight={500}
-              >
-                {artist}
-              </Typography>
-              <Typography noWrap>
-                <b>{title}</b>
-              </Typography>
+    <>
+      <AutoDismissAlert
+        isAlertOpen={isAlertOpen}
+        handleAlertClose={handleAlertClose}
+        message={alertStatus.message}
+        severity={alertStatus.severity}
+      />
+      <ClickAwayListener onClickAway={handleClickAway}>
+        <Box sx={{ width: "100%", overflow: "hidden" }}>
+          <audio ref={audioRef} style={{ display: "none" }} controls>
+            <source src={audioUrl} type="audio/wav" />
+          </audio>
+          <Widget>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Box>
+                <Box sx={{ ml: 1.5, minWidth: 0 }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    fontWeight={500}
+                  >
+                    {artist}
+                  </Typography>
+                  <Typography noWrap>
+                    <b>{title}</b>
+                  </Typography>
+                </Box>
+              </Box>
+              <Box>
+                <MusicVisualizer audioElement={audioRef.current} />
+              </Box>
             </Box>
-          </Box>
-          <Box>
-            <MusicVisualizer audioElement={audioRef.current} />
-          </Box>
-        </Box>
-        <Slider
-          aria-label="time-indicator"
-          size="small"
-          value={isDragging ? currentTime : currentTime}
-          min={0}
-          step={1}
-          max={totalDuration}
-          onChange={(_, value) => handleTimeSliderChange(_, value as number)}
-          onChangeCommitted={(_, value) =>
-            handleTimeSliderChangeCommit(_, value as number)
-          }
-          sx={timeSliderSx}
-        />
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mt: -2,
-          }}
-        >
-          <TinyText>{formatDuration(currentTime)}</TinyText>
-          <TinyText>-{formatDuration(totalDuration - currentTime)}</TinyText>
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mt: -1,
-          }}
-        >
-          <IconButton aria-label="previous song">
-            <FastRewindRounded fontSize="large" htmlColor={mainIconColor} />
-          </IconButton>
-          <IconButton
-            aria-label={paused ? "play" : "pause"}
-            onClick={handlePlayPause}
-          >
-            {paused ? (
-              <PlayArrowRounded
-                sx={{ fontSize: "3rem" }}
-                htmlColor={mainIconColor}
+            <Box sx={{ justifyContent: "center" }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <IconButton onClick={handlePlayPause}>
+                  {playing ? (
+                    <PauseRounded sx={{ fontSize: "3rem" }} htmlColor="black" />
+                  ) : (
+                    <PlayArrowRounded
+                      sx={{ fontSize: "3rem" }}
+                      htmlColor="black"
+                    />
+                  )}
+                </IconButton>
+                <IconButton onClick={handleMenuOpen}>
+                  <AddCircleOutlineRounded />
+                </IconButton>
+                <Link to={`/community/music/${id}/comments`}>
+                  <IconButton>
+                    <CommentIcon />
+                  </IconButton>
+                </Link>
+
+                <IconButton
+                  size="small"
+                  sx={{
+                    color: isLiked
+                      ? theme.palette.primary.main
+                      : theme.palette.grey[400],
+                  }}
+                  onClick={handleLike}
+                >
+                  <ThumbUpIcon />
+                </IconButton>
+                <Typography sx={{ ml: 0 }}>{likeCount}</Typography>
+              </Stack>
+              <Slider
+                value={currentTime}
+                onChange={handleTimeSliderChange}
+                max={duration}
+                step={0.01}
+                sx={{ margin: "10px 0" }}
               />
-            ) : (
-              <PauseRounded
-                sx={{ fontSize: "3rem" }}
-                htmlColor={mainIconColor}
-              />
-            )}
-          </IconButton>
-          <IconButton aria-label="next song">
-            <FastForwardRounded fontSize="large" htmlColor={mainIconColor} />
-          </IconButton>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  mt: -2,
+                }}
+              >
+                <TinyText>{formatDuration(currentTime)}</TinyText>
+                <TinyText>-{formatDuration(duration - currentTime)}</TinyText>
+              </Box>
+            </Box>
+          </Widget>
+          <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}>
+            {playlistMenuItems.map((item) => (
+              <MenuItem key={uuidv4()} onClick={() => handleItemClick(item.id)}>
+                {item.title}
+              </MenuItem>
+            ))}
+          </Menu>
         </Box>
-        <Stack
-          spacing={2}
-          direction="row"
-          sx={{ mb: 1, px: 1 }}
-          alignItems="center"
-        >
-          <VolumeDownRounded htmlColor={lightIconColor} />
-          <Slider aria-label="Volume" defaultValue={30} sx={volumeSliderSx} />
-          <VolumeUpRounded htmlColor={lightIconColor} />
-        </Stack>
-      </Widget>
-    </Box>
+      </ClickAwayListener>
+    </>
   );
 };
 

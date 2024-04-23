@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'user.apps.UserConfig',
     'project.apps.ProjectConfig',
+    'community.apps.CommunityConfig',
     'rest_framework',
 ]
 
@@ -57,7 +58,7 @@ REST_FRAMEWORK = {
 # CORS_ORIGIN_WHITELIST = ()
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # 允许React应用的地址
+    "http://localhost:5173",  # React app
 ]
 
 MIDDLEWARE = [

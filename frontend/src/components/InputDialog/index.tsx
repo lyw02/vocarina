@@ -16,6 +16,8 @@ import EditTimeSignatureForm from "./EditTimeSignatureForm";
 import EditBpmForm from "./EditBpmForm";
 import EditTrackNameForm from "./EditTrackNameForm";
 import { RootState } from "@/types";
+import { setProjectName } from "@/store/modules/project";
+import EditProjectNameForm from "./EditProjectNameForm";
 
 const PaperComponent = (props: PaperProps) => {
   return (
@@ -30,7 +32,7 @@ const PaperComponent = (props: PaperProps) => {
 
 interface InputDialogProps {
   title: string;
-  formType: "EditTimeSignatureForm" | "EditBpmForm" | "EditTrackNameForm";
+  formType: "EditTimeSignatureForm" | "EditBpmForm" | "EditTrackNameForm" | "EditProjectNameForm";
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   trackId?: number;
@@ -41,6 +43,7 @@ export interface FormValues {
   denominator?: number;
   bpm?: number;
   trackName?: string;
+  projectName?: string;
 }
 
 const InputDialog = ({
@@ -99,6 +102,13 @@ const InputDialog = ({
             setValues={handleSetValues}
             trackId={trackId}
           />
+        ),
+      };
+    } else if (formType === "EditProjectNameForm") {
+      return {
+        dispatchFunctions: [() => dispatch(setProjectName(values.projectName))],
+        formComponent: (
+          <EditProjectNameForm values={values} setValues={handleSetValues} />
         ),
       };
     }

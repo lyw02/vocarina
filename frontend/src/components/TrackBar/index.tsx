@@ -151,6 +151,7 @@ const TrackBar = () => {
     const currentFile = e.target.files[0];
     const currentFileURL = URL.createObjectURL(currentFile);
     dispatch(setInstUrl(currentFileURL));
+    handleTrackOptionsClose();
   };
 
   const [isTrackNameDialogVisible, setIsTrackNameDialogVisible] =
@@ -173,6 +174,10 @@ const TrackBar = () => {
   const instDuration = instAudioRef.current?.duration || 0;
   const ratio = instDuration / maxDuration;
   const wavePlotWidth = instTrackWavPlotRef.current?.clientWidth! * ratio;
+  console.log("instDuration: ", instDuration)
+  console.log("maxDuration: ", maxDuration)
+  console.log("ratio: ", ratio)
+  console.log("wavePlotWidth: ", wavePlotWidth)
 
   const { wavesurfer } = useWavesurfer({
     container: instTrackWavPlotRef,
@@ -188,7 +193,7 @@ const TrackBar = () => {
   useEffect(() => {
     dispatch(setInstStart(0));
     dispatch(setInstEnd(wavePlotWidth));
-  }, [dispatch, wavesurfer]);
+  }, [dispatch, wavesurfer, instAudioRef]);
 
   const wsRegions = wavesurfer?.registerPlugin(RegionsPlugin.create());
   const instTrackWavPlotRect =
