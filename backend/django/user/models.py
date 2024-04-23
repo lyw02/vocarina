@@ -24,3 +24,18 @@ class UserFollower(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     follower_id = models.IntegerField()
     follower_username = models.CharField(max_length=20)
+
+
+class LikedComment(models.Model):
+    user_id = models.ForeignKey("User", on_delete=models.CASCADE)
+    comment_id = models.ForeignKey("community.Comment", on_delete=models.CASCADE)
+
+
+class LikedMusic(models.Model):
+    user_id = models.ForeignKey("User", on_delete=models.CASCADE)
+    comment_id = models.ForeignKey("community.Music", on_delete=models.CASCADE)
+
+
+class LikedPlaylist(models.Model):
+    user_id = models.ForeignKey("User", on_delete=models.CASCADE)
+    comment_id = models.ForeignKey("community.Music", on_delete=models.CASCADE)

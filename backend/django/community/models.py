@@ -45,3 +45,15 @@ class Comment(models.Model):
     last_update = models.DateTimeField(auto_now=True)
     like_count = models.IntegerField(default=0)
     status = models.IntegerField(default=1)
+
+
+class Reply(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_id = models.ForeignKey("user.User", on_delete=models.CASCADE)
+    comment_id = models.ForeignKey("Comment", on_delete=models.CASCADE)
+    parent_reply_id = models.ForeignKey("self", null=True, blank=True, on_delete=models.CASCADE)
+
+    content = models.TextField()
+    like_count = models.IntegerField(default=0)
+    post_time = models.DateTimeField(auto_now_add=True)
+    status = models.IntegerField(default=1)

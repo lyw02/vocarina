@@ -1,17 +1,19 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, get_object_or_404
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, UpdateAPIView, \
-    CreateAPIView
+    CreateAPIView, ListCreateAPIView
 from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.response import Response
 
-from .models import Music, Playlist
+from .models import Music, Playlist, Comment, Reply
 from .pagination import StandardResultsSetPagination
-from .serializers import MusicSerializer, PlaylistSerializer
+from .serializers import MusicSerializer, PlaylistSerializer, CommentSerializer, ReplySerializer
 from .utils.mixing import mix
 from .utils.oss import get_file_url, get_file_by_url
-from user.models import User
-from user.serializers import UserSerializer
+from user.models import User, LikedComment
+from user.serializers import UserSerializer, LikedCommentSerializer
 
 
 class MusicView(GenericAPIView):
@@ -152,39 +154,53 @@ class SavedPlaylistView(ListAPIView):
         return user.saved_playlists.all()
 
 
-# class UserPlaylistsView(ListAPIView):
-#     """Get all playlists of a user"""
-#     serializer_class = PlaylistSerializer
-#
-#     def get_queryset(self):
-#         user_id = self.kwargs["user_id"]
-#         return Playlist.objects.filter(user_id=user_id)
-#
-#
-# class PlaylistMusicView(ListAPIView):
-#     """Get all musics in a playlist"""
-#     serializer_class = MusicSerializer
-#
-#     def get_queryset(self):
-#         playlist_id = self.kwargs["playlist_id"]
-#         playlist = get_object_or_404(Playlist, id=playlist_id)
-#         return playlist.music_id.all()
-#
-#
-# # 往一个歌单中新增修改或删除音乐
-# class PlaylistMusicUpdateView(CreateAPIView, RetrieveUpdateDestroyAPIView):
-#     """Add, update or delete music in a playlist"""
-#     queryset = Playlist.objects.all()
-#     serializer_class = PlaylistSerializer
-#
-#
-# # 用户收藏其他用户创建的歌单
-# class UserSavePlaylistView(UpdateAPIView):
-#     queryset = Playlist.objects.all()
-#     serializer_class = PlaylistSerializer
-#
-#     def update(self, request, *args, **kwargs):
-#         playlist = self.get_object()
-#         user = request.user  # 假设你已经设置了身份验证
-#         playlist.saved_user_id.add(user)
-#         return super().update(request, *args, **kwargs)
+class CommentListCreateView(ListCreateAPIView):
+    """
+    Get all comments
+    Create new comment
+    """
+    serializer_class = CommentSerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        music_id = self.kwargs["id"]
+        return Comment.objects.filter(music_id=music_id)
+
+    def perform_create(self, serializer):
+        music_id = self.kwargs["id"]
+        user_id = self.request.data.get("user_id")
+        music = Music.objects.get(id=music_id)
+        user = User.objects.get(id=user_id)
+        serializer.save(user_id=user, music_id=music)
+
+
+class CommentDetailView(RetrieveUpdateDestroyAPIView):
+    """Get or update a single comment"""
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+
+class ReplyCreateView(CreateAPIView):
+    """Create a new reply"""
+    queryset = Reply.objects.all()
+    serializer_class = ReplySerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.user)
+
+
+class ReplyReplyCreateView(CreateAPIView):
+    queryset = Reply.objects.all()
+    serializer_class = ReplySerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.user)
+
+
+class LikedCommentCreateView(CreateAPIView):
+    """Create a new like"""
+    queryset = LikedComment.objects.all()
+    serializer_class = LikedCommentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user_id=self.request.user)

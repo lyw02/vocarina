@@ -63,3 +63,22 @@ export const getSavedPlaylist = async (userId: number) => {
   const response = await getReq(`api/user/${userId}/saved_playlist/`);
   return response;
 };
+
+export const getMusicCommentlist = async (musicId: number, page: number) => {
+  const response = await getReq(`api/music/${musicId}/comment/?page=${page}`);
+  return response;
+};
+
+export const createMusicComment = async (
+  musicId: number,
+  userId: number,
+  content: string
+) => {
+  console.log("createMusicComment, userId: ", userId)
+  const response = await postReq(`api/music/${musicId}/comment/`, {
+    music_id: musicId,
+    user_id: userId,
+    content,
+  });
+  return response;
+};
