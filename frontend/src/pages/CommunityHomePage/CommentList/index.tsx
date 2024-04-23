@@ -1,4 +1,5 @@
 import {
+  Button,
   Card,
   IconButton,
   List,
@@ -31,6 +32,7 @@ interface CommentResProps {
 }
 
 interface CommentItemProps {
+  id: number;
   userId: number;
   date: string;
   content: string;
@@ -42,10 +44,12 @@ interface CommentItemProps {
 const CommentList = () => {
   const { id: musicId } = useParams();
   const [commentList, setCommentList] = useState<CommentResProps[]>([]);
+  // const [commentItems, setCommentItems] = useState<CommentItemProps[]>([]);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [page, setPage] = useState<number>(1);
   const [textfieldContent, setTextfieldContent] = useState<string>("");
   const [_rerenderTrigger, setRerenderTrigger] = useState<boolean>(false);
+  const [sendReply, setSendReply] = useState<boolean>(false);
 
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUserId
@@ -76,6 +80,7 @@ const CommentList = () => {
   const commentItems: CommentItemProps[] = commentList.map(
     (c: CommentResProps) => {
       return {
+        id: c.id,
         userId: c.user_id,
         date: c.post_time.slice(0, 10),
         content: c.content,
@@ -127,12 +132,28 @@ const CommentList = () => {
             return (
               <ListItem key={uuidv4()}>
                 <CommentItem
+                  id={item.id}
                   userId={item.userId}
                   date={item.date}
                   content={item.content}
                   likeCount={item.likeCount}
                   isReply={item.isReply}
                 />
+                <Button
+                  sx={{ p: 0, m: 0 }}
+                  onClick={() => {
+                    setTextfieldContent(
+                      `Reply to comment "${
+                        item.content.length >= 10
+                          ? item.content.slice(0, 10) + "..."
+                          : item.content
+                      }": `
+                    );
+                    setSendReply(true);
+                  }}
+                >
+                  {"Reply"}
+                </Button>
               </ListItem>
             );
           })}
@@ -142,6 +163,7 @@ const CommentList = () => {
           <TextField
             placeholder="Leave your comment"
             multiline
+            value={textfieldContent}
             onChange={(e) => setTextfieldContent(e.target.value)}
             sx={{ width: "50%", mr: 1 }}
           />

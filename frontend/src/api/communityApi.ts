@@ -74,11 +74,34 @@ export const createMusicComment = async (
   userId: number,
   content: string
 ) => {
-  console.log("createMusicComment, userId: ", userId)
+  console.log("createMusicComment, userId: ", userId);
   const response = await postReq(`api/music/${musicId}/comment/`, {
     music_id: musicId,
     user_id: userId,
     content,
   });
+  return response;
+};
+
+export const likeComment = async (
+  musicId: number,
+  commentId: number,
+  userId: number
+) => {
+  const response = await postReq(
+    `api/music/${musicId}/comment/${commentId}/like/`,
+    { userId }
+  );
+  return response;
+};
+
+export const getCommentLikeStatus = async (
+  musicId: number,
+  commentId: number,
+  userId: number
+) => {
+  const response = await getReq(
+    `api/music/${musicId}/comment/${commentId}/like/?userId=${userId}`
+  );
   return response;
 };

@@ -186,6 +186,10 @@ class ReplyCreateView(CreateAPIView):
     serializer_class = ReplySerializer
 
     def perform_create(self, serializer):
+        # music_id = self.kwargs["id"]
+        # user_id = self.request.data.get("user_id")
+        # music = Music.objects.get(id=music_id)
+        # user = User.objects.get(id=user_id)
         serializer.save(user_id=self.request.user)
 
 
@@ -198,9 +202,27 @@ class ReplyReplyCreateView(CreateAPIView):
 
 
 class LikedCommentCreateView(CreateAPIView):
-    """Create a new like"""
+    """
+    POST: Like a comment
+    GET: Whether the comment has been liked by user, and total like count
+    """
     queryset = LikedComment.objects.all()
     serializer_class = LikedCommentSerializer
 
-    def perform_create(self, serializer):
-        serializer.save(user_id=self.request.user)
+    def post(self, request, *args, **kwargs):
+        user_id = self.request.data.get("userId")
+        comment_id = kwargs.get("comment_id")
+        user = User.objects.get(id=user_id)
+        comment = Comment.objects.get(id=comment_id)
+        like, created = LikedComment.objects.get_or_create(user_id=user, comment_id=comment)
+        if created:
+            return Response({"message": "Success"}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"message": "Already liked"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, *args, **kwargs):
+        user_id = request.query_params.get("userId")
+        comment_id = kwargs.get("comment_id")
+        is_liked = LikedComment.objects.filter(user_id=user_id, comment_id=comment_id).exists()
+        likes_count = LikedComment.objects.filter(comment_id=comment_id).count()
+        return Response({"is_liked": is_liked, "likes_count": likes_count}, status=status.HTTP_200_OK)
