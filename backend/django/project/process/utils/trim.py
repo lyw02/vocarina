@@ -20,7 +20,7 @@ def remove_silence_from_audio(audio_content):
         traceback.print_exc()
 
 
-def detect_leading_silence(sound, silence_threshold=-50.0, chunk_size=10):
+def detect_leading_silence(sound, silence_threshold=-45.0, chunk_size=10):
     """
     sound is a pydub.AudioSegment
     silence_threshold in dB

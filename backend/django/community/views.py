@@ -85,7 +85,7 @@ class MusicView(GenericAPIView):
                 except User.DoesNotExist:
                     username = None
                 music["username"] = username
-                music["url"] = get_file_url(f"music/{username}/{music.get('title')}")
+                music["url"] = get_file_url(f"music/{username}/{music.get('title')}.wav")
                 res.append(music)
             return self.get_paginated_response(res)
         else:

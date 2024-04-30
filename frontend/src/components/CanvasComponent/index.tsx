@@ -105,7 +105,7 @@ function CanvasComponent() {
         note.drawNote(ctx, selectedNotes);
       });
       dragSelector.drawSelector(ctx);
-      cursor.drawCursor(ctx);
+      // cursor.drawCursor(ctx);
     }
 
     draw();

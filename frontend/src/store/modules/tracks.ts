@@ -103,6 +103,14 @@ const trackStore = createSlice({
         instTrack.instEnd = action.payload;
       }
     },
+    setInstFilename(state, action) {
+      const instTrack = state.tracks.find(
+        (t) => t.trackType === "instrumental"
+      );
+      if (instTrack) {
+        instTrack.instFilename = action.payload;
+      }
+    },
     setTracks(state, action) {
       state.tracks = action.payload;
     },
@@ -120,6 +128,7 @@ const {
   setInstUrl,
   setInstStart,
   setInstEnd,
+  setInstFilename,
   setTracks,
 } = trackStore.actions;
 
@@ -136,6 +145,7 @@ export {
   setInstUrl,
   setInstStart,
   setInstEnd,
+  setInstFilename,
   setTracks,
 };
 

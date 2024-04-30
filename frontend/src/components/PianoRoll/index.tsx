@@ -110,7 +110,7 @@ const PianoRoll = () => {
           </div>
           <div className="canvas-component-wrapper">
             <CanvasComponent />
-            {wavePlotElements.map(
+            {/* {wavePlotElements.map(
               (element) =>
                 element.trackId === currentTrack && (
                   <div
@@ -134,7 +134,7 @@ const PianoRoll = () => {
                     }}
                   />
                 )
-            )}
+            )} */}
           </div>
         </div>
       </div>

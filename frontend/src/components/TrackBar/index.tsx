@@ -3,6 +3,7 @@ import {
   deleteTrack,
   setCurrentTrack,
   setInstEnd,
+  setInstFilename,
   setInstStart,
   setInstUrl,
   setSheet,
@@ -149,8 +150,10 @@ const TrackBar = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const currentFile = e.target.files[0];
+    const currentFilename = currentFile.name;
     const currentFileURL = URL.createObjectURL(currentFile);
     dispatch(setInstUrl(currentFileURL));
+    dispatch(setInstFilename(currentFilename));
     handleTrackOptionsClose();
   };
 
@@ -158,9 +161,16 @@ const TrackBar = () => {
     useState<boolean>(false);
 
   const trackStackRef = useRef<HTMLDivElement | null>(null);
-  const instTrackWavPlotRef = useRef<HTMLDivElement | null>(null);
+  const instTrackWavPlotRef = useRef<HTMLElement>();
   const instAudioRef = useRef<HTMLAudioElement | null>(null);
 
+  const instFilename = useSelector(
+    (state: RootState) =>
+      state.tracks.tracks.find((t) => t.trackType === "instrumental")
+        ?.instFilename
+  );
+
+  // TODO waveplot
   const instUrl = useSelector(
     (state: RootState) =>
       state.tracks.tracks.find((t) => t.trackType === "instrumental")?.instUrl
@@ -174,54 +184,67 @@ const TrackBar = () => {
   const instDuration = instAudioRef.current?.duration || 0;
   const ratio = instDuration / maxDuration;
   const wavePlotWidth = instTrackWavPlotRef.current?.clientWidth! * ratio;
-  console.log("instDuration: ", instDuration)
-  console.log("maxDuration: ", maxDuration)
-  console.log("ratio: ", ratio)
-  console.log("wavePlotWidth: ", wavePlotWidth)
+  console.log("instDuration: ", instDuration);
+  console.log("maxDuration: ", maxDuration);
+  console.log(
+    "instTrackWavPlotRef.current?.clientWidth: ",
+    instTrackWavPlotRef.current?.clientWidth
+  );
+  console.log("ratio: ", ratio);
+  console.log("wavePlotWidth: ", wavePlotWidth);
+  console.log("instUrl: ", instUrl);
 
-  const { wavesurfer } = useWavesurfer({
-    container: instTrackWavPlotRef,
-    height: 45,
-    width: wavePlotWidth,
-    waveColor: theme.palette.primary.light,
-    cursorWidth: 0,
-    interact: false,
-    url: instUrl,
-  });
+  // useEffect(() => {
+  //   if (instTrackWavPlotRef.current) {
+  //     let res = WaveSurfer.create({
+  //       container: instTrackWavPlotRef.current,
+  //       height: 45,
+  //       width: wavePlotWidth,
+  //       waveColor: theme.palette.primary.light,
+  //       cursorWidth: 0,
+  //       interact: false,
+  //       url: instUrl,
+  //     });
+  //     console.log("WaveSurfer: ", res)
+  //   }
+  // }, []);
+
+  // console.log("instUrl: ", instUrl)
+  // console.log("wavesurfer: ", wavesurfer)
 
   // TODO Drag
-  useEffect(() => {
-    dispatch(setInstStart(0));
-    dispatch(setInstEnd(wavePlotWidth));
-  }, [dispatch, wavesurfer, instAudioRef]);
+  // useEffect(() => {
+  //   dispatch(setInstStart(0));
+  //   dispatch(setInstEnd(wavePlotWidth));
+  // }, [dispatch, wavesurfer, instAudioRef]);
 
-  const wsRegions = wavesurfer?.registerPlugin(RegionsPlugin.create());
-  const instTrackWavPlotRect =
-    instTrackWavPlotRef.current?.getBoundingClientRect();
+  // const wsRegions = wavesurfer?.registerPlugin(RegionsPlugin.create());
+  // const instTrackWavPlotRect =
+  //   instTrackWavPlotRef.current?.getBoundingClientRect();
 
-  const handleShowRegion = (
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => {
-    if (e.clientX - instTrackWavPlotRect!.left < wavePlotWidth) {
-      wsRegions?.addRegion({
-        start: 0,
-        end: wavePlotWidth,
-        color: "rgba(0, 0, 0, 0.3)",
-        drag: false,
-        resize: false,
-      });
-    } else {
-      wsRegions?.clearRegions();
-    }
-  };
+  // const handleShowRegion = (
+  //   e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  // ) => {
+  //   if (e.clientX - instTrackWavPlotRect!.left < wavePlotWidth) {
+  //     wsRegions?.addRegion({
+  //       start: 0,
+  //       end: wavePlotWidth,
+  //       color: "rgba(0, 0, 0, 0.3)",
+  //       drag: false,
+  //       resize: false,
+  //     });
+  //   } else {
+  //     wsRegions?.clearRegions();
+  //   }
+  // };
 
-  const handleClearReagion = () => {
-    wsRegions?.clearRegions();
-  };
+  // const handleClearReagion = () => {
+  //   wsRegions?.clearRegions();
+  // };
 
-  const handleDragRegion = (
-    e: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => {};
+  // const handleDragRegion = (
+  //   e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  // ) => {};
 
   // deprecated
   const distanceX: number[] = [];
@@ -363,17 +386,24 @@ const TrackBar = () => {
               <>
                 <Box
                   component="div"
-                  ref={instTrackWavPlotRef}
-                  onMouseOver={(e) => handleShowRegion(e)}
-                  onMouseOut={handleClearReagion}
-                  onMouseDown={(e) => handleDragRegion(e)}
+                  id="instTrackWavPlotContainer"
+                  // ref={instTrackWavPlotRef}
+                  // onMouseOver={(e) => handleShowRegion(e)}
+                  // onMouseOut={handleClearReagion}
+                  // onMouseDown={(e) => handleDragRegion(e)}
                   sx={{
                     m: "auto 0",
                     width: "80%",
                     maxHeight: "7vh",
                     borderLeft: "1px solid lightgrey",
                   }}
-                />
+                >
+                  {instFilename && (
+                    <Typography variant="caption" sx={{ ml: 1 }}>
+                      {`  Loaded instrumental file '${instFilename}' `}
+                    </Typography>
+                  )}
+                </Box>
                 <audio
                   ref={instAudioRef}
                   src={instUrl}
