@@ -439,26 +439,27 @@ function CanvasComponent() {
           </Box>
         </div>
       )}
-      <canvas
-        className="compose-area-canvas"
-        ref={canvasRef}
-        onMouseMove={handleMouseMove}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onContextMenu={handleContextMenu}
-      />
-      <Menu
-        open={contextMenu !== null}
-        onClose={handleMenuClose}
-        anchorReference="anchorPosition"
-        anchorPosition={
-          contextMenu !== null
-            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
-            : undefined
-        }
-      >
-        <MenuItem onClick={handleDelete}>Delete</MenuItem>
-      </Menu>
+      <div onContextMenu={handleContextMenu}>
+        <canvas
+          className="compose-area-canvas"
+          ref={canvasRef}
+          onMouseMove={handleMouseMove}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+        />
+        <Menu
+          open={contextMenu !== null}
+          onClose={handleMenuClose}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            contextMenu !== null
+              ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+              : undefined
+          }
+        >
+          <MenuItem onClick={handleDelete}>Delete</MenuItem>
+        </Menu>
+      </div>
     </>
   );
 }
