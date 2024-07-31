@@ -96,7 +96,7 @@ const SiteHeader = () => {
             />
           </IconButton>
         ) : (
-          <Link to="/login">
+          <Link to="/register">
             <IconButton
               aria-label="user"
               size="medium"

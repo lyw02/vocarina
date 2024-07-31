@@ -18,11 +18,11 @@ const MusicVisualizer = ({ audioElement }: MusicVisualizerProps) => {
     analyser = audioContext.createAnalyser();
     const audioSource = audioContext.createMediaElementSource(audioElement);
 
-    // 连接源节点到分析器
+    // Connect source node to analyser
     audioSource.connect(analyser);
-    // 连接分析器到目的地（扬声器）
+    // Connect analyser to destination (loudspeaker)
     analyser.connect(audioContext.destination);
-    // 设置分析器参数
+    // Analyser params
     analyser.fftSize = 512;
     const bufferLength = analyser.frequencyBinCount;
     dataArray = new Uint8Array(bufferLength);

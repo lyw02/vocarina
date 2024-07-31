@@ -37,6 +37,7 @@ const MyMusicItem = ({ id, title, artist, cover, src }: MyMusicItemProps) => {
           width: "100%",
           cursor: "pointer",
           backgroundColor: isHovered ? theme.palette.grey[200] : "white",
+          mt: 1,
         }}
         onClick={handlePlay}
         onMouseOver={() => setIsHovered(true)}

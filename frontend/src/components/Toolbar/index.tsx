@@ -439,10 +439,6 @@ const Toolbar = () => {
       <Stack justifyContent="space-between" direction="row">
         <Stack spacing={2} direction="row">
           <Button
-            id="basic-button"
-            aria-controls={open ? "basic-menu" : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? "true" : undefined}
             onClick={handleClick}
             sx={{ textTransform: "none" }}
           >
@@ -453,9 +449,6 @@ const Toolbar = () => {
             anchorEl={anchorEl}
             open={open}
             onClose={handleClose}
-            MenuListProps={{
-              "aria-labelledby": "basic-button",
-            }}
           >
             <MenuItem onClick={handleEditProjectName}>
               {"Edit project name"}

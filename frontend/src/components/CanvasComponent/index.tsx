@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { noteStyle, Note } from "@/utils/Note";
 import { useDispatch, useSelector } from "react-redux";
 import "./index.css";
@@ -14,11 +14,15 @@ import {
   setWavePlotElements as setWavePlotElementsInState,
 } from "@/store/modules/projectAudio";
 import { Cursor } from "@/utils/Cursor";
-import { Box, LinearProgress } from "@mui/material";
+import { Box, LinearProgress, Menu, MenuItem } from "@mui/material";
 import theme from "@/theme";
 
 function CanvasComponent() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [contextMenu, setContextMenu] = React.useState<{
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
   const currentTrack = useSelector(
     (state: RootState) => state.tracks.currentTrack
   );
@@ -105,7 +109,7 @@ function CanvasComponent() {
         note.drawNote(ctx, selectedNotes);
       });
       dragSelector.drawSelector(ctx);
-      cursor.drawCursor(ctx);
+      // cursor.drawCursor(ctx);
     }
 
     draw();
@@ -141,6 +145,32 @@ function CanvasComponent() {
       });
   }, [noteAudioArr, currentTrack]);
 
+  const [eventCoord, setEventCoord] = useState<[number, number]>();
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setContextMenu({
+      mouseX: event.clientX + 2,
+      mouseY: event.clientY - 6,
+    });
+    setEventCoord([event.clientX, event.clientY]);
+  };
+
+  const handleMenuClose = () => {
+    setContextMenu(null);
+  };
+
+  const getClickCoord = (clientX: number, clientY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect(); // Canvas region (a rect)
+    const clickX = clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
+    const clickY = clientY - rect.top;
+
+    return [clickX, clickY];
+  };
+
   const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -149,22 +179,6 @@ function CanvasComponent() {
     const clickX = event.clientX - rect.left; // Distance of clicked point to window left border - distance of canvas rect to window left border, i.e. distance of clicked point to canvas rect left border
     const clickY = event.clientY - rect.top;
     const note = getNote(clickX, clickY);
-
-    if (event.button === 2 && note) {
-      // Delete note
-      const index = notes.indexOf(note);
-      if (index !== -1) {
-        if (selected.includes(note.id)) {
-          for (let i = notes.length - 1; i >= 0; i--) {
-            if (selected.includes(notes[i].id)) {
-              notes.splice(i, 1);
-            }
-          }
-        } else {
-          notes.splice(index, 1);
-        }
-      }
-    }
 
     if (event.button === 0) {
       if (note && note.isBoundary(clickX, clickY)) {
@@ -343,11 +357,6 @@ function CanvasComponent() {
     // parseDuration(notes, updateNotes, bpm);
   };
 
-  const handleContextMenu = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-
   const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -384,11 +393,41 @@ function CanvasComponent() {
     return disX;
   };
 
+  const handleDelete = () => {
+    if (!eventCoord) return;
+    const clickCoord = getClickCoord(eventCoord[0], eventCoord[1]);
+    if (!clickCoord) return;
+    const note = getNote(clickCoord[0], clickCoord[1]);
+    if (!note) return;
+    const index = notes.indexOf(note);
+    if (index !== -1) {
+      if (selected.includes(note.id)) {
+        for (let i = notes.length - 1; i >= 0; i--) {
+          if (selected.includes(notes[i].id)) {
+            notes.splice(i, 1);
+          }
+        }
+      } else {
+        notes.splice(index, 1);
+      }
+    }
+    dispatch(
+      setSheet({ trackId: currentTrack, sheet: notes.map((n) => n.toJSON()) })
+    );
+    setContextMenu(null);
+  };
+
   return (
     <>
       {isGenerating && (
         <div className="progress-wrapper">
-          <Box sx={{ width: "100%", height: "100%", backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
+          <Box
+            sx={{
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(255, 255, 255, 0.5)",
+            }}
+          >
             <LinearProgress
               sx={{
                 color: theme.palette.primary.main,
@@ -400,14 +439,27 @@ function CanvasComponent() {
           </Box>
         </div>
       )}
-      <canvas
-        className="compose-area-canvas"
-        ref={canvasRef}
-        onMouseMove={handleMouseMove}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onContextMenu={handleContextMenu}
-      />
+      <div onContextMenu={handleContextMenu}>
+        <canvas
+          className="compose-area-canvas"
+          ref={canvasRef}
+          onMouseMove={handleMouseMove}
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+        />
+        <Menu
+          open={contextMenu !== null}
+          onClose={handleMenuClose}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            contextMenu !== null
+              ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+              : undefined
+          }
+        >
+          <MenuItem onClick={handleDelete}>Delete</MenuItem>
+        </Menu>
+      </div>
     </>
   );
 }

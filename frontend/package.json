@@ -17,7 +17,7 @@
     "@mui/material": "^5.15.6",
     "@reduxjs/toolkit": "^2.1.0",
     "@tanstack/react-query": "^5.29.2",
-    "@wavesurfer/react": "^1.0.4",
+    "@wavesurfer/react": "^1.0.5",
     "classnames": "^2.5.1",
     "crypto-js": "^4.2.0",
     "lodash": "^4.17.21",

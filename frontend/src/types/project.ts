@@ -29,6 +29,7 @@ export interface Track {
   instUrl?: string;
   instStart?: number;
   instEnd?: number;
+  instFilename?: string;
 }
 
 export interface Project {
