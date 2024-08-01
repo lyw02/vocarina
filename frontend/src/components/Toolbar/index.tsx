@@ -50,6 +50,7 @@ import { publishProject } from "@/api/communityApi";
 import { Sentence } from "@/types/project";
 import { useNavigate } from "react-router-dom";
 import InputDialog from "../InputDialog";
+import LyricsDialogNew from "../InputDialog/LyricsDialogNew";
 
 const sampleData = {
   tracks: [
@@ -534,7 +535,11 @@ const Toolbar = () => {
           <AudioContainer objUrl={instUrl} display="none" ref={instAudioRef} />
         </Stack>
       </Stack>
-      <LyricsDialog
+      {/* <LyricsDialog
+        isOpen={isLyricsDialogVisible}
+        setIsOpen={setIsLyricsDialogVisible}
+      /> */}
+      <LyricsDialogNew
         isOpen={isLyricsDialogVisible}
         setIsOpen={setIsLyricsDialogVisible}
       />
