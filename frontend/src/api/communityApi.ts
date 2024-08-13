@@ -1,4 +1,4 @@
-import { Sentence } from "@/types/project";
+// import { Sentence } from "@/types/project";
 import { getReq, postReq } from "./utils";
 
 export const publishProject = async (
@@ -6,14 +6,14 @@ export const publishProject = async (
   userId: number,
   name: string,
   data: string[],
-  lyrics: { [id: number]: Sentence[] }
+  // lyrics: { [id: number]: Sentence[] } // TODO
 ) => {
   const response = await postReq(`api/music/?action=publish`, {
     username: username,
     user_id: userId,
     project_name: name,
     data: data,
-    lyrics: lyrics,
+    // lyrics: lyrics,
   });
   return response;
 };

@@ -3,14 +3,14 @@ import { NoteProps } from ".";
 export type trackState = "normal" | "muted" | "solo";
 export type trackType = "vocal" | "instrumental";
 
-export interface Sentence {
-  sentenceId: number;
-  nextSentenceId: number | null;
-  order: number;
-  content: string;
-  startNote?: number;
-  endNote?: number;
-}
+// export interface Sentence {
+//   sentenceId: number;
+//   nextSentenceId: number | null;
+//   order: number;
+//   content: string;
+//   startNote?: number;
+//   endNote?: number;
+// }
 
 interface Params {
   numerator: number;
@@ -25,7 +25,7 @@ export interface Track {
   trackType: trackType;
   params?: any[];
   sheet: NoteProps[];
-  trackLyrics: Sentence[];
+  // trackLyrics: Sentence[];
   rawLyrics: string;
   instUrl?: string;
   instStart?: number;

@@ -115,7 +115,7 @@ function CanvasComponent() {
     draw();
   }, [
     notesInState,
-    tracks[currentTrackIndex].trackLyrics,
+    // tracks[currentTrackIndex].trackLyrics,
     dragSelector,
     cursor,
     selected,

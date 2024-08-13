@@ -47,7 +47,7 @@ import { SimpleDialog } from "../SimpleDialog";
 import { setProjectId } from "@/store/modules/project";
 import { setTracks } from "@/store/modules/tracks";
 import { publishProject } from "@/api/communityApi";
-import { Sentence } from "@/types/project";
+// import { Sentence } from "@/types/project";
 import { useNavigate } from "react-router-dom";
 import InputDialog from "../InputDialog";
 import LyricsDialogNew from "../InputDialog/LyricsDialogNew";
@@ -105,13 +105,13 @@ const Toolbar = () => {
 
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const vocalTracks = tracks.filter((t) => t.trackType === "vocal");
-  const tracksDataOriginal = vocalTracks.map((t) => {
+  const tracksDataOriginal = vocalTracks.map((t) => { // TODO
     return {
       trackId: t.trackId,
-      lyrics: t.trackLyrics
-        .map((s) => s.content)
-        .join(" ")
-        .split(" "),
+      // lyrics: t.trackLyrics
+      //   .map((s) => s.content)
+      //   .join(" ")
+      //   .split(" "),
       sheet: t.sheet,
     };
   });
@@ -137,28 +137,28 @@ const Toolbar = () => {
     dispatch(setGeneratingStatus(true));
 
     let parsedLyricsArr: { id: number; data: string[] }[] = [];
-    const tracksDataProcessed = tracksDataOriginal.map((t) => {
-      console.log("t.lyrics: ", t.lyrics);
-      let parsedLyrics;
-      if (t.lyrics.length === 1 && t.lyrics[0] === "") {
-        parsedLyrics = t.sheet.map((n) => n.lyrics);
-      } else {
-        parsedLyrics = parseLyrics(t.sheet, t.lyrics);
-      }
-      parsedLyricsArr.push({ id: t.trackId, data: parsedLyrics });
-      console.log("parsedLyrics: ", parsedLyrics);
-      return {
-        trackId: t.trackId,
-        lyrics: parsedLyrics,
-        targetPitchList: parsePitch(t.sheet, parsedLyrics),
-        startTime: parseStartTime(t.sheet, bpm, numerator, denominator),
-        targetDurationList: parseDuration(
-          t.sheet,
-          bpm,
-          numerator,
-          parsedLyrics
-        ),
-      };
+    const tracksDataProcessed = tracksDataOriginal.map((t) => { // TODO
+      // console.log("t.lyrics: ", t.lyrics);
+      // let parsedLyrics;
+      // if (t.lyrics.length === 1 && t.lyrics[0] === "") {
+      //   parsedLyrics = t.sheet.map((n) => n.lyrics);
+      // } else {
+      //   parsedLyrics = parseLyrics(t.sheet, t.lyrics);
+      // }
+      // parsedLyricsArr.push({ id: t.trackId, data: parsedLyrics });
+      // console.log("parsedLyrics: ", parsedLyrics);
+      // return {
+      //   trackId: t.trackId,
+      //   lyrics: parsedLyrics,
+      //   targetPitchList: parsePitch(t.sheet, parsedLyrics),
+      //   startTime: parseStartTime(t.sheet, bpm, numerator, denominator),
+      //   targetDurationList: parseDuration(
+      //     t.sheet,
+      //     bpm,
+      //     numerator,
+      //     parsedLyrics
+      //   ),
+      // };
     });
 
     let responseData = await processAudio({ tracksDataProcessed });
@@ -354,7 +354,7 @@ const Toolbar = () => {
             t.status === 1 ? "normal" : t.status === 2 ? "muted" : "solo",
           trackType: t.track_type,
           sheet: parsedSheetData,
-          trackLyrics: [],
+          // trackLyrics: [],
         };
       });
       dispatch(setTracks(parsedTracksData));
@@ -364,28 +364,28 @@ const Toolbar = () => {
     }
   };
 
-  const handlePublish = async () => {
-    if (!currentUserId) {
-      raiseAlert("error", "Please sign in first");
-      return;
-    }
-    const lyrics: { [id: number]: Sentence[] } = {};
-    tracks.forEach((t) => {
-      lyrics[t.trackId] = t.trackLyrics;
-    });
-    const res = await publishProject(
-      currentUser,
-      currentUserId,
-      projectName,
-      base64Data.map((item) => item.data),
-      lyrics
-    );
-    if (res.status === 200) {
-      raiseAlert("success", "Success");
-    } else {
-      raiseAlert("error", "Failed");
-    }
-    // navigate("/community");
+  const handlePublish = async () => { // TODO
+    // if (!currentUserId) {
+    //   raiseAlert("error", "Please sign in first");
+    //   return;
+    // }
+    // // const lyrics: { [id: number]: Sentence[] } = {};
+    // // tracks.forEach((t) => {
+    // //   lyrics[t.trackId] = t.trackLyrics;
+    // // });
+    // const res = await publishProject(
+    //   currentUser,
+    //   currentUserId,
+    //   projectName,
+    //   base64Data.map((item) => item.data),
+    //   // lyrics
+    // );
+    // if (res.status === 200) {
+    //   raiseAlert("success", "Success");
+    // } else {
+    //   raiseAlert("error", "Failed");
+    // }
+    // // navigate("/community");
   };
 
   const [isPrjNameDialogVisible, setIsPrjNameDialogVisible] =

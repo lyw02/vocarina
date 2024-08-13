@@ -9,9 +9,9 @@ const initialState: TracksState = {
       trackName: "Track 1",
       trackState: "normal",
       trackType: "vocal",
-      trackLyrics: [
-        { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
-      ],
+      // trackLyrics: [
+      //   { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
+      // ],
       rawLyrics: "",
       sheet: [],
     },
@@ -39,9 +39,9 @@ const trackStore = createSlice({
           `Unnamed track ${state.tracks.length + 1}`,
         trackState: "normal",
         trackType: action.payload.trackType,
-        trackLyrics: [
-          { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
-        ],
+        // trackLyrics: [
+        //   { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
+        // ],
         rawLyrics: "",
         sheet: [],
       });
@@ -56,7 +56,7 @@ const trackStore = createSlice({
         if (track.trackId === action.payload.trackId) {
           return {
             ...track,
-            trackLyrics: action.payload.sentences,
+            // trackLyrics: action.payload.sentences,
           };
         }
         return track;
