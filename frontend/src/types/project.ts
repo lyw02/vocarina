@@ -26,6 +26,7 @@ export interface Track {
   params?: any[];
   sheet: NoteProps[];
   trackLyrics: Sentence[];
+  rawLyrics: string;
   instUrl?: string;
   instStart?: number;
   instEnd?: number;

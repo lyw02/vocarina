@@ -21,7 +21,7 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setSheet } from "@/store/modules/tracks";
+import { setSheet, setTrackRawLyrics } from "@/store/modules/tracks";
 
 interface LyricsDialogProps {
   isOpen: boolean;
@@ -51,7 +51,7 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     dividerList[0],
     dividerList[1],
   ]);
-  const [lyricsRaw, setLyricsRaw] = useState<string>("");
+  const [rawLyrics, setRawLyrics] = useState<string>("");
   const dispatch = useDispatch();
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const currentTrackId = useSelector(
@@ -65,13 +65,12 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   const notes = _.cloneDeep(notesInState);
 
   useEffect(() => {
-    // setSentences(currentTrack!.trackLyrics.map((s) => s));
-  }, [currentTrackId]);
+    setRawLyrics(currentTrack?.rawLyrics || "")
+  }, [currentTrack])
 
   const handleApply = () => {
-    //   dispatch(setLyrics({ sentences: sentences, trackId: currentTrackId }));
     dispatch(setSheet({ trackId: currentTrackId, sheet: parseLyrics(notes) }));
-    console.log("LYRICS:");
+    dispatch(setTrackRawLyrics({trackId: currentTrack?.trackId, rawLyrics: rawLyrics}))
     handleClose();
   };
 
@@ -105,8 +104,8 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     const divided = [];
     let buffer = "";
 
-    for (let i = 0; i < lyricsRaw.length; i++) {
-      const char = lyricsRaw[i];
+    for (let i = 0; i < rawLyrics.length; i++) {
+      const char = rawLyrics[i];
       if (isChineseCharacter(char)) {
         // If `char` is a Chinese character:
         // 1. Add `buffer` into array, and clear `buffer`
@@ -193,8 +192,8 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
           id="filled-multiline-static"
           multiline
           rows={8}
-          value={lyricsRaw}
-          onChange={(e) => setLyricsRaw(e.target.value)}
+          value={rawLyrics}
+          onChange={(e) => setRawLyrics(e.target.value)}
           sx={{ width: "100%" }}
         />
       </DialogContent>
