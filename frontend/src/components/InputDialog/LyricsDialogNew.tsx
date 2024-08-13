@@ -15,23 +15,43 @@ import {
   SelectChangeEvent,
   Stack,
   TextField,
-  Theme,
   Tooltip,
-  useTheme,
 } from "@mui/material";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { setSheet } from "@/store/modules/tracks";
 
 interface LyricsDialogProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const dividerList = ["Space", "New line", ",", ";", "/"];
+const dividerList = [
+  "Space",
+  "New line",
+  ", (Half-width 半角)",
+  "; (Half-width 半角)",
+  ". (Half-width 半角)",
+  "， (Full-width 全角)",
+  "； (Full-width 全角)",
+  "。 (Full-width 全角)",
+  "/",
+];
+
+function isChineseCharacter(char: string) {
+  const chineseRegex =
+    /[\u4e00-\u9fa5\u3400-\u4dbf\u{20000}-\u{2a6df}\u{2a700}-\u{2b73f}\u{2b740}-\u{2b81f}\u{2b820}-\u{2ceaf}\u{2ceb0}-\u{2ebef}]/u;
+  return chineseRegex.test(char);
+}
 
 export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
+  const [dividers, setDividers] = useState<string[]>([
+    dividerList[0],
+    dividerList[1],
+  ]);
+  const [lyricsRaw, setLyricsRaw] = useState<string>("");
   const dispatch = useDispatch();
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const currentTrackId = useSelector(
@@ -50,7 +70,7 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
 
   const handleApply = () => {
     //   dispatch(setLyrics({ sentences: sentences, trackId: currentTrackId }));
-    //   dispatch(setSheet({ trackId: currentTrackId, sheet: parseLyrics(notes) }));
+    dispatch(setSheet({ trackId: currentTrackId, sheet: parseLyrics(notes) }));
     console.log("LYRICS:");
     handleClose();
   };
@@ -59,31 +79,67 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     setIsOpen(false);
   };
 
+  /**
+   * Split `lyricsRaw`, and set into `store/tracks.track.sheet`
+   * Split rules:
+   * * Split after each Chinese character
+   * * Split by given `dividerList`
+   * @param notes 
+   * @returns 
+   */
   const parseLyrics = (notes: NoteProps[]): NoteProps[] => {
     const notesCopy = _.cloneDeep(notes);
-    const allLyrics = tracks[currentTrackIndex].trackLyrics.map(
-      (s) => s.content
+    const dividerReg = new RegExp(
+      `[${dividers
+        .join()
+        .replace("Space", " ")
+        .replace("New line", "\n")
+        .replace(", (Half-width 半角)", ", ")
+        .replace("; (Half-width 半角)", "; ")
+        .replace(". (Half-width 半角)", ". ")
+        .replace("， (Full-width 全角)", "，")
+        .replace("； (Full-width 全角)", "；")
+        .replace("。 (Full-width 全角)", "。")
+        .replace("\\", "/")}]`
     );
-    // sentences.forEach((s) => {
-    //   allLyrics.push(s.content);
-    // });
-    const allLyricsStr = allLyrics
-      .join(" ")
-      .replace(/[\x00-\x1F\x7F-\x9F]/g, "") // Remove control characters
-      .replace(/^\s+/, ""); // Remove leading spaces
-    const allLyricsArray = allLyricsStr.split(/\s+/); // Split by any length space
-    let length = Math.min(notesCopy.length, allLyricsArray.length);
-    for (let i = 0; i < length; i++) {
-      notesCopy[i].lyrics = allLyricsArray[i];
+    const divided = [];
+    let buffer = "";
+
+    for (let i = 0; i < lyricsRaw.length; i++) {
+      const char = lyricsRaw[i];
+      if (isChineseCharacter(char)) {
+        // If `char` is a Chinese character:
+        // 1. Add `buffer` into array, and clear `buffer`
+        if (buffer) {
+          divided.push(buffer);
+          buffer = "";
+        }
+        // 2. Add Chinese character into array
+        divided.push(char);
+      } else if (dividerReg.test(char)) {
+        // If char is a divider, add `buffer` into array, and clear `buffer`
+        if (buffer) {
+          divided.push(buffer);
+          buffer = "";
+        }
+      } else {
+        // If char is neither Chinese character nor divider, add into `buffer`
+        buffer += char;
+      }
     }
+
+    // Add remained `buffer` into array
+    if (buffer) {
+      divided.push(buffer);
+    }
+
+    let length = Math.min(notesCopy.length, divided.length);
+    for (let i = 0; i < length; i++) {
+      notesCopy[i].lyrics = divided[i];
+    }
+
     return notesCopy;
   };
-
-  const theme = useTheme();
-  const [dividers, setDividers] = useState<string[]>([
-    dividerList[0],
-    dividerList[1],
-  ]);
 
   const handleDividersChange = (event: SelectChangeEvent<typeof dividers>) => {
     const {
@@ -137,6 +193,8 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
           id="filled-multiline-static"
           multiline
           rows={8}
+          value={lyricsRaw}
+          onChange={(e) => setLyricsRaw(e.target.value)}
           sx={{ width: "100%" }}
         />
       </DialogContent>
