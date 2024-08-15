@@ -15,14 +15,13 @@ import {
   Switch,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import SelectAllIcon from "@mui/icons-material/SelectAll";
 import { setEditMode } from "@/store/modules/editMode";
-import {
-  setLanguage as setLanguageInState,
-  setVoice as setVoiceInState,
-} from "@/store/modules/params";
+import { setVoice as setVoiceInState } from "@/store/modules/params";
 import { setSnappingMode } from "@/store/modules/snappingMode";
 
 const ParameterBar = () => {
@@ -57,27 +56,19 @@ const ParameterBar = () => {
     }
   };
 
-  // Language and voice
-  const options: { [key: string]: string[] } = {
-    English: ["Microsoft - Jenny"],
-    Chinese: ["Reecho.ai - Otto"],
-  };
-
-  const [language, setLanguage] = useState<string>(
-    useSelector((state: RootState) => state.params.language) || ""
-  );
+  // Voice
   const [voice, setVoice] = useState<string>(
     useSelector((state: RootState) => state.params.voice) || ""
   );
 
-  const handleLanguageChange = (e: SelectChangeEvent<string>) => {
-    setLanguage(e.target.value);
-    setVoice("");
-    dispatch(setLanguageInState(e.target.value));
-    dispatch(setVoiceInState(""));
-  };
+  const options: string[] = [
+    "Microsoft - Jenny",
+    "Reecho.ai - Otto",
+    "Otto - 水母",
+  ];
 
   const handleVoiceChange = (e: SelectChangeEvent<string>) => {
+    console.log("e", e);
     setVoice(e.target.value);
     dispatch(setVoiceInState(e.target.value));
   };
@@ -104,37 +95,21 @@ const ParameterBar = () => {
             BPM: {bpm}
           </span>
           <Select
-            value={language}
-            onChange={(e) => handleLanguageChange(e)}
-            size="small"
-            displayEmpty
-          >
-            <MenuItem value="" disabled>
-              Select Language
-            </MenuItem>
-            {Object.keys(options).map((language) => (
-              <MenuItem key={language} value={language}>
-                {language}
-              </MenuItem>
-            ))}
-          </Select>
-          <Select
             value={voice}
             onChange={(e) => handleVoiceChange(e)}
-            disabled={!language}
             size="small"
             displayEmpty
-            sx={{ visibility: language ? "visible" : "hidden" }}
           >
             <MenuItem value="" disabled>
               Select Voice
             </MenuItem>
-            {language &&
-              options[language].map((voice) => (
-                <MenuItem key={voice} value={voice}>
-                  {voice}
-                </MenuItem>
-              ))}
+            {options.map((voice) => (
+              <MenuItem key={voice} value={voice}>
+                <Tooltip title={"Remark"} placement="top">
+                  <Typography>{voice}</Typography>
+                </Tooltip>
+              </MenuItem>
+            ))}
           </Select>
         </Stack>
         <Stack
@@ -144,7 +119,12 @@ const ParameterBar = () => {
           alignItems="center"
         >
           <FormControlLabel
-            control={<Switch defaultChecked onChange={(e) => handleSnappingChange(e)} />}
+            control={
+              <Switch
+                defaultChecked
+                onChange={(e) => handleSnappingChange(e)}
+              />
+            }
             label="Snapping"
           />
           <ToggleButtonGroup
