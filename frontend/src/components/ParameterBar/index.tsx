@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, editMode } from "@/types";
 import InputDialog from "../InputDialog";
@@ -8,6 +8,7 @@ import VolumeDown from "@mui/icons-material/VolumeDown";
 import VolumeUp from "@mui/icons-material/VolumeUp";
 import "./index.css";
 import {
+  Button,
   FormControlLabel,
   MenuItem,
   Select,
@@ -23,11 +24,14 @@ import SelectAllIcon from "@mui/icons-material/SelectAll";
 import { setEditMode } from "@/store/modules/editMode";
 import { setVoice as setVoiceInState } from "@/store/modules/params";
 import { setSnappingMode } from "@/store/modules/snappingMode";
+import UploadVoiceDialog from "../InputDialog/UploadVoiceDialog";
 
 const ParameterBar = () => {
   const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] =
     useState<boolean>(false);
   const [isBpmDialogVisible, setIsBpmDialogVisible] = useState<boolean>(false);
+  const [isUploadVoiceDialogOpen, setIsUploadVoiceDialogOpen] =
+    useState<boolean>(false);
 
   const editMode = useSelector((state: RootState) => state.editMode);
   const dispatch = useDispatch();
@@ -110,6 +114,12 @@ const ParameterBar = () => {
                 </Tooltip>
               </MenuItem>
             ))}
+            <Button
+              onClick={() => setIsUploadVoiceDialogOpen(true)}
+              sx={{ width: "100%" }}
+            >
+              Upload voice
+            </Button>
           </Select>
         </Stack>
         <Stack
@@ -163,6 +173,10 @@ const ParameterBar = () => {
         formType="EditBpmForm"
         isOpen={isBpmDialogVisible}
         setIsOpen={setIsBpmDialogVisible}
+      />
+      <UploadVoiceDialog
+        isOpen={isUploadVoiceDialogOpen}
+        setIsOpen={setIsUploadVoiceDialogOpen}
       />
     </div>
   );

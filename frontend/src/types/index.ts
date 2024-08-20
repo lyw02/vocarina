@@ -15,6 +15,11 @@ export interface AlertStatus {
   message: string;
 }
 
+export interface BaseDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
 export interface PianoKey {
   id: number;
   octave: number;
