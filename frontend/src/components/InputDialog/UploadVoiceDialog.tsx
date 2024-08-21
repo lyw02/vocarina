@@ -27,6 +27,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { BaseDialogProps } from "@/types";
 import { BlobReader, Entry, ZipReader } from "@zip.js/zip.js";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
+import _ from "lodash";
 
 interface EntryWithAlias extends Entry {
   alias: string | null;
@@ -56,13 +57,22 @@ export default function UploadVoiceDialog({
   const [wavEntries, setWavEntries] = useState<EntryWithAlias[] | null>(null);
   const [editingAlias, setEditingAlias] = useState<string | null>(null); // which file's alias is being editing
   const [newAlias, setNewAlias] = useState<string>();
+  const [duplicateAliasPairs, setDuplicateAliasPairs] = useState<
+    EntryWithAlias[][]
+  >([]);
+  const [isDupAlertDialogOpen, setIsDupAlertDialogOpen] =
+    useState<boolean>(false);
 
   const handleSubmit = () => {
     const data = {
       voiceName,
       wavEntries,
     };
-    console.log("==data==>", data)
+    console.log("==data==>", data);
+    if (duplicateAliasPairs.length > 0) {
+      setIsDupAlertDialogOpen(true);
+      return;
+    }
     handleClose();
   };
 
@@ -93,6 +103,17 @@ export default function UploadVoiceDialog({
             e.filename.lastIndexOf(".")
           ),
         }));
+      const _tempEntries = _.cloneDeep(wavEntries);
+      for (let i = 0; i < wavEntries.length; i++) {
+        const temp: EntryWithAlias[] = [wavEntries[i]];
+        for (let j = i + 1; j < wavEntries.length; j++) {
+          if (wavEntries[j].alias === wavEntries[i].alias) {
+            temp.push(wavEntries[j]);
+          }
+        }
+        _tempEntries.filter((item) => !temp.includes(item));
+        if (temp.length > 1) setDuplicateAliasPairs((prev) => [...prev, temp]);
+      }
       console.log("wavEntries==>", wavEntries);
       console.log(typeof wavEntries[0].getData);
       setWavEntries(wavEntries as EntryWithAlias[]);
@@ -120,25 +141,38 @@ export default function UploadVoiceDialog({
 
   const renderVoiceTable = () => {
     const renderOperationButtons = (entry: EntryWithAlias) => {
+      const handleSetNewAlias = () => {
+        if (!newAlias) return; // TODO throw
+
+        const editDup = duplicateAliasPairs
+          .flat()
+          .find((e) => e.filename === entry.filename);
+        if (editDup && editDup.alias !== newAlias) {
+          setDuplicateAliasPairs((prev) =>
+            prev.filter((p) => !p.find((i) => i.filename === editDup.filename))
+          );
+        }
+
+        // Cannot have multiple entries with same aliases
+        const dup = wavEntries?.filter((e) => e.alias === newAlias);
+        if (dup && dup.length > 0) {
+          setDuplicateAliasPairs((prev) => [...prev, [...dup, entry]]);
+        }
+
+        setWavEntries(
+          (prev) =>
+            prev?.map((i) =>
+              i.filename === entry.filename ? { ...i, alias: newAlias } : i
+            ) || null
+        );
+        setEditingAlias(null);
+        setNewAlias("");
+      };
       return (
         <Stack direction="row" spacing={1}>
           {editingAlias === entry.filename ? (
             <>
-              <IconButton
-                onClick={() => {
-                  if (!newAlias) return; // TODO throw
-                  setWavEntries(
-                    (prev) =>
-                      prev?.map((i) =>
-                        i.filename === entry.filename
-                          ? { ...i, alias: newAlias }
-                          : i
-                      ) || null
-                  );
-                  setEditingAlias(null);
-                  setNewAlias("");
-                }}
-              >
+              <IconButton onClick={handleSetNewAlias}>
                 <CheckIcon fontSize="small" />
               </IconButton>
               <IconButton onClick={() => setEditingAlias(null)}>
@@ -193,7 +227,17 @@ export default function UploadVoiceDialog({
             onChange={(e) => setNewAlias(e.target.value)}
           />
         ) : (
-          entry.alias || ""
+          <Typography
+            sx={{
+              color: duplicateAliasPairs
+                .flat()
+                .find((i) => i.filename === entry.filename) //includes(entry)
+                ? "red"
+                : "black",
+            }}
+          >
+            {entry.alias || ""}
+          </Typography>
         ),
       operations: renderOperationButtons(entry),
     }));
@@ -270,6 +314,26 @@ export default function UploadVoiceDialog({
     <Dialog open={isOpen} onClose={handleClose} maxWidth="xl" fullWidth>
       <DialogTitle>{`Upload Voice`}</DialogTitle>
       <DialogContent>
+        <Dialog open={isDupAlertDialogOpen} maxWidth="md" fullWidth>
+          <DialogTitle>{`Cannot upload voice`}</DialogTitle>
+          <DialogContent>
+            <Typography sx={{mb: 1}}>{`Have following duplicate alisaes: `}</Typography>
+            {duplicateAliasPairs.map((pair) => {
+              return (
+                <Typography sx={{mb: 1}}>
+                  {pair.map((item) => {
+                    return (
+                      <Typography>{`File: ${item.filename}, alias: ${item.alias}`}</Typography>
+                    );
+                  })}
+                </Typography>
+              );
+            })}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsDupAlertDialogOpen(false)}>OK</Button>
+          </DialogActions>
+        </Dialog>
         <Box
           component="form"
           // onSubmit={handleSubmit}
