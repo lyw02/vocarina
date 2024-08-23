@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  ClickAwayListener,
   IconButton,
   Menu,
   MenuItem,
@@ -16,7 +17,7 @@ import {
   PauseRounded,
   PlayArrowRounded,
 } from "@mui/icons-material";
-import { ClickAwayListener } from "@mui/base/ClickAwayListener";
+// import { ClickAwayListener } from "@mui/base/ClickAwayListener";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/types";
 import { setIsPanelOpen, setSrc } from "@/store/modules/musicPanel";

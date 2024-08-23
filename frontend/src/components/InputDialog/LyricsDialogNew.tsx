@@ -22,6 +22,7 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSheet, setTrackRawLyrics } from "@/store/modules/tracks";
+import { pinyin } from "pinyin-pro";
 
 interface LyricsDialogProps {
   isOpen: boolean;
@@ -65,12 +66,17 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
   const notes = _.cloneDeep(notesInState);
 
   useEffect(() => {
-    setRawLyrics(currentTrack?.rawLyrics || "")
-  }, [currentTrack])
+    setRawLyrics(currentTrack?.rawLyrics || "");
+  }, [currentTrack]);
 
   const handleApply = () => {
     dispatch(setSheet({ trackId: currentTrackId, sheet: parseLyrics(notes) }));
-    dispatch(setTrackRawLyrics({trackId: currentTrack?.trackId, rawLyrics: rawLyrics}))
+    dispatch(
+      setTrackRawLyrics({
+        trackId: currentTrack?.trackId,
+        rawLyrics: rawLyrics,
+      })
+    );
     handleClose();
   };
 
@@ -83,8 +89,8 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
    * Split rules:
    * * Split after each Chinese character
    * * Split by given `dividerList`
-   * @param notes 
-   * @returns 
+   * @param notes
+   * @returns
    */
   const parseLyrics = (notes: NoteProps[]): NoteProps[] => {
     const notesCopy = _.cloneDeep(notes);
@@ -135,6 +141,9 @@ export default function LyricsDialog({ isOpen, setIsOpen }: LyricsDialogProps) {
     let length = Math.min(notesCopy.length, divided.length);
     for (let i = 0; i < length; i++) {
       notesCopy[i].lyrics = divided[i];
+      notesCopy[i].lyricsAliasMapper = isChineseCharacter(divided[i])
+        ? pinyin(divided[i], { toneType: "none" })
+        : (notesCopy[i].lyricsAliasMapper = divided[i]);
     }
 
     return notesCopy;
