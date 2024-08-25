@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 /**
  * Deprecated
- * 
+ *
  * Use `@/Alert/AutoDismissAlert` raiseAlert()
  */
 export const useAlert = () => {
@@ -30,22 +30,46 @@ export const useAlert = () => {
   return { isAlertOpen, alertStatus, handleAlertClose, raiseAlert };
 };
 
+/**
+ * When loading page, if `token_key` exisits in localStorage,
+ * query current user from Supabase, and set into Redux store
+ */
 export const useAuth = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const dispatch = useDispatch();
   useEffect(() => {
     const fetchUser = async () => {
       if (localStorage.getItem("token_key") && !currentUser) {
-        setIsLoading(true)
+        setIsLoading(true);
         const res = await getUser();
         if (!res.error) {
           dispatch(setCurrentUser(res));
         }
-        setIsLoading(false)
+        setIsLoading(false);
       }
     };
     fetchUser();
   }, []);
-  return isLoading
-}
+  return isLoading;
+};
+
+export const useLoading = (asyncFunc: (...args: any) => Promise<any>) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [res, setRes] = useState()
+  // const executeAsyncFunc = async () => await asyncFunc();
+  // setIsLoading(true);
+  // const res = executeAsyncFunc();
+  // setIsLoading(false);
+
+  const getLoading = async () => {
+    setIsLoading(true);
+    const res = await asyncFunc();
+    setRes(res)
+    setIsLoading(false);
+
+    // return { isLoading, res };
+  };
+
+  return { getLoading, isLoading, res };
+};

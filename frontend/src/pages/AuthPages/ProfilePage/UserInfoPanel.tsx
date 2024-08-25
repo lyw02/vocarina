@@ -3,7 +3,7 @@ import { raiseAlert } from "@/components/Alert/AutoDismissAlert";
 import { setCurrentUser } from "@/store/modules/user";
 import theme from "@/theme";
 import { RootState } from "@/types";
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, CircularProgress, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -30,8 +30,8 @@ const UserInfoPanel = () => {
     email: "",
     about: "",
   });
-
   const [editField, setEditField] = useState<keyof userInfo | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -53,6 +53,7 @@ const UserInfoPanel = () => {
       raiseAlert("error", "Invalid email");
       return;
     }
+    setIsLoading(true);
     const res = await updateUserInfo({
       email: userInfo.email,
       data: {
@@ -64,9 +65,10 @@ const UserInfoPanel = () => {
       raiseAlert("success", "Change saved");
       dispatch(setCurrentUser(res));
     } else {
-      raiseAlert("error", "Failed");
+      raiseAlert("error", `Error: ${res.error}`);
     }
     setEditField(null);
+    setIsLoading(false);
   };
 
   const handleChange = (
@@ -113,11 +115,14 @@ const UserInfoPanel = () => {
           )}
           {editField === field ? (
             <>
-              <Button onClick={() => handleSave(field)}>Save</Button>
+              <Button onClick={() => handleSave(field)} disabled={isLoading}>
+                {isLoading ? <CircularProgress size="2rem" /> : "Save"}
+              </Button>
               <Button
                 onClick={() => {
                   setEditField(null);
                 }}
+                disabled={isLoading}
               >
                 Cancel
               </Button>

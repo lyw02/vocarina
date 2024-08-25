@@ -1,17 +1,15 @@
 // import { login } from "@/api/userApi";
 import { login } from "@/api/supabaseAuthApi";
-import AutoDismissAlert, {
-  raiseAlert,
-} from "@/components/Alert/AutoDismissAlert";
+import { raiseAlert } from "@/components/Alert/AutoDismissAlert";
 import { setCurrentUser } from "@/store/modules/user";
 import theme from "@/theme";
-import { AlertStatus } from "@/types";
 import { encryptPassword } from "@/utils/Encrypt";
 import {
   Button,
   Card,
   CardActions,
   CardContent,
+  CircularProgress,
   Link,
   Stack,
   SxProps,
@@ -30,33 +28,27 @@ const linkStyle: SxProps = {
 };
 
 const LoginPage = () => {
-  // const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  // const [status, setStatus] = useState<AlertStatus>({
-  //   severity: "error",
-  //   message: "Login failed!",
-  // });
   const [promptMessage, setPromptMessage] = useState<string | null>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  // const handleAlertClose = () => {
-  //   setIsAlertOpen(false);
-  // };
 
   const handleLogin = async () => {
     try {
       if (!(email && password)) {
         setPromptMessage("Please fill in all fields.");
       } else {
+        setIsLoading(true);
         const res = await login(email, encryptPassword(password));
         setPromptMessage(null);
         if (!res.error) {
           raiseAlert("success", "Login successed!");
           console.log("res", res);
           dispatch(setCurrentUser(res));
+          setIsLoading(false);
           navigate("/");
         } else {
           raiseAlert("error", "Login failed!");
@@ -129,8 +121,8 @@ const LoginPage = () => {
             </Stack>
           </CardContent>
           <CardActions>
-            <Button size="small" onClick={handleLogin}>
-              Login
+            <Button size="small" onClick={handleLogin} disabled={isLoading}>
+              {isLoading ? <CircularProgress size="2rem" /> : "Login"}
             </Button>
           </CardActions>
         </Card>

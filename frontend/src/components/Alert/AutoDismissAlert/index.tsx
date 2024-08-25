@@ -36,7 +36,7 @@ const AutoDismissAlert = ({
 };
 
 /**
- * Imperitive auto dismiss alert
+ * Imperative auto dismiss alert
  * @param severity "success" | "error" | "warning" | "info"
  * @param message
  */

@@ -8,13 +8,14 @@ import {
   Card,
   CardActions,
   CardContent,
+  CircularProgress,
   Link,
   Stack,
   SxProps,
   TextField,
   Typography,
 } from "@mui/material";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 // import ReCAPTCHA from "react-google-recaptcha";
 import "../index.css";
@@ -30,6 +31,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
   const [promptMessage, setPromptMessage] = useState<string | null>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   // const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const navigate = useNavigate();
@@ -52,6 +54,7 @@ const RegisterPage = () => {
       } else if (!emailReg.test(email)) {
         setPromptMessage("Invalid email.");
       } else {
+        setIsLoading(true);
         const res = await register(
           username,
           email,
@@ -60,15 +63,16 @@ const RegisterPage = () => {
         );
         setPromptMessage(null);
         if (!res.error) {
-          raiseAlert("success", "Register successed!")
+          raiseAlert("success", "Register successed!");
+          setIsLoading(false);
           navigate("/login");
         } else {
-          raiseAlert("error", "Register failed!")
+          raiseAlert("error", "Register failed!");
         }
       }
     } catch (error) {
       console.log(error);
-      raiseAlert("error", "Register failed!")
+      raiseAlert("error", "Register failed!");
     }
   };
 
@@ -159,8 +163,8 @@ const RegisterPage = () => {
             </Stack>
           </CardContent>
           <CardActions sx={{ paddingTop: 0 }}>
-            <Button size="small" onClick={handleSignUp}>
-              Sign Up
+            <Button size="small" onClick={handleSignUp} disabled={isLoading}>
+              {isLoading ? <CircularProgress size="2rem" /> : "Sign Up"}
             </Button>
           </CardActions>
         </Card>

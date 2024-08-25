@@ -6,6 +6,7 @@ import { RootState } from "@/types";
 import {
   Avatar,
   Box,
+  CircularProgress,
   Divider,
   IconButton,
   ListItemIcon,
@@ -23,25 +24,31 @@ import { logout } from "@/api/supabaseAuthApi";
 import { Logout, PersonAdd, Settings } from "@mui/icons-material";
 import theme from "@/theme";
 import { cleanLoginInfo } from "@/store/modules/user";
+import { raiseAlert } from "../Alert/AutoDismissAlert";
+import { useLoading } from "@/utils/CustomHooks";
 
 const SiteHeader = () => {
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const dispatch = useDispatch();
 
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const [isLogoutLoading, setIsLogoutLoading] = useState<boolean>(false);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    console.log("localStorage.getItem('token_key')", localStorage.getItem("token_key"))
     setAnchorElUser(event.currentTarget);
   };
 
   const handleLogout = async () => {
+    setIsLogoutLoading(true);
     const res = await logout();
     if (!res.error) {
       console.log("Logout successfully");
       dispatch(cleanLoginInfo());
+      setIsLogoutLoading(false);
+      raiseAlert("success", "Logout successfully");
     } else {
       console.error(res.error);
+      raiseAlert("error", `Error: ${res.error}`);
     }
   };
 
@@ -117,7 +124,6 @@ const SiteHeader = () => {
         ) : (
           <Link to="/register">
             <IconButton
-              onClick={() => console.log("localStorage.getItem('token_key')", localStorage.getItem("token_key") && !currentUser)}
               aria-label="user"
               size="medium"
               sx={{
@@ -195,13 +201,17 @@ const SiteHeader = () => {
             Settings
           </MenuItem>
           <MenuItem
-            onClick={() => {
-              handleLogout();
+            onClick={async () => {
+              await handleLogout();
               handleCloseUserMenu();
             }}
           >
             <ListItemIcon>
-              <Logout fontSize="small" />
+              {isLogoutLoading ? (
+                <CircularProgress size="1rem" />
+              ) : (
+                <Logout fontSize="small" />
+              )}
             </ListItemIcon>
             Logout
           </MenuItem>
