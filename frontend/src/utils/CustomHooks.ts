@@ -26,15 +26,21 @@ export const useAlert = () => {
 };
 
 export const useAuth = () => {
-  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  const dispatch = useDispatch();
   useEffect(() => {
     const fetchUser = async () => {
       if (localStorage.getItem("token_key") && !currentUser) {
+        setIsLoading(true)
         const res = await getUser();
-        dispatch(setCurrentUser(res));
+        if (!res.error) {
+          dispatch(setCurrentUser(res));
+        }
+        setIsLoading(false)
       }
     };
     fetchUser();
   }, []);
+  return isLoading
 }
