@@ -1,6 +1,6 @@
 // import { register } from "@/api/userApi";
 import { register } from "@/api/supabaseAuthApi";
-import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
+import { raiseAlert } from "@/components/Alert/AutoDismissAlert";
 import theme from "@/theme";
 import { encryptPassword } from "@/utils/Encrypt";
 import {
@@ -19,26 +19,16 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 // import ReCAPTCHA from "react-google-recaptcha";
 import "../index.css";
 
-interface Status {
-  severity: "success" | "error" | "warning" | "info";
-  message: string;
-}
-
 const linkStyle: SxProps = {
   textDecoration: "none",
   cursor: "pointer",
 };
 
 const RegisterPage = () => {
-  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
-  const [status, setStatus] = useState<Status>({
-    severity: "error",
-    message: "Register failed!",
-  });
   const [promptMessage, setPromptMessage] = useState<string | null>();
   // const recaptchaRef = useRef<ReCAPTCHA>(null);
 
@@ -47,10 +37,6 @@ const RegisterPage = () => {
   const usernameReg = /^[a-zA-Z0-9_\u4e00-\u9fa5]{4,20}$/;
   const emailReg = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   const passwordReg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,20}$/;
-
-  const handleAlertClose = () => {
-    setIsAlertOpen(false);
-  };
 
   const handleSignUp = async () => {
     // const recaptchaValue = recaptchaRef.current?.getValue();
@@ -74,25 +60,15 @@ const RegisterPage = () => {
         );
         setPromptMessage(null);
         if (!res.error) {
-          setStatus({
-            severity: "success",
-            message: "Register successed!",
-          });
+          raiseAlert("success", "Register successed!")
           navigate("/login");
         } else {
-          setStatus({
-            severity: "error",
-            message: "Register failed!",
-          });
+          raiseAlert("error", "Register failed!")
         }
-        setIsAlertOpen(true);
       }
     } catch (error) {
       console.log(error);
-      setStatus({
-        severity: "error",
-        message: "Register failed!",
-      });
+      raiseAlert("error", "Register failed!")
     }
   };
 
@@ -106,12 +82,6 @@ const RegisterPage = () => {
           height: "100vh",
         }}
       >
-        <AutoDismissAlert
-          isAlertOpen={isAlertOpen}
-          handleAlertClose={handleAlertClose}
-          message={status.message}
-          severity={status.severity}
-        />
         <Card sx={{ width: "50vh", margin: "auto" }}>
           <CardContent sx={{ paddingBottom: 0 }}>
             <Stack

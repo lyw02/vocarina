@@ -4,6 +4,11 @@ import { AlertStatus, RootState } from "@/types";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
+/**
+ * Deprecated
+ * 
+ * Use `@/Alert/AutoDismissAlert` raiseAlert()
+ */
 export const useAlert = () => {
   const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
   const [alertStatus, setAlertStatus] = useState<AlertStatus>({

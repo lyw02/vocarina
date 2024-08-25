@@ -40,7 +40,7 @@ import {
   parsePitch,
   parseStartTime,
 } from "@/utils/ParseData";
-import AutoDismissAlert from "../Alert/AutoDismissAlert";
+import { raiseAlert } from "../Alert/AutoDismissAlert";
 import { noteStyle } from "@/utils/Note";
 import { pitchFrequency } from "@/utils/PitchFrequency";
 import { SimpleDialog } from "../SimpleDialog";
@@ -94,14 +94,6 @@ const Toolbar = () => {
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUserId
   );
-
-  const raiseAlert = (severity: AlertStatus["severity"], message: string) => {
-    setAlertStatus({
-      severity: severity,
-      message: message,
-    });
-    setIsAlertOpen(true);
-  };
 
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const vocalTracks = tracks.filter((t) => t.trackType === "vocal");
@@ -217,15 +209,6 @@ const Toolbar = () => {
       };
     }
   });
-
-  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
-  const [alertStatus, setAlertStatus] = useState<AlertStatus>({
-    severity: "error",
-    message: "",
-  });
-  const handleAlertClose = () => {
-    setIsAlertOpen(false);
-  };
 
   // Project options
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -416,12 +399,6 @@ const Toolbar = () => {
 
   return (
     <div className="toolbar-wrapper">
-      <AutoDismissAlert
-        isAlertOpen={isAlertOpen}
-        handleAlertClose={handleAlertClose}
-        message={alertStatus.message}
-        severity={alertStatus.severity}
-      />
       <SimpleDialog
         title="Import project"
         selectedValue={importDialogSelectedValue}

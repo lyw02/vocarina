@@ -1,6 +1,8 @@
 // import { login } from "@/api/userApi";
 import { login } from "@/api/supabaseAuthApi";
-import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
+import AutoDismissAlert, {
+  raiseAlert,
+} from "@/components/Alert/AutoDismissAlert";
 import { setCurrentUser } from "@/store/modules/user";
 import theme from "@/theme";
 import { AlertStatus } from "@/types";
@@ -28,21 +30,21 @@ const linkStyle: SxProps = {
 };
 
 const LoginPage = () => {
-  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
+  // const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [status, setStatus] = useState<AlertStatus>({
-    severity: "error",
-    message: "Login failed!",
-  });
+  // const [status, setStatus] = useState<AlertStatus>({
+  //   severity: "error",
+  //   message: "Login failed!",
+  // });
   const [promptMessage, setPromptMessage] = useState<string | null>();
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleAlertClose = () => {
-    setIsAlertOpen(false);
-  };
+  // const handleAlertClose = () => {
+  //   setIsAlertOpen(false);
+  // };
 
   const handleLogin = async () => {
     try {
@@ -52,28 +54,17 @@ const LoginPage = () => {
         const res = await login(email, encryptPassword(password));
         setPromptMessage(null);
         if (!res.error) {
-          setStatus({
-            severity: "success",
-            message: "Login successed!",
-          });
-          console.log("res", res)
+          raiseAlert("success", "Login successed!");
+          console.log("res", res);
           dispatch(setCurrentUser(res));
-          setIsAlertOpen(true);
           navigate("/");
         } else {
-          setStatus({
-            severity: "error",
-            message: "Login failed!",
-          });
-          setIsAlertOpen(true);
+          raiseAlert("error", "Login failed!");
         }
       }
     } catch (error) {
       console.log(error);
-      setStatus({
-        severity: "error",
-        message: "Login failed!",
-      });
+      raiseAlert("error", "Login failed!");
     }
   };
 
@@ -87,12 +78,6 @@ const LoginPage = () => {
           height: "100vh",
         }}
       >
-        <AutoDismissAlert
-          isAlertOpen={isAlertOpen}
-          handleAlertClose={handleAlertClose}
-          message={status.message}
-          severity={status.severity}
-        />
         <Card sx={{ width: "50vh", margin: "auto" }}>
           <CardContent>
             <Stack

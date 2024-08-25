@@ -1,8 +1,8 @@
 import { updateUserInfo } from "@/api/supabaseAuthApi";
-import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
+import { raiseAlert } from "@/components/Alert/AutoDismissAlert";
 import { setCurrentUser } from "@/store/modules/user";
 import theme from "@/theme";
-import { AlertStatus, RootState } from "@/types";
+import { RootState } from "@/types";
 import { Button, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,22 +20,7 @@ const isValidEmail = (email: string) => {
 };
 
 const UserInfoPanel = () => {
-  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
-  const [alertStatus, setAlertStatus] = useState<AlertStatus>({
-    severity: "error",
-    message: "",
-  });
   const dispatch = useDispatch();
-  const handleAlertClose = () => {
-    setIsAlertOpen(false);
-  };
-  const raiseAlert = (severity: AlertStatus["severity"], message: string) => {
-    setAlertStatus({
-      severity: severity,
-      message: message,
-    });
-    setIsAlertOpen(true);
-  };
 
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
 
@@ -95,13 +80,7 @@ const UserInfoPanel = () => {
   };
 
   return (
-    <div>
-      <AutoDismissAlert
-        isAlertOpen={isAlertOpen}
-        handleAlertClose={handleAlertClose}
-        message={alertStatus.message}
-        severity={alertStatus.severity}
-      />
+    <>
       {Object.keys(userInfo).map((field) => (
         <span
           key={field}
@@ -150,7 +129,7 @@ const UserInfoPanel = () => {
           )}
         </span>
       ))}
-    </div>
+    </>
   );
 };
 
