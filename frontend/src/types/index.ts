@@ -37,6 +37,7 @@ export interface NoteProps {
   isOverlap: boolean;
   noteLength: number;
   lyrics: string;
+  lyricsAliasMapper: string;
   breakpoints?: any[];
 }
 
