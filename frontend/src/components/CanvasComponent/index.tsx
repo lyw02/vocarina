@@ -45,7 +45,8 @@ function CanvasComponent() {
       n.endY,
       n.isOverlap,
       n.noteLength,
-      n.lyrics
+      n.lyrics,
+      n.lyricsAliasMapper
     );
   });
   const notes = _.cloneDeep(notesInstances);
