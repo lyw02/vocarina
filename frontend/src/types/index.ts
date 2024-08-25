@@ -1,3 +1,4 @@
+import { User } from "@supabase/supabase-js";
 import { Track } from "./project";
 
 export type editMode = "edit" | "select";
@@ -97,7 +98,7 @@ export interface SnappingModeState {
 }
 
 export interface UserState {
-  currentUser: string;
+  currentUser: User | null;
   currentUserId: number | null;
 }
 

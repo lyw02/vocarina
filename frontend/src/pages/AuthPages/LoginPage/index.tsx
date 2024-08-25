@@ -1,10 +1,10 @@
-import { login } from "@/api/userApi";
+// import { login } from "@/api/userApi";
+import { login } from "@/api/supabaseAuthApi";
 import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
-import { setCurrentUser, setCurrentUserId } from "@/store/modules/user";
+import { setCurrentUser } from "@/store/modules/user";
 import theme from "@/theme";
 import { AlertStatus } from "@/types";
 import { encryptPassword } from "@/utils/Encrypt";
-import { setToken } from "@/utils/token";
 import {
   Button,
   Card,
@@ -29,7 +29,7 @@ const linkStyle: SxProps = {
 
 const LoginPage = () => {
   const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
-  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [status, setStatus] = useState<AlertStatus>({
     severity: "error",
@@ -46,21 +46,18 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     try {
-      if (!(username && password)) {
+      if (!(email && password)) {
         setPromptMessage("Please fill in all fields.");
       } else {
-        const res = await login(username, encryptPassword(password));
-        const resJson = await res.json();
-        console.log("resJson in login: ", resJson);
+        const res = await login(email, encryptPassword(password));
         setPromptMessage(null);
-        if (res.status === 200) {
-          setToken(resJson.token);
+        if (!res.error) {
           setStatus({
             severity: "success",
             message: "Login successed!",
           });
-          dispatch(setCurrentUser(resJson.username));
-          dispatch(setCurrentUserId(resJson.id));
+          console.log("res", res)
+          dispatch(setCurrentUser(res));
           setIsAlertOpen(true);
           navigate("/");
         } else {
@@ -98,17 +95,24 @@ const LoginPage = () => {
         />
         <Card sx={{ width: "50vh", margin: "auto" }}>
           <CardContent>
-            <Typography gutterBottom variant="h5" component="div">
-              Login
-            </Typography>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography gutterBottom variant="h5" component="div">
+                Login
+              </Typography>
+              <Button onClick={() => navigate("/")}>Back</Button>
+            </Stack>
             <Stack direction="column" justifyContent="space-between">
               <TextField
                 required
-                id="username-field"
-                label="Username"
+                id="email-field"
+                label="Email"
                 variant="standard"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <TextField
                 required

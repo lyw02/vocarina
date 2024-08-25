@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./index.css";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/types";
 import {
+  Avatar,
   Box,
+  Divider,
   IconButton,
+  ListItemIcon,
   Menu,
   MenuItem,
   Stack,
@@ -16,14 +19,30 @@ import {
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import GitHubIcon from "@mui/icons-material/GitHub";
+import { logout } from "@/api/supabaseAuthApi";
+import { Logout, PersonAdd, Settings } from "@mui/icons-material";
+import theme from "@/theme";
+import { cleanLoginInfo } from "@/store/modules/user";
 
 const SiteHeader = () => {
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  const dispatch = useDispatch();
 
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
+    console.log("localStorage.getItem('token_key')", localStorage.getItem("token_key"))
     setAnchorElUser(event.currentTarget);
+  };
+
+  const handleLogout = async () => {
+    const res = await logout();
+    if (!res.error) {
+      console.log("Logout successfully");
+      dispatch(cleanLoginInfo());
+    } else {
+      console.error(res.error);
+    }
   };
 
   const handleCloseUserMenu = () => {
@@ -98,6 +117,7 @@ const SiteHeader = () => {
         ) : (
           <Link to="/register">
             <IconButton
+              onClick={() => console.log("localStorage.getItem('token_key')", localStorage.getItem("token_key") && !currentUser)}
               aria-label="user"
               size="medium"
               sx={{
@@ -114,34 +134,76 @@ const SiteHeader = () => {
           </Link>
         )}
         <Menu
-          sx={{ mt: "45px" }}
-          id="menu-appbar"
           anchorEl={anchorElUser}
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          keepMounted
-          transformOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
+          id="account-menu"
           open={Boolean(anchorElUser)}
           onClose={handleCloseUserMenu}
+          slotProps={{
+            paper: {
+              elevation: 0,
+              sx: {
+                overflow: "visible",
+                filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                mt: 1.5,
+                "& .MuiAvatar-root": {
+                  width: 32,
+                  height: 32,
+                  ml: -0.5,
+                  mr: 1,
+                },
+                "&::before": {
+                  content: '""',
+                  display: "block",
+                  position: "absolute",
+                  top: 0,
+                  right: 14,
+                  width: 10,
+                  height: 10,
+                  bgcolor: "background.paper",
+                  transform: "translateY(-50%) rotate(45deg)",
+                  zIndex: 0,
+                },
+              },
+            },
+          }}
+          transformOrigin={{ horizontal: "right", vertical: "top" }}
+          anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
         >
-          <MenuItem disabled>
-            <Typography textAlign="center">{currentUser}</Typography>
-          </MenuItem>
           <MenuItem
             onClick={() => {
               navigate("/profile");
               handleCloseUserMenu();
             }}
           >
-            <Typography textAlign="center">{"Profile"}</Typography>
+            <Stack direction="column" spacing={1}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Avatar />
+                <Typography>
+                  {currentUser?.user_metadata.display_name}
+                </Typography>
+              </Stack>
+              <Typography color={theme.palette.grey[600]}>
+                {currentUser?.email}
+              </Typography>
+            </Stack>
           </MenuItem>
+          <Divider />
           <MenuItem onClick={handleCloseUserMenu}>
-            <Typography textAlign="center">{"Logout"}</Typography>
+            <ListItemIcon>
+              <Settings fontSize="small" />
+            </ListItemIcon>
+            Settings
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              handleLogout();
+              handleCloseUserMenu();
+            }}
+          >
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            Logout
           </MenuItem>
         </Menu>
       </Stack>

@@ -1,5 +1,8 @@
-import { AlertStatus } from "@/types";
-import { useState } from "react";
+import { getUser } from "@/api/supabaseAuthApi";
+import { setCurrentUser } from "@/store/modules/user";
+import { AlertStatus, RootState } from "@/types";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 export const useAlert = () => {
   const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
@@ -21,3 +24,17 @@ export const useAlert = () => {
 
   return { isAlertOpen, alertStatus, handleAlertClose, raiseAlert };
 };
+
+export const useAuth = () => {
+  const dispatch = useDispatch();
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (localStorage.getItem("token_key") && !currentUser) {
+        const res = await getUser();
+        dispatch(setCurrentUser(res));
+      }
+    };
+    fetchUser();
+  }, []);
+}

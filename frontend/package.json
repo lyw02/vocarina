@@ -16,6 +16,7 @@
     "@mui/icons-material": "^5.15.6",
     "@mui/material": "^5.15.6",
     "@reduxjs/toolkit": "^2.1.0",
+    "@supabase/supabase-js": "^2.45.2",
     "@tanstack/react-query": "^5.29.2",
     "@wavesurfer/react": "^1.0.5",
     "@zip.js/zip.js": "^2.7.48",

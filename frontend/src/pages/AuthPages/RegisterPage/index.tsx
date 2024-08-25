@@ -1,4 +1,5 @@
-import { register } from "@/api/userApi";
+// import { register } from "@/api/userApi";
+import { register } from "@/api/supabaseAuthApi";
 import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
 import theme from "@/theme";
 import { encryptPassword } from "@/utils/Encrypt";
@@ -15,7 +16,7 @@ import {
 } from "@mui/material";
 import { useRef, useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import ReCAPTCHA from "react-google-recaptcha";
+// import ReCAPTCHA from "react-google-recaptcha";
 import "../index.css";
 
 interface Status {
@@ -31,6 +32,7 @@ const linkStyle: SxProps = {
 const RegisterPage = () => {
   const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
   const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>("");
   const [status, setStatus] = useState<Status>({
@@ -38,11 +40,12 @@ const RegisterPage = () => {
     message: "Register failed!",
   });
   const [promptMessage, setPromptMessage] = useState<string | null>();
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  // const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const navigate = useNavigate();
 
   const usernameReg = /^[a-zA-Z0-9_\u4e00-\u9fa5]{4,20}$/;
+  const emailReg = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
   const passwordReg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,20}$/;
 
   const handleAlertClose = () => {
@@ -50,9 +53,9 @@ const RegisterPage = () => {
   };
 
   const handleSignUp = async () => {
-    const recaptchaValue = recaptchaRef.current?.getValue();
+    // const recaptchaValue = recaptchaRef.current?.getValue();
     try {
-      if (!(username && password && passwordConfirmation)) {
+      if (!(username && email && password && passwordConfirmation)) {
         setPromptMessage("Please fill in all fields.");
       } else if (password !== passwordConfirmation) {
         setPromptMessage("Passwords do not match.");
@@ -60,22 +63,23 @@ const RegisterPage = () => {
         setPromptMessage("Password is not strong enough.");
       } else if (!usernameReg.test(username)) {
         setPromptMessage("Username is not valid.");
+      } else if (!emailReg.test(email)) {
+        setPromptMessage("Invalid email.");
       } else {
         const res = await register(
           username,
-          encryptPassword(password),
-          recaptchaValue
+          email,
+          encryptPassword(password)
+          // recaptchaValue
         );
-        const resJson = await res.json();
         setPromptMessage(null);
-        if (res.status === 201) {
+        if (!res.error) {
           setStatus({
             severity: "success",
             message: "Register successed!",
           });
           navigate("/login");
         } else {
-          console.log(resJson.error);
           setStatus({
             severity: "error",
             message: "Register failed!",
@@ -110,9 +114,16 @@ const RegisterPage = () => {
         />
         <Card sx={{ width: "50vh", margin: "auto" }}>
           <CardContent sx={{ paddingBottom: 0 }}>
-            <Typography gutterBottom variant="h5" component="div">
-              Sign Up
-            </Typography>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography gutterBottom variant="h5" component="div">
+                Sign Up
+              </Typography>
+              <Button onClick={() => navigate("/")}>Back</Button>
+            </Stack>
             <Stack direction="column" justifyContent="space-between">
               <TextField
                 required
@@ -121,6 +132,14 @@ const RegisterPage = () => {
                 variant="standard"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+              />
+              <TextField
+                required
+                id="email-field"
+                label="Email"
+                variant="standard"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <TextField
                 required
@@ -140,12 +159,12 @@ const RegisterPage = () => {
                 value={passwordConfirmation}
                 onChange={(e) => setPasswordConfirmation(e.target.value)}
               />
-              <ReCAPTCHA
+              {/* <ReCAPTCHA
                 style={{ marginTop: "2vh" }}
                 sitekey={import.meta.env.VITE_REACT_APP_RECAPTCHA_CLIENT_KEY}
                 ref={recaptchaRef}
                 hl="en"
-              />
+              /> */}
               <Typography
                 gutterBottom
                 variant="caption"
