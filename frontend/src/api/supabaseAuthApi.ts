@@ -1,9 +1,12 @@
-import { UserAttributes, createClient } from "@supabase/supabase-js";
+// import { UserAttributes, createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_PROJECT_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+import { UserAttributes } from "@supabase/supabase-js";
+import { supabase } from "./utils";
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// const supabaseUrl = import.meta.env.VITE_SUPABASE_PROJECT_URL;
+// const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+
+// const supabase = createClient(supabaseUrl, supabaseKey);
 
 export const register = async (
   displayName: string,

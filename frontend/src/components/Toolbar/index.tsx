@@ -20,6 +20,7 @@ import {
   loadProject,
   processAudio,
   saveProject,
+  saveProjectSupabase,
 } from "@/api/projectApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -90,6 +91,9 @@ const Toolbar = () => {
   const projectName = useSelector(
     (state: RootState) => state.project.projectName
   );
+  const projectId = useSelector(
+    (state: RootState) => state.project.projectId
+  );
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUserId
@@ -97,7 +101,8 @@ const Toolbar = () => {
 
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const vocalTracks = tracks.filter((t) => t.trackType === "vocal");
-  const tracksDataOriginal = vocalTracks.map((t) => { // TODO
+  const tracksDataOriginal = vocalTracks.map((t) => {
+    // TODO
     return {
       trackId: t.trackId,
       // lyrics: t.trackLyrics
@@ -129,7 +134,8 @@ const Toolbar = () => {
     dispatch(setGeneratingStatus(true));
 
     let parsedLyricsArr: { id: number; data: string[] }[] = [];
-    const tracksDataProcessed = tracksDataOriginal.map((t) => { // TODO
+    const tracksDataProcessed = tracksDataOriginal.map((t) => {
+      // TODO
       // console.log("t.lyrics: ", t.lyrics);
       // let parsedLyrics;
       // if (t.lyrics.length === 1 && t.lyrics[0] === "") {
@@ -224,14 +230,14 @@ const Toolbar = () => {
   const measureDuration = (60 * numerator * denominator) / bpm;
 
   const handleSaveProject = async () => {
-    if (!currentUserId) {
+    if (!currentUser) {
       raiseAlert("error", "Please sign in first");
       return;
     }
     const tracksData = tracks.map((t) => ({
       trackId: t.trackId,
       trackName: t.trackName,
-      status: t.trackState === "normal" ? 1 : t.trackState === "muted" ? 2 : 3,
+      status: t.trackState,
       trackType: t.trackType,
       sheet: t.sheet.map((n) => {
         let noteIndex = Math.floor((2700 - n.endY) / noteStyle.noteHeight);
@@ -245,21 +251,27 @@ const Toolbar = () => {
             (Math.max(n.startX, n.endX) * measureDuration) / measureLength,
           pitch: pitchFrequency[octave][key],
           lyrics: n.lyrics,
+          lyricsAliasMapper: n.lyricsAliasMapper,
         };
       }),
     }));
     const data = {
-      project_name: projectName,
-      user_id: currentUserId,
-      status: 1,
+      id: projectId || undefined,
+      name: projectName,
+      user_id: currentUser.id,
+      // status: 1,
       tracks: tracksData,
     };
     console.log("data in save: ", data);
-    const res = await saveProject(data);
-    if (res.status === 200) {
+    const res = await saveProjectSupabase(data);
+    if (!res.error) {
       console.log("ok");
+      console.log("---", res.data)
+      dispatch(setProjectId(res.data[0].id))
+      raiseAlert("success", "Saved")
     } else {
-      console.log("error");
+      console.log(res.error);
+      raiseAlert("error", `Error: ${res.error.message}`)
     }
     handleClose();
   };
@@ -347,7 +359,8 @@ const Toolbar = () => {
     }
   };
 
-  const handlePublish = async () => { // TODO
+  const handlePublish = async () => {
+    // TODO
     // if (!currentUserId) {
     //   raiseAlert("error", "Please sign in first");
     //   return;
@@ -416,10 +429,7 @@ const Toolbar = () => {
       />
       <Stack justifyContent="space-between" direction="row">
         <Stack spacing={2} direction="row">
-          <Button
-            onClick={handleClick}
-            sx={{ textTransform: "none" }}
-          >
+          <Button onClick={handleClick} sx={{ textTransform: "none" }}>
             {projectName}
           </Button>
           <Menu

@@ -1,4 +1,4 @@
-import { getReq, postReq } from "./utils";
+import { getReq, postReq, supabase } from "./utils";
 
 const baseUrl = "http://127.0.0.1:8000/";
 
@@ -25,7 +25,7 @@ export const saveProject = async (data: any) => {
     body: JSON.stringify(data),
   });
   return response;
-}
+};
 
 export const listProject = async (userId: number) => {
   const response = await getReq(`api/project/?user_id=${userId}`);
@@ -35,4 +35,15 @@ export const listProject = async (userId: number) => {
 export const loadProject = async (projectId: number) => {
   const response = await getReq(`api/project/${projectId}/?action=load`);
   return response;
+};
+
+// ========= NEW =========
+
+export const saveProjectSupabase = async (payload: {
+  id?: number,
+  name: string;
+  user_id: string;
+  tracks: object;
+}) => {
+  return await supabase.from("project").upsert(payload).select();
 };

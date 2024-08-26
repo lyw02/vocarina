@@ -28,3 +28,10 @@ export const putReq = async (path: string, body: object) => {
     body: JSON.stringify(body),
   });
 };
+
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_PROJECT_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
