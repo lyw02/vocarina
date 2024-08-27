@@ -91,9 +91,7 @@ const Toolbar = () => {
   const projectName = useSelector(
     (state: RootState) => state.project.projectName
   );
-  const projectId = useSelector(
-    (state: RootState) => state.project.projectId
-  );
+  const projectId = useSelector((state: RootState) => state.project.projectId);
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUserId
@@ -229,6 +227,8 @@ const Toolbar = () => {
   const measureLength = 40 * numerator;
   const measureDuration = (60 * numerator * denominator) / bpm;
 
+  const [isSaveLoading, setIsSaveLoading] = useState<boolean>(false);
+
   const handleSaveProject = async () => {
     if (!currentUser) {
       raiseAlert("error", "Please sign in first");
@@ -263,15 +263,17 @@ const Toolbar = () => {
       tracks: tracksData,
     };
     console.log("data in save: ", data);
+    setIsSaveLoading(true);
     const res = await saveProjectSupabase(data);
     if (!res.error) {
       console.log("ok");
-      console.log("---", res.data)
-      dispatch(setProjectId(res.data[0].id))
-      raiseAlert("success", "Saved")
+      console.log("---", res.data);
+      dispatch(setProjectId(res.data[0].id));
+      raiseAlert("success", "Saved");
+      setIsSaveLoading(false);
     } else {
       console.log(res.error);
-      raiseAlert("error", `Error: ${res.error.message}`)
+      raiseAlert("error", `Error: ${res.error.message}`);
     }
     handleClose();
   };
@@ -441,7 +443,13 @@ const Toolbar = () => {
             <MenuItem onClick={handleEditProjectName}>
               {"Edit project name"}
             </MenuItem>
-            <MenuItem onClick={handleSaveProject}>{"Save project"}</MenuItem>
+            <MenuItem onClick={handleSaveProject}>
+              {isSaveLoading ? (
+                <CircularProgress size="2rem" />
+              ) : (
+                "Save project"
+              )}
+            </MenuItem>
             <MenuItem onClick={handleImportDialogClickOpen}>
               {"Import project"}
             </MenuItem>
