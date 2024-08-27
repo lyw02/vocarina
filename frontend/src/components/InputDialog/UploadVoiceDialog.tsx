@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Button,
   TextField,
@@ -23,9 +23,11 @@ import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import HeadsetIcon from "@mui/icons-material/Headset";
 import { BaseDialogProps } from "@/types";
-import { BlobReader, Entry, ZipReader } from "@zip.js/zip.js";
+import { BlobReader, Entry, ZipReader, BlobWriter } from "@zip.js/zip.js";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
+import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 
 interface EntryWithAlias extends Entry {
@@ -35,6 +37,7 @@ interface EntryWithAlias extends Entry {
 interface TableRowData {
   file: string;
   alias: string | JSX.Element;
+  audio: JSX.Element;
   operations: JSX.Element;
 }
 
@@ -102,6 +105,8 @@ export default function UploadVoiceDialog({
             e.filename.lastIndexOf(".")
           ),
         }));
+
+      // Avoid duplicate aliases
       const _tempEntries = _.cloneDeep(wavEntries);
       for (let i = 0; i < wavEntries.length; i++) {
         const temp: EntryWithAlias[] = [wavEntries[i]];
@@ -153,7 +158,9 @@ export default function UploadVoiceDialog({
         }
 
         // Cannot have multiple entries with same aliases
-        const dup = wavEntries?.filter((e) => e.alias === newAlias);
+        const dup = wavEntries?.filter(
+          (e) => e.filename !== entry.filename && e.alias === newAlias
+        );
         if (dup && dup.length > 0) {
           setDuplicateAliasPairs((prev) => [...prev, [...dup, entry]]);
         }
@@ -211,6 +218,10 @@ export default function UploadVoiceDialog({
         dataKey: "alias",
       },
       {
+        label: "Audio",
+        dataKey: "audio",
+      },
+      {
         label: "Operations",
         dataKey: "operations",
       },
@@ -238,6 +249,7 @@ export default function UploadVoiceDialog({
             {entry.alias || ""}
           </Typography>
         ),
+      audio: <Audio entry={entry} />,
       operations: renderOperationButtons(entry),
     }));
 
@@ -265,7 +277,7 @@ export default function UploadVoiceDialog({
         <TableRow>
           {columns.map((column) => (
             <TableCell
-              key={column.dataKey}
+              key={uuidv4()}
               variant="head"
               sx={{
                 backgroundColor: "background.paper",
@@ -282,9 +294,7 @@ export default function UploadVoiceDialog({
       return (
         <>
           {columns.map((column) => (
-            <TableCell key={column.dataKey}>
-              {row && row[column.dataKey]}
-            </TableCell>
+            <TableCell key={uuidv4()}>{row && row[column.dataKey]}</TableCell>
           ))}
         </>
       );
@@ -316,13 +326,19 @@ export default function UploadVoiceDialog({
         <Dialog open={isDupAlertDialogOpen} maxWidth="md" fullWidth>
           <DialogTitle>{`Cannot upload voice`}</DialogTitle>
           <DialogContent>
-            <Typography sx={{mb: 1}}>{`Have following duplicate alisaes: `}</Typography>
+            <Typography
+              sx={{ mb: 1 }}
+            >{`Have following duplicate alisaes: `}</Typography>
             {duplicateAliasPairs.map((pair) => {
               return (
-                <Typography sx={{mb: 1}}>
+                <Typography key={uuidv4()} sx={{ mb: 1 }}>
                   {pair.map((item) => {
                     return (
-                      <Typography>{`File: ${item.filename}, alias: ${item.alias}`}</Typography>
+                      <Typography
+                        key={uuidv4()}
+                        component="span"
+                        display="block"
+                      >{`File: ${item.filename}, alias: ${item.alias}`}</Typography>
                     );
                   })}
                 </Typography>
@@ -368,3 +384,42 @@ export default function UploadVoiceDialog({
     </Dialog>
   );
 }
+
+const Audio = ({ entry }: { entry: EntryWithAlias }) => {
+  const [url, setUrl] = useState<string>("");
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const getWavUrl = async (entry: Entry) => {
+    if (!entry.getData) return "";
+    const blob = await entry.getData(new BlobWriter());
+    return URL.createObjectURL(blob);
+  };
+
+  useEffect(() => {
+    let res: string;
+    (async () => {
+      res = await getWavUrl(entry);
+      setUrl(res);
+    })();
+    return () => URL.revokeObjectURL(res);
+  }, []);
+
+  const handlePlay = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play();
+    } else {
+      audio.pause();
+    }
+  };
+
+  return (
+    <>
+      <audio src={url} controls ref={audioRef} style={{ display: "none" }} />
+      <IconButton aria-label="play-voice" onClick={handlePlay}>
+        <HeadsetIcon />
+      </IconButton>
+    </>
+  );
+};

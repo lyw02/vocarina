@@ -73,6 +73,7 @@ const ParameterBar = () => {
 
   const handleVoiceChange = (e: SelectChangeEvent<string>) => {
     console.log("e", e);
+    if (e.target.value === "btn") return;
     setVoice(e.target.value);
     dispatch(setVoiceInState(e.target.value));
   };
@@ -114,12 +115,14 @@ const ParameterBar = () => {
                 </Tooltip>
               </MenuItem>
             ))}
-            <Button
-              onClick={() => setIsUploadVoiceDialogOpen(true)}
-              sx={{ width: "100%" }}
-            >
-              Upload voice
-            </Button>
+            <MenuItem value="btn" sx={{ p: 0 }}>
+              <Button
+                onClick={() => setIsUploadVoiceDialogOpen(true)}
+                sx={{ width: "100%" }}
+              >
+                Upload voice
+              </Button>
+            </MenuItem>
           </Select>
         </Stack>
         <Stack
