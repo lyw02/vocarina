@@ -148,13 +148,26 @@ export default function UploadVoiceDialog({
       const handleSetNewAlias = () => {
         if (!newAlias) return; // TODO throw
 
+        // When a duplicate alias is edited, check whether the new value is valid
         const editDup = duplicateAliasPairs
           .flat()
           .find((e) => e.filename === entry.filename);
         if (editDup && editDup.alias !== newAlias) {
-          setDuplicateAliasPairs((prev) =>
-            prev.filter((p) => !p.find((i) => i.filename === editDup.filename))
-          );
+          const _newPairs = _.cloneDeep(duplicateAliasPairs)
+            .filter((pair) =>
+              pair.find((item) => item.filename === editDup.filename)
+            )
+            .map((pair) => {
+              if (pair.length === 2) {
+                return null;
+              } else {
+                return pair.filter(
+                  (item) => item.filename !== editDup.filename
+                );
+              }
+            })
+            .filter((pair) => pair !== null);
+          setDuplicateAliasPairs(_newPairs);
         }
 
         // Cannot have multiple entries with same aliases
