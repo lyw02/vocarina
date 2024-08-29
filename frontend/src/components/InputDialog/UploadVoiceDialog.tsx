@@ -18,17 +18,28 @@ import {
   TableCell,
   TableBody,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import HeadsetIcon from "@mui/icons-material/Headset";
-import { BaseDialogProps } from "@/types";
-import { BlobReader, Entry, ZipReader, BlobWriter } from "@zip.js/zip.js";
+import { BaseDialogProps, RootState } from "@/types";
+import {
+  BlobReader,
+  Entry,
+  ZipReader,
+  BlobWriter,
+  ZipWriter,
+} from "@zip.js/zip.js";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
+import { listFiles, uploadFile, uploadFileResumable } from "@/api/storageApi";
+import { useSelector } from "react-redux";
+import { raiseAlert } from "../Alert/AutoDismissAlert";
+import { showDialog } from "../Dialog";
 
 interface EntryWithAlias extends Entry {
   alias: string | null;
@@ -46,9 +57,18 @@ interface TableColumnData {
   label: string;
 }
 
+interface WavEntryData {
+  filename: string;
+  alias: string | null;
+  blob: Blob | null;
+}
+
 const FileUpload = styled("input")({
   // display: "none",
 });
+
+const DECODER = "utf-8";
+const BUCKET_NAME = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET_NAME;
 
 export default function UploadVoiceDialog({
   isOpen,
@@ -64,18 +84,157 @@ export default function UploadVoiceDialog({
   >([]);
   const [isDupAlertDialogOpen, setIsDupAlertDialogOpen] =
     useState<boolean>(false);
+  const [isVoiceLoading, setIsVoiceLoading] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  const handleSubmit = () => {
-    const data = {
-      voiceName,
-      wavEntries,
-    };
-    console.log("==data==>", data);
-    if (duplicateAliasPairs.length > 0) {
-      setIsDupAlertDialogOpen(true);
-      return;
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
+
+  const handleSubmit = async () => {
+    try {
+      if (!wavEntries || !voiceName) return;
+
+      // Check whether duplicate aliases exist
+      if (duplicateAliasPairs.length > 0) {
+        setIsDupAlertDialogOpen(true);
+        return;
+      }
+      setIsUploading(true);
+
+      const upload = async (upsert = false) => {
+        const getWavEntriesData = async (): Promise<
+          WavEntryData[] | undefined
+        > => {
+          const res = [];
+          for (const entry of wavEntries) {
+            const getBlob = async (entry: EntryWithAlias) => {
+              console.log("getWavUrl");
+              if (!entry.getData) return null;
+              return await entry.getData(new BlobWriter());
+            };
+            res.push({
+              filename: entry.filename,
+              alias: entry.alias,
+              blob: await getBlob(entry),
+            });
+          }
+          return res;
+        };
+
+        const data: {
+          voiceName: string | undefined;
+          wavEntriesData?: WavEntryData[];
+        } = { voiceName: voiceName };
+        console.log("==data==>", data);
+
+        const processEntries = async () => {
+          const wavEntriesData = await getWavEntriesData();
+          if (!wavEntriesData) return;
+          data.wavEntriesData = wavEntriesData;
+        };
+        await processEntries();
+        console.log("==processed=data==>", data);
+
+        if (!data.wavEntriesData) return;
+        // Upload wav files separately, slow
+        // for (const item of data.wavEntryData) {
+        //   await uploadFile(
+        //     `voice/${currentUser?.id}/${data.voiceName}/${item.filename}`,
+        //     item.blob,
+        //     {
+        //       metadata: { filename: item.filename, alias: item.alias },
+        //       upsert: true,
+        //     }
+        //   );
+        // }
+
+        // Create new zip file and upload
+        // Creates a BlobWriter object where the zip content will be written.
+        const zipFileWriter = new BlobWriter();
+        // Creates a ZipWriter object writing data via `zipFileWriter`
+        const zipWriter = new ZipWriter(zipFileWriter);
+        for (const item of data.wavEntriesData) {
+          if (!item.blob) continue;
+          await zipWriter.add(item.filename, new BlobReader(item.blob));
+        }
+        await zipWriter.close();
+        // Retrieves the Blob object containing the zip content into `zipFileBlob`. It
+        // is also returned by zipWriter.close() for more convenience.
+        const zipFileBlob = await zipFileWriter.getData();
+
+        if (zipFileBlob.size / 1024 / 1024 > 50) {
+          raiseAlert(
+            "error",
+            `The file is too large. Maximum allowed size: 50MB`
+          );
+          console.error(`The file is too large. Maximum allowed size: 50MB`)
+          setIsUploading(false);
+          return;
+        }
+
+        const aliasMapper = new Map();
+        const filenameMapper = new Map();
+        data.wavEntriesData.forEach((entry) => {
+          aliasMapper.set(entry.alias, entry.filename);
+          filenameMapper.set(entry.filename, entry.alias);
+        });
+
+        const res = await uploadFile(
+          `voices/${currentUser?.id}/${data.voiceName}`,
+          zipFileBlob,
+          {
+            metadata: { aliasMapper, filenameMapper },
+            upsert: upsert,
+          }
+        );
+
+        if (!res.error) {
+          raiseAlert("success", `Voice \`${data.voiceName}\` uploaded`);
+          setIsUploading(false);
+          handleClose();
+        } else {
+          console.error("res.error===>", res.error);
+          raiseAlert("error", `Error: ${res.error.message}`);
+          setIsUploading(false);
+        }
+      };
+
+      // Check whether the file exists in storage
+      const listRes = await listFiles(
+        BUCKET_NAME,
+        `voices/${currentUser?.id}/`
+      );
+      if (listRes.error) {
+        raiseAlert("error", `Error: ${listRes.error.message}`);
+        console.error(listRes.error);
+        setIsUploading(false);
+        return;
+      }
+      const existingFilenames = listRes.data.map((f) => f.name);
+      if (existingFilenames.includes(voiceName)) {
+        showDialog({
+          title: `Voice name \`${voiceName}\` already exists`,
+          message: "Do you want to replace it with this voice?",
+          confirmCallback: async () => {
+            await upload(true);
+            // setIsUploading(false);
+            // handleClose();
+          },
+          cancelCallback: () => setIsUploading(false),
+        });
+        return;
+      }
+      console.log(listRes);
+
+      // Normal upload
+      await upload();
+      // setIsUploading(false);
+      // handleClose();
+    } catch (err) {
+      // TODO remove/change
+      console.error(err);
+      raiseAlert("error", `Error: ${err}`);
+      setIsUploading(false);
     }
-    handleClose();
   };
 
   const handleClose = () => {
@@ -87,14 +246,21 @@ export default function UploadVoiceDialog({
 
   const readZip = async (zipFileBlob: Blob) => {
     try {
+      setIsVoiceLoading(true);
       // Creates a BlobReader object used to read `zipFileBlob`.
       const zipFileReader = new BlobReader(zipFileBlob);
       // Creates a ZipReader object reading the zip content via `zipFileReader`
       const zipReader = new ZipReader(zipFileReader);
       const entries = await zipReader.getEntries();
-      if (!entries) return;
-      console.log("entries==>", entries);
-      const wavEntries = entries
+      const decodedEntries = entries.map((entry) => ({
+        ...entry,
+        filename: new TextDecoder(DECODER).decode(
+          new TextEncoder().encode(entry.filename)
+        ),
+      }));
+      if (!decodedEntries) return;
+      console.log("decodedEntries==>", decodedEntries);
+      const wavEntries = decodedEntries
         .filter(
           (e) => e.filename.substring(e.filename.lastIndexOf(".")) === ".wav"
         )
@@ -121,13 +287,14 @@ export default function UploadVoiceDialog({
       console.log("wavEntries==>", wavEntries);
       console.log(typeof wavEntries[0].getData);
       setWavEntries(wavEntries as EntryWithAlias[]);
+      setIsVoiceLoading(false);
       await zipReader.close();
     } catch (err) {
       setFiles(null);
       setVoiceName("");
       setWavEntries(null);
       alert("Failed to read zip file"); // TODO alert
-      console.error(err);
+      console.error("err===>", err);
     }
   };
 
@@ -166,7 +333,7 @@ export default function UploadVoiceDialog({
                 );
               }
             })
-            .filter((pair) => pair !== null);
+            .filter((pair): pair is EntryWithAlias[] => pair !== null);
           setDuplicateAliasPairs(_newPairs);
         }
 
@@ -387,12 +554,18 @@ export default function UploadVoiceDialog({
               />
             </Stack>
           )}
-          {renderVoiceTable()}
+          {isVoiceLoading ? (
+            <CircularProgress size="3rem" sx={{ m: "auto" }} />
+          ) : (
+            renderVoiceTable()
+          )}
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleSubmit}>Submit</Button>
+        <Button onClick={handleSubmit} disabled={isVoiceLoading || isUploading}>
+          {isUploading ? <CircularProgress size="1rem" /> : "Submit"}
+        </Button>
       </DialogActions>
     </Dialog>
   );
@@ -402,7 +575,7 @@ const Audio = ({ entry }: { entry: EntryWithAlias }) => {
   const [url, setUrl] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const getWavUrl = async (entry: Entry) => {
+  const getWavUrl = async (entry: EntryWithAlias) => {
     if (!entry.getData) return "";
     const blob = await entry.getData(new BlobWriter());
     return URL.createObjectURL(blob);

@@ -25,6 +25,7 @@ import { setEditMode } from "@/store/modules/editMode";
 import { setVoice as setVoiceInState } from "@/store/modules/params";
 import { setSnappingMode } from "@/store/modules/snappingMode";
 import UploadVoiceDialog from "../InputDialog/UploadVoiceDialog";
+import { raiseAlert } from "../Alert/AutoDismissAlert";
 
 const ParameterBar = () => {
   const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] =
@@ -33,6 +34,7 @@ const ParameterBar = () => {
   const [isUploadVoiceDialogOpen, setIsUploadVoiceDialogOpen] =
     useState<boolean>(false);
 
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const editMode = useSelector((state: RootState) => state.editMode);
   const dispatch = useDispatch();
 
@@ -117,7 +119,11 @@ const ParameterBar = () => {
             ))}
             <MenuItem value="btn" sx={{ p: 0 }}>
               <Button
-                onClick={() => setIsUploadVoiceDialogOpen(true)}
+                onClick={() => {
+                  currentUser
+                    ? setIsUploadVoiceDialogOpen(true)
+                    : raiseAlert("error", "Please sign in first");
+                }}
                 sx={{ width: "100%" }}
               >
                 Upload voice
