@@ -1,6 +1,5 @@
 import { SortBy, StorageError } from "@supabase/storage-js";
 import { supabase } from "./utils";
-import * as tus from "tus-js-client";
 import Uppy from "@uppy/core";
 import Tus from "@uppy/tus";
 
@@ -9,8 +8,9 @@ const PROJECT_URL = import.meta.env.VITE_SUPABASE_PROJECT_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
 
 interface UploadOptions {
-  metadata?: object;
+  metadata?: Record<string, any>; // 疑似没用
   upsert?: boolean;
+  contentType?: string;
 }
 
 interface ListFileOptions {

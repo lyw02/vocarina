@@ -156,6 +156,22 @@ export default function UploadVoiceDialog({
           if (!item.blob) continue;
           await zipWriter.add(item.filename, new BlobReader(item.blob));
         }
+
+        const aliasMapper: { [key: string]: string } = {};
+        const filenameMapper: { [key: string]: string } = {};
+        data.wavEntriesData.forEach((entry) => {
+          entry.alias && (aliasMapper[entry.alias] = entry.filename);
+          entry.alias && entry.filename && (filenameMapper[entry.filename] = entry.alias);
+        });
+
+        const aliasMapperJsonString = JSON.stringify(aliasMapper);
+        const aliasMapperBlob = new Blob([aliasMapperJsonString], { type: "application/json" });
+        const filenameMapperJsonString = JSON.stringify(filenameMapper);
+        const filenameMapperBlob = new Blob([filenameMapperJsonString], { type: "application/json" });
+
+        await zipWriter.add("aliasMapper.json", new BlobReader(aliasMapperBlob));
+        await zipWriter.add("filenameMapper.json", new BlobReader(filenameMapperBlob));
+
         await zipWriter.close();
         // Retrieves the Blob object containing the zip content into `zipFileBlob`. It
         // is also returned by zipWriter.close() for more convenience.
@@ -171,19 +187,13 @@ export default function UploadVoiceDialog({
           return;
         }
 
-        const aliasMapper = new Map();
-        const filenameMapper = new Map();
-        data.wavEntriesData.forEach((entry) => {
-          aliasMapper.set(entry.alias, entry.filename);
-          filenameMapper.set(entry.filename, entry.alias);
-        });
-
         const res = await uploadFile(
           `voices/${currentUser?.id}/${data.voiceName}`,
           zipFileBlob,
           {
-            metadata: { aliasMapper, filenameMapper },
+            // metadata: { aliasMapper, filenameMapper, testMetadata: "testMetadata" },
             upsert: upsert,
+            contentType: "application/zip"
           }
         );
 
