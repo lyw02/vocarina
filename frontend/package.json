@@ -33,6 +33,7 @@
     "react-router-dom": "^6.21.3",
     "react-swipeable-views": "^0.14.0",
     "react-virtuoso": "^4.10.1",
+    "tone": "^15.0.4",
     "uppy": "^4.2.1",
     "uuid": "^9.0.1",
     "wavesurfer.js": "^7.7.8",
