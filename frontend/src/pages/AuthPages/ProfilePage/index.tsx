@@ -14,6 +14,7 @@ import { useState } from "react";
 import UserInfoPanel from "./UserInfoPanel";
 import HomeIcon from "@mui/icons-material/Home";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/utils/CustomHooks";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -37,8 +38,8 @@ const CustomTabPanel = (props: TabPanelProps) => {
 };
 
 const ProfilePage = () => {
+  useAuth()
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
-
   const [tabValue, setTabValue] = useState(0);
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -65,7 +66,7 @@ const ProfilePage = () => {
               }}
             >
               <Typography gutterBottom variant="h6" component="div">
-                {currentUser}
+                {currentUser?.user_metadata.display_name}
               </Typography>
               <Link to="/">
                 <IconButton>

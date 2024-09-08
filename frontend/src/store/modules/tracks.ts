@@ -9,9 +9,10 @@ const initialState: TracksState = {
       trackName: "Track 1",
       trackState: "normal",
       trackType: "vocal",
-      trackLyrics: [
-        { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
-      ],
+      // trackLyrics: [
+      //   { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
+      // ],
+      rawLyrics: "",
       sheet: [],
     },
   ],
@@ -38,9 +39,10 @@ const trackStore = createSlice({
           `Unnamed track ${state.tracks.length + 1}`,
         trackState: "normal",
         trackType: action.payload.trackType,
-        trackLyrics: [
-          { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
-        ],
+        // trackLyrics: [
+        //   { sentenceId: 1, nextSentenceId: null, order: 1, content: "" },
+        // ],
+        rawLyrics: "",
         sheet: [],
       });
     },
@@ -54,7 +56,7 @@ const trackStore = createSlice({
         if (track.trackId === action.payload.trackId) {
           return {
             ...track,
-            trackLyrics: action.payload.sentences,
+            // trackLyrics: action.payload.sentences,
           };
         }
         return track;
@@ -114,6 +116,12 @@ const trackStore = createSlice({
     setTracks(state, action) {
       state.tracks = action.payload;
     },
+    setTrackRawLyrics(state, action) {
+      const trackIndex = state.tracks.findIndex(
+        (t) => t.trackId === action.payload.trackId
+      );
+      state.tracks[trackIndex].rawLyrics = action.payload.rawLyrics;
+    }
   },
 });
 
@@ -130,6 +138,7 @@ const {
   setInstEnd,
   setInstFilename,
   setTracks,
+  setTrackRawLyrics
 } = trackStore.actions;
 
 const reducer = trackStore.reducer;
@@ -147,6 +156,7 @@ export {
   setInstEnd,
   setInstFilename,
   setTracks,
+  setTrackRawLyrics
 };
 
 export default reducer;

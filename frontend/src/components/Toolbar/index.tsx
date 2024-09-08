@@ -20,6 +20,7 @@ import {
   loadProject,
   processAudio,
   saveProject,
+  saveProjectSupabase,
 } from "@/api/projectApi";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -40,16 +41,17 @@ import {
   parsePitch,
   parseStartTime,
 } from "@/utils/ParseData";
-import AutoDismissAlert from "../Alert/AutoDismissAlert";
+import { raiseAlert } from "../Alert/AutoDismissAlert";
 import { noteStyle } from "@/utils/Note";
 import { pitchFrequency } from "@/utils/PitchFrequency";
 import { SimpleDialog } from "../SimpleDialog";
 import { setProjectId } from "@/store/modules/project";
 import { setTracks } from "@/store/modules/tracks";
 import { publishProject } from "@/api/communityApi";
-import { Sentence } from "@/types/project";
+// import { Sentence } from "@/types/project";
 import { useNavigate } from "react-router-dom";
 import InputDialog from "../InputDialog";
+import LyricsDialogNew from "../InputDialog/LyricsDialogNew";
 
 const sampleData = {
   tracks: [
@@ -89,28 +91,22 @@ const Toolbar = () => {
   const projectName = useSelector(
     (state: RootState) => state.project.projectName
   );
+  const projectId = useSelector((state: RootState) => state.project.projectId);
   const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const currentUserId = useSelector(
     (state: RootState) => state.user.currentUserId
   );
 
-  const raiseAlert = (severity: AlertStatus["severity"], message: string) => {
-    setAlertStatus({
-      severity: severity,
-      message: message,
-    });
-    setIsAlertOpen(true);
-  };
-
   const tracks = useSelector((state: RootState) => state.tracks.tracks);
   const vocalTracks = tracks.filter((t) => t.trackType === "vocal");
   const tracksDataOriginal = vocalTracks.map((t) => {
+    // TODO
     return {
       trackId: t.trackId,
-      lyrics: t.trackLyrics
-        .map((s) => s.content)
-        .join(" ")
-        .split(" "),
+      // lyrics: t.trackLyrics
+      //   .map((s) => s.content)
+      //   .join(" ")
+      //   .split(" "),
       sheet: t.sheet,
     };
   });
@@ -137,27 +133,28 @@ const Toolbar = () => {
 
     let parsedLyricsArr: { id: number; data: string[] }[] = [];
     const tracksDataProcessed = tracksDataOriginal.map((t) => {
-      console.log("t.lyrics: ", t.lyrics);
-      let parsedLyrics;
-      if (t.lyrics.length === 1 && t.lyrics[0] === "") {
-        parsedLyrics = t.sheet.map((n) => n.lyrics);
-      } else {
-        parsedLyrics = parseLyrics(t.sheet, t.lyrics);
-      }
-      parsedLyricsArr.push({ id: t.trackId, data: parsedLyrics });
-      console.log("parsedLyrics: ", parsedLyrics);
-      return {
-        trackId: t.trackId,
-        lyrics: parsedLyrics,
-        targetPitchList: parsePitch(t.sheet, parsedLyrics),
-        startTime: parseStartTime(t.sheet, bpm, numerator, denominator),
-        targetDurationList: parseDuration(
-          t.sheet,
-          bpm,
-          numerator,
-          parsedLyrics
-        ),
-      };
+      // TODO
+      // console.log("t.lyrics: ", t.lyrics);
+      // let parsedLyrics;
+      // if (t.lyrics.length === 1 && t.lyrics[0] === "") {
+      //   parsedLyrics = t.sheet.map((n) => n.lyrics);
+      // } else {
+      //   parsedLyrics = parseLyrics(t.sheet, t.lyrics);
+      // }
+      // parsedLyricsArr.push({ id: t.trackId, data: parsedLyrics });
+      // console.log("parsedLyrics: ", parsedLyrics);
+      // return {
+      //   trackId: t.trackId,
+      //   lyrics: parsedLyrics,
+      //   targetPitchList: parsePitch(t.sheet, parsedLyrics),
+      //   startTime: parseStartTime(t.sheet, bpm, numerator, denominator),
+      //   targetDurationList: parseDuration(
+      //     t.sheet,
+      //     bpm,
+      //     numerator,
+      //     parsedLyrics
+      //   ),
+      // };
     });
 
     let responseData = await processAudio({ tracksDataProcessed });
@@ -217,15 +214,6 @@ const Toolbar = () => {
     }
   });
 
-  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
-  const [alertStatus, setAlertStatus] = useState<AlertStatus>({
-    severity: "error",
-    message: "",
-  });
-  const handleAlertClose = () => {
-    setIsAlertOpen(false);
-  };
-
   // Project options
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -239,15 +227,17 @@ const Toolbar = () => {
   const measureLength = 40 * numerator;
   const measureDuration = (60 * numerator * denominator) / bpm;
 
+  const [isSaveLoading, setIsSaveLoading] = useState<boolean>(false);
+
   const handleSaveProject = async () => {
-    if (!currentUserId) {
+    if (!currentUser) {
       raiseAlert("error", "Please sign in first");
       return;
     }
     const tracksData = tracks.map((t) => ({
       trackId: t.trackId,
       trackName: t.trackName,
-      status: t.trackState === "normal" ? 1 : t.trackState === "muted" ? 2 : 3,
+      status: t.trackState,
       trackType: t.trackType,
       sheet: t.sheet.map((n) => {
         let noteIndex = Math.floor((2700 - n.endY) / noteStyle.noteHeight);
@@ -261,21 +251,29 @@ const Toolbar = () => {
             (Math.max(n.startX, n.endX) * measureDuration) / measureLength,
           pitch: pitchFrequency[octave][key],
           lyrics: n.lyrics,
+          lyricsAliasMapper: n.lyricsAliasMapper,
         };
       }),
     }));
     const data = {
-      project_name: projectName,
-      user_id: currentUserId,
-      status: 1,
+      id: projectId || undefined,
+      name: projectName,
+      user_id: currentUser.id,
+      // status: 1,
       tracks: tracksData,
     };
     console.log("data in save: ", data);
-    const res = await saveProject(data);
-    if (res.status === 200) {
+    setIsSaveLoading(true);
+    const res = await saveProjectSupabase(data);
+    if (!res.error) {
       console.log("ok");
+      console.log("---", res.data);
+      dispatch(setProjectId(res.data[0].id));
+      raiseAlert("success", "Saved");
+      setIsSaveLoading(false);
     } else {
-      console.log("error");
+      console.log(res.error);
+      raiseAlert("error", `Error: ${res.error.message}`);
     }
     handleClose();
   };
@@ -353,7 +351,7 @@ const Toolbar = () => {
             t.status === 1 ? "normal" : t.status === 2 ? "muted" : "solo",
           trackType: t.track_type,
           sheet: parsedSheetData,
-          trackLyrics: [],
+          // trackLyrics: [],
         };
       });
       dispatch(setTracks(parsedTracksData));
@@ -364,27 +362,28 @@ const Toolbar = () => {
   };
 
   const handlePublish = async () => {
-    if (!currentUserId) {
-      raiseAlert("error", "Please sign in first");
-      return;
-    }
-    const lyrics: { [id: number]: Sentence[] } = {};
-    tracks.forEach((t) => {
-      lyrics[t.trackId] = t.trackLyrics;
-    });
-    const res = await publishProject(
-      currentUser,
-      currentUserId,
-      projectName,
-      base64Data.map((item) => item.data),
-      lyrics
-    );
-    if (res.status === 200) {
-      raiseAlert("success", "Success");
-    } else {
-      raiseAlert("error", "Failed");
-    }
-    // navigate("/community");
+    // TODO
+    // if (!currentUserId) {
+    //   raiseAlert("error", "Please sign in first");
+    //   return;
+    // }
+    // // const lyrics: { [id: number]: Sentence[] } = {};
+    // // tracks.forEach((t) => {
+    // //   lyrics[t.trackId] = t.trackLyrics;
+    // // });
+    // const res = await publishProject(
+    //   currentUser,
+    //   currentUserId,
+    //   projectName,
+    //   base64Data.map((item) => item.data),
+    //   // lyrics
+    // );
+    // if (res.status === 200) {
+    //   raiseAlert("success", "Success");
+    // } else {
+    //   raiseAlert("error", "Failed");
+    // }
+    // // navigate("/community");
   };
 
   const [isPrjNameDialogVisible, setIsPrjNameDialogVisible] =
@@ -415,12 +414,6 @@ const Toolbar = () => {
 
   return (
     <div className="toolbar-wrapper">
-      <AutoDismissAlert
-        isAlertOpen={isAlertOpen}
-        handleAlertClose={handleAlertClose}
-        message={alertStatus.message}
-        severity={alertStatus.severity}
-      />
       <SimpleDialog
         title="Import project"
         selectedValue={importDialogSelectedValue}
@@ -438,10 +431,7 @@ const Toolbar = () => {
       />
       <Stack justifyContent="space-between" direction="row">
         <Stack spacing={2} direction="row">
-          <Button
-            onClick={handleClick}
-            sx={{ textTransform: "none" }}
-          >
+          <Button onClick={handleClick} sx={{ textTransform: "none" }}>
             {projectName}
           </Button>
           <Menu
@@ -453,7 +443,13 @@ const Toolbar = () => {
             <MenuItem onClick={handleEditProjectName}>
               {"Edit project name"}
             </MenuItem>
-            <MenuItem onClick={handleSaveProject}>{"Save project"}</MenuItem>
+            <MenuItem onClick={handleSaveProject}>
+              {isSaveLoading ? (
+                <CircularProgress size="2rem" />
+              ) : (
+                "Save project"
+              )}
+            </MenuItem>
             <MenuItem onClick={handleImportDialogClickOpen}>
               {"Import project"}
             </MenuItem>
@@ -534,7 +530,11 @@ const Toolbar = () => {
           <AudioContainer objUrl={instUrl} display="none" ref={instAudioRef} />
         </Stack>
       </Stack>
-      <LyricsDialog
+      {/* <LyricsDialog
+        isOpen={isLyricsDialogVisible}
+        setIsOpen={setIsLyricsDialogVisible}
+      /> */}
+      <LyricsDialogNew
         isOpen={isLyricsDialogVisible}
         setIsOpen={setIsLyricsDialogVisible}
       />

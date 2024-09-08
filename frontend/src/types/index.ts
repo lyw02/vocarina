@@ -1,3 +1,4 @@
+import { User } from "@supabase/supabase-js";
 import { Track } from "./project";
 
 export type editMode = "edit" | "select";
@@ -13,6 +14,11 @@ export type wavePlotElement = {
 export interface AlertStatus {
   severity: "success" | "error" | "warning" | "info";
   message: string;
+}
+
+export interface BaseDialogProps {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface PianoKey {
@@ -31,6 +37,7 @@ export interface NoteProps {
   isOverlap: boolean;
   noteLength: number;
   lyrics: string;
+  lyricsAliasMapper: string;
   breakpoints?: any[];
 }
 
@@ -55,7 +62,6 @@ export interface ParamsState {
   numerator: number;
   denominator: number;
   bpm: number;
-  language: string;
   voice: string;
 }
 
@@ -93,7 +99,7 @@ export interface SnappingModeState {
 }
 
 export interface UserState {
-  currentUser: string;
+  currentUser: User | null;
   currentUserId: number | null;
 }
 

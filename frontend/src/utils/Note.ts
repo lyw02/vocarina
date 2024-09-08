@@ -27,6 +27,7 @@ export class Note {
   isOverlap: boolean;
   noteLength: number;
   lyrics: string;
+  lyricsAliasMapper: string;
 
   constructor(id: number, startX: number, startY: number); // New notes
   constructor(
@@ -38,6 +39,7 @@ export class Note {
     isOverlap: boolean,
     noteLength: number,
     lyrics: string,
+    lyricsAliasMapper: string,
     breakpoints?: any[]
   ); // Read existing notes
   constructor(
@@ -49,6 +51,7 @@ export class Note {
     isOverlap?: boolean,
     noteLength?: number,
     lyrics?: string,
+    lyricsAliasMapper?: string,
     breakpoints?: any[]
   ) {
     if (
@@ -56,7 +59,8 @@ export class Note {
       endY &&
       isOverlap !== undefined &&
       noteLength &&
-      lyrics !== undefined
+      lyrics !== undefined &&
+      lyricsAliasMapper !== undefined
     ) {
       this.id = id;
       this.startX = startX;
@@ -66,6 +70,7 @@ export class Note {
       this.isOverlap = isOverlap;
       this.noteLength = noteLength;
       this.lyrics = lyrics;
+      this.lyricsAliasMapper = lyricsAliasMapper;
       if (breakpoints) {
         // TODO
       }
@@ -79,6 +84,7 @@ export class Note {
       this.isOverlap = false;
       this.noteLength = Math.abs(this.startX - this.endX);
       this.lyrics = "";
+      this.lyricsAliasMapper = "";
     }
   }
 
@@ -148,7 +154,7 @@ export class Note {
     ctx.textBaseline = noteStyle.textBaseline;
     ctx.fillStyle = noteStyle.textColor;
     ctx.fillText(
-      this.lyrics,
+      this.lyricsAliasMapper,
       this.minX + 3,
       (this.maxY + this.minY) / 2 + 3,
       this.noteLength - 6
@@ -180,6 +186,7 @@ export class Note {
       isOverlap: this.isOverlap,
       noteLength: this.noteLength,
       lyrics: this.lyrics,
+      lyricsAliasMapper: this.lyricsAliasMapper
     };
   }
 }

@@ -1,15 +1,15 @@
-import { login } from "@/api/userApi";
-import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
-import { setCurrentUser, setCurrentUserId } from "@/store/modules/user";
+// import { login } from "@/api/userApi";
+import { login } from "@/api/supabaseAuthApi";
+import { raiseAlert } from "@/components/Alert/AutoDismissAlert";
+import { setCurrentUser } from "@/store/modules/user";
 import theme from "@/theme";
-import { AlertStatus } from "@/types";
 import { encryptPassword } from "@/utils/Encrypt";
-import { setToken } from "@/utils/token";
 import {
   Button,
   Card,
   CardActions,
   CardContent,
+  CircularProgress,
   Link,
   Stack,
   SxProps,
@@ -28,55 +28,35 @@ const linkStyle: SxProps = {
 };
 
 const LoginPage = () => {
-  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
-  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [status, setStatus] = useState<AlertStatus>({
-    severity: "error",
-    message: "Login failed!",
-  });
   const [promptMessage, setPromptMessage] = useState<string | null>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleAlertClose = () => {
-    setIsAlertOpen(false);
-  };
-
   const handleLogin = async () => {
     try {
-      if (!(username && password)) {
+      if (!(email && password)) {
         setPromptMessage("Please fill in all fields.");
       } else {
-        const res = await login(username, encryptPassword(password));
-        const resJson = await res.json();
-        console.log("resJson in login: ", resJson);
+        setIsLoading(true);
+        const res = await login(email, encryptPassword(password));
         setPromptMessage(null);
-        if (res.status === 200) {
-          setToken(resJson.token);
-          setStatus({
-            severity: "success",
-            message: "Login successed!",
-          });
-          dispatch(setCurrentUser(resJson.username));
-          dispatch(setCurrentUserId(resJson.id));
-          setIsAlertOpen(true);
+        if (!res.error) {
+          raiseAlert("success", "Login successed!");
+          console.log("res", res);
+          dispatch(setCurrentUser(res));
+          setIsLoading(false);
           navigate("/");
         } else {
-          setStatus({
-            severity: "error",
-            message: "Login failed!",
-          });
-          setIsAlertOpen(true);
+          raiseAlert("error", "Login failed!");
         }
       }
     } catch (error) {
       console.log(error);
-      setStatus({
-        severity: "error",
-        message: "Login failed!",
-      });
+      raiseAlert("error", "Login failed!");
     }
   };
 
@@ -90,25 +70,26 @@ const LoginPage = () => {
           height: "100vh",
         }}
       >
-        <AutoDismissAlert
-          isAlertOpen={isAlertOpen}
-          handleAlertClose={handleAlertClose}
-          message={status.message}
-          severity={status.severity}
-        />
         <Card sx={{ width: "50vh", margin: "auto" }}>
           <CardContent>
-            <Typography gutterBottom variant="h5" component="div">
-              Login
-            </Typography>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography gutterBottom variant="h5" component="div">
+                Login
+              </Typography>
+              <Button onClick={() => navigate("/")}>Back</Button>
+            </Stack>
             <Stack direction="column" justifyContent="space-between">
               <TextField
                 required
-                id="username-field"
-                label="Username"
+                id="email-field"
+                label="Email"
                 variant="standard"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
               <TextField
                 required
@@ -140,8 +121,8 @@ const LoginPage = () => {
             </Stack>
           </CardContent>
           <CardActions>
-            <Button size="small" onClick={handleLogin}>
-              Login
+            <Button size="small" onClick={handleLogin} disabled={isLoading}>
+              {isLoading ? <CircularProgress size="2rem" /> : "Login"}
             </Button>
           </CardActions>
         </Card>

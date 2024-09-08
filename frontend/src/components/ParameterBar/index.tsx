@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, editMode } from "@/types";
 import InputDialog from "../InputDialog";
@@ -8,6 +8,7 @@ import VolumeDown from "@mui/icons-material/VolumeDown";
 import VolumeUp from "@mui/icons-material/VolumeUp";
 import "./index.css";
 import {
+  Button,
   FormControlLabel,
   MenuItem,
   Select,
@@ -15,21 +16,25 @@ import {
   Switch,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import SelectAllIcon from "@mui/icons-material/SelectAll";
 import { setEditMode } from "@/store/modules/editMode";
-import {
-  setLanguage as setLanguageInState,
-  setVoice as setVoiceInState,
-} from "@/store/modules/params";
+import { setVoice as setVoiceInState } from "@/store/modules/params";
 import { setSnappingMode } from "@/store/modules/snappingMode";
+import UploadVoiceDialog from "../InputDialog/UploadVoiceDialog";
+import { raiseAlert } from "../Alert/AutoDismissAlert";
 
 const ParameterBar = () => {
   const [isTimeSigDialogVisible, setIsTimeSigDialogVisible] =
     useState<boolean>(false);
   const [isBpmDialogVisible, setIsBpmDialogVisible] = useState<boolean>(false);
+  const [isUploadVoiceDialogOpen, setIsUploadVoiceDialogOpen] =
+    useState<boolean>(false);
 
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
   const editMode = useSelector((state: RootState) => state.editMode);
   const dispatch = useDispatch();
 
@@ -57,27 +62,20 @@ const ParameterBar = () => {
     }
   };
 
-  // Language and voice
-  const options: { [key: string]: string[] } = {
-    English: ["Microsoft - Jenny"],
-    Chinese: ["Reecho.ai - Otto"],
-  };
-
-  const [language, setLanguage] = useState<string>(
-    useSelector((state: RootState) => state.params.language) || ""
-  );
+  // Voice
   const [voice, setVoice] = useState<string>(
     useSelector((state: RootState) => state.params.voice) || ""
   );
 
-  const handleLanguageChange = (e: SelectChangeEvent<string>) => {
-    setLanguage(e.target.value);
-    setVoice("");
-    dispatch(setLanguageInState(e.target.value));
-    dispatch(setVoiceInState(""));
-  };
+  const options: string[] = [
+    "Microsoft - Jenny",
+    "Reecho.ai - Otto",
+    "Otto - 水母",
+  ];
 
   const handleVoiceChange = (e: SelectChangeEvent<string>) => {
+    console.log("e", e);
+    if (e.target.value === "btn") return;
     setVoice(e.target.value);
     dispatch(setVoiceInState(e.target.value));
   };
@@ -104,37 +102,33 @@ const ParameterBar = () => {
             BPM: {bpm}
           </span>
           <Select
-            value={language}
-            onChange={(e) => handleLanguageChange(e)}
-            size="small"
-            displayEmpty
-          >
-            <MenuItem value="" disabled>
-              Select Language
-            </MenuItem>
-            {Object.keys(options).map((language) => (
-              <MenuItem key={language} value={language}>
-                {language}
-              </MenuItem>
-            ))}
-          </Select>
-          <Select
             value={voice}
             onChange={(e) => handleVoiceChange(e)}
-            disabled={!language}
             size="small"
             displayEmpty
-            sx={{ visibility: language ? "visible" : "hidden" }}
           >
             <MenuItem value="" disabled>
               Select Voice
             </MenuItem>
-            {language &&
-              options[language].map((voice) => (
-                <MenuItem key={voice} value={voice}>
-                  {voice}
-                </MenuItem>
-              ))}
+            {options.map((voice) => (
+              <MenuItem key={voice} value={voice}>
+                <Tooltip title={"Remark"} placement="top">
+                  <Typography>{voice}</Typography>
+                </Tooltip>
+              </MenuItem>
+            ))}
+            <MenuItem value="btn" sx={{ p: 0 }}>
+              <Button
+                onClick={() => {
+                  currentUser
+                    ? setIsUploadVoiceDialogOpen(true)
+                    : raiseAlert("error", "Please sign in first");
+                }}
+                sx={{ width: "100%" }}
+              >
+                Upload voice
+              </Button>
+            </MenuItem>
           </Select>
         </Stack>
         <Stack
@@ -144,7 +138,12 @@ const ParameterBar = () => {
           alignItems="center"
         >
           <FormControlLabel
-            control={<Switch defaultChecked onChange={(e) => handleSnappingChange(e)} />}
+            control={
+              <Switch
+                defaultChecked
+                onChange={(e) => handleSnappingChange(e)}
+              />
+            }
             label="Snapping"
           />
           <ToggleButtonGroup
@@ -183,6 +182,10 @@ const ParameterBar = () => {
         formType="EditBpmForm"
         isOpen={isBpmDialogVisible}
         setIsOpen={setIsBpmDialogVisible}
+      />
+      <UploadVoiceDialog
+        isOpen={isUploadVoiceDialogOpen}
+        setIsOpen={setIsUploadVoiceDialogOpen}
       />
     </div>
   );

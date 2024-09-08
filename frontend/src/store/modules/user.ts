@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { removeToken } from "@/utils/token";
+import { setToken as setToken_, removeToken } from "@/utils/token";
 import { UserState } from "@/types";
 
 const initialState: UserState = {
-  currentUser: "",
+  // currentUser: "",
+  currentUser: null,
   currentUserId: null,
 };
 
@@ -11,20 +12,17 @@ const userStore = createSlice({
   name: "user",
   initialState: initialState,
   reducers: {
-    // setToken(state, action) {
-    //   state.token = action.payload;
-    //   setToken_(state.token);
-    // },
     setCurrentUser(state, action) {
-      state.currentUser = action.payload;
+      state.currentUser = action.payload.data.user;
+      console.log("action.payload", action.payload)
+      action.payload.data.session && setToken_(action.payload.data.session.access_token)
     },
     setCurrentUserId(state, action) {
       state.currentUserId = action.payload;
     },
     cleanLoginInfo(state) {
-      removeToken();
-      // state.token = "";
-      state.currentUser = "";
+      state.currentUser = null;
+      removeToken()
     },
   },
 });

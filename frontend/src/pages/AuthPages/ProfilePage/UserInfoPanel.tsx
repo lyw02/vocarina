@@ -1,13 +1,14 @@
-import { getUserInfo, updateUserInfo } from "@/api/userApi";
-import AutoDismissAlert from "@/components/Alert/AutoDismissAlert";
+import { updateUserInfo } from "@/api/supabaseAuthApi";
+import { raiseAlert } from "@/components/Alert/AutoDismissAlert";
+import { setCurrentUser } from "@/store/modules/user";
 import theme from "@/theme";
-import { AlertStatus, RootState } from "@/types";
-import { Button, TextField, Typography } from "@mui/material";
+import { RootState } from "@/types";
+import { Button, CircularProgress, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export type userInfo = {
-  //   avatar: string;
+  //  avatar: string;
   username: string;
   email: string;
   about: string;
@@ -19,25 +20,9 @@ const isValidEmail = (email: string) => {
 };
 
 const UserInfoPanel = () => {
-  const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
-  const [alertStatus, setAlertStatus] = useState<AlertStatus>({
-    severity: "error",
-    message: "",
-  });
-  const handleAlertClose = () => {
-    setIsAlertOpen(false);
-  };
-  const raiseAlert = (severity: AlertStatus["severity"], message: string) => {
-    setAlertStatus({
-      severity: severity,
-      message: message,
-    });
-    setIsAlertOpen(true);
-  };
+  const dispatch = useDispatch();
 
-  const currentUserId = useSelector(
-    (state: RootState) => state.user.currentUserId
-  );
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
 
   const [userInfo, setUserInfo] = useState<userInfo>({
     // avatar: "",
@@ -45,42 +30,45 @@ const UserInfoPanel = () => {
     email: "",
     about: "",
   });
-
   const [editField, setEditField] = useState<keyof userInfo | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!currentUserId) return;
-    const fetchUserInfo = async () => {
-      const res = await getUserInfo(currentUserId);
-      const resJson = await res.json();
-      console.log(resJson.username);
-      setUserInfo({
-        // avatar: resJson.avatar_url,
-        username: resJson.username,
-        email: resJson.email,
-        about: resJson.about,
-      });
-    };
-    fetchUserInfo();
-  }, [currentUserId, editField]);
+    if (!currentUser) return;
+    setUserInfo({
+      // avatar: resJson.avatar_url,
+      username: currentUser.user_metadata.display_name,
+      email: currentUser?.email || "",
+      about: currentUser.user_metadata?.about,
+    });
+  }, [currentUser, editField]);
 
   const handleEdit = (field: keyof userInfo) => {
     setEditField(field);
   };
 
   const handleSave = async (field: keyof userInfo) => {
-    if (!currentUserId) return;
+    if (!currentUser) return;
     if (field === "email" && !isValidEmail(userInfo.email)) {
       raiseAlert("error", "Invalid email");
       return;
     }
-    const res = await updateUserInfo(currentUserId, userInfo);
-    if (res.status === 200) {
+    setIsLoading(true);
+    const res = await updateUserInfo({
+      email: userInfo.email,
+      data: {
+        display_name: userInfo.username,
+        about: userInfo.about,
+      },
+    });
+    if (!res.error) {
       raiseAlert("success", "Change saved");
+      dispatch(setCurrentUser(res));
     } else {
-      raiseAlert("error", "Failed");
+      raiseAlert("error", `Error: ${res.error}`);
     }
     setEditField(null);
+    setIsLoading(false);
   };
 
   const handleChange = (
@@ -94,13 +82,7 @@ const UserInfoPanel = () => {
   };
 
   return (
-    <div>
-      <AutoDismissAlert
-        isAlertOpen={isAlertOpen}
-        handleAlertClose={handleAlertClose}
-        message={alertStatus.message}
-        severity={alertStatus.severity}
-      />
+    <>
       {Object.keys(userInfo).map((field) => (
         <span
           key={field}
@@ -110,45 +92,41 @@ const UserInfoPanel = () => {
             justifyContent: "space-between",
           }}
         >
+          <Typography
+            component="label"
+            htmlFor={`${field}-field`}
+            sx={{ color: theme.palette.primary.main }}
+          >
+            {field}
+            {": "}
+          </Typography>
           {editField === field ? (
-            <span>
-              <Typography
-                component="span"
-                sx={{ color: theme.palette.primary.main }}
-              >
-                {field}
-                {": "}
-              </Typography>
-              <TextField
-                size="small"
-                value={userInfo[field]}
-                sx={{ marginLeft: 1 }}
-                onChange={(event) => handleChange(field, event)}
-              />
-            </span>
+            <TextField
+              id={`${field}-field`}
+              size="small"
+              value={userInfo[field]}
+              sx={{ marginLeft: 1 }}
+              onChange={(event) => handleChange(field, event)}
+            />
           ) : (
-            <span>
-              <Typography
-                component="span"
-                sx={{ color: theme.palette.primary.main }}
-              >
-                {field}
-                {": "}
-              </Typography>
+            <Typography id={`${field}-field`}>
               {userInfo[field as keyof userInfo]}
-            </span>
+            </Typography>
           )}
           {editField === field ? (
-            <span>
-              <Button onClick={() => handleSave(field)}>Save</Button>
+            <>
+              <Button onClick={() => handleSave(field)} disabled={isLoading}>
+                {isLoading ? <CircularProgress size="2rem" /> : "Save"}
+              </Button>
               <Button
                 onClick={() => {
                   setEditField(null);
                 }}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-            </span>
+            </>
           ) : (
             <Button onClick={() => handleEdit(field as keyof userInfo)}>
               Edit
@@ -156,7 +134,7 @@ const UserInfoPanel = () => {
           )}
         </span>
       ))}
-    </div>
+    </>
   );
 };
 
