@@ -1,7 +1,7 @@
 import { SortBy, StorageError } from "@supabase/storage-js";
 import { supabase } from "./utils";
-import Uppy from "@uppy/core";
-import Tus from "@uppy/tus";
+// import Uppy from "@uppy/core";
+// import Tus from "@uppy/tus";
 
 const BUCKET_NAME = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET_NAME;
 const PROJECT_URL = import.meta.env.VITE_SUPABASE_PROJECT_URL;

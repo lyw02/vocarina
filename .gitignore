@@ -297,3 +297,6 @@ backend/root/project/process/temp/
 .VSCodeCounter/
 
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,django
+
+backend-nest/node_modules
+backend-nest/package-lock.json

@@ -18,7 +18,6 @@
     "@reduxjs/toolkit": "^2.1.0",
     "@supabase/supabase-js": "^2.45.2",
     "@tanstack/react-query": "^5.29.2",
-    "@uppy/tus": "^4.0.1",
     "@wavesurfer/react": "^1.0.5",
     "@zip.js/zip.js": "^2.7.48",
     "classnames": "^2.5.1",
@@ -34,10 +33,8 @@
     "react-swipeable-views": "^0.14.0",
     "react-virtuoso": "^4.10.1",
     "tone": "^15.0.4",
-    "uppy": "^4.2.1",
     "uuid": "^9.0.1",
-    "wavesurfer.js": "^7.7.8",
-    "web-audio-api": "^0.2.2"
+    "wavesurfer.js": "^7.7.8"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
