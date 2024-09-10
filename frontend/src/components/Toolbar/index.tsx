@@ -52,6 +52,7 @@ import { publishProject } from "@/api/communityApi";
 import { useNavigate } from "react-router-dom";
 import InputDialog from "../InputDialog";
 import LyricsDialogNew from "../InputDialog/LyricsDialogNew";
+import { ComposeAreaStyle } from "@/utils/ComposeAreaStyle";
 
 const sampleData = {
   tracks: [
@@ -103,6 +104,7 @@ const Toolbar = () => {
     // TODO
     return {
       trackId: t.trackId,
+      trackName: t.trackName,
       // lyrics: t.trackLyrics
       //   .map((s) => s.content)
       //   .join(" ")
@@ -129,6 +131,42 @@ const Toolbar = () => {
   };
 
   const handleGenerate = async () => {
+    console.log("Original", tracksDataOriginal);
+
+    const tracksDataProcessed = tracksDataOriginal.map((t) => {
+      return {
+        trackId: t.trackId,
+        trackName: t.trackName,
+        sheet: t.sheet.map((note) => {
+          let beatLength = ComposeAreaStyle.colLineInterval;
+          // let measureLength = beatLength * numerator;
+          let beatsPerSec = bpm / 60;
+          let lengthPerSec = beatLength * beatsPerSec; // length/lengthPerSec = sec
+          console.log({beatLength, beatsPerSec, lengthPerSec})
+          return {
+            id: note.id,
+            startTime: note.startX / lengthPerSec,
+            duration: Math.abs(note.endX - note.startX) / lengthPerSec,
+            frequency: (() => {
+              let noteIndex = Math.floor(
+                (2700 - note.endY) / noteStyle.noteHeight
+              );
+              let octave = Math.floor(noteIndex / 12);
+              let key = octave === 0 ? noteIndex : noteIndex % 12;
+              return pitchFrequency[octave][key];
+            })(),
+            isActive: !note.isOverlap,
+            lyrics: note.lyrics,
+            lyricsAliasMapper: note.lyricsAliasMapper,
+            breakpoints: note.breakpoints,
+          };
+        }),
+      };
+    });
+
+    console.log("Processed", tracksDataProcessed);
+
+    /*
     dispatch(setGeneratingStatus(true));
 
     let parsedLyricsArr: { id: number; data: string[] }[] = [];
@@ -165,6 +203,8 @@ const Toolbar = () => {
     dispatch(setProjectAudio(resBase64Data));
     dispatch(setGeneratingStatus(false));
     dispatch(setGeneratedStatus(true));
+
+    */
   };
 
   const audioRef1 = useRef<HTMLAudioElement>(null);
