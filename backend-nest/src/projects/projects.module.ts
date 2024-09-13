@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { ProjectsController } from './projects.controller';
-import { ProjectsService } from './projects.service';
+import { FileService, ProjectsService } from './projects.service';
 
 @Module({
-  imports: [],
+  imports: [CacheModule.register()],
   controllers: [ProjectsController],
-  providers: [ProjectsService],
+  providers: [ProjectsService, FileService],
 })
 export class ProjectsModule {}

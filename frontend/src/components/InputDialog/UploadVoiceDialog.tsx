@@ -161,16 +161,29 @@ export default function UploadVoiceDialog({
         const filenameMapper: { [key: string]: string } = {};
         data.wavEntriesData.forEach((entry) => {
           entry.alias && (aliasMapper[entry.alias] = entry.filename);
-          entry.alias && entry.filename && (filenameMapper[entry.filename] = entry.alias);
+          entry.alias &&
+            entry.filename &&
+            (filenameMapper[entry.filename] = entry.alias);
         });
 
-        const aliasMapperJsonString = JSON.stringify(aliasMapper);
-        const aliasMapperBlob = new Blob([aliasMapperJsonString], { type: "application/json" });
-        const filenameMapperJsonString = JSON.stringify(filenameMapper);
-        const filenameMapperBlob = new Blob([filenameMapperJsonString], { type: "application/json" });
+        const metadataJsonString = JSON.stringify({
+          voiceName: voiceName,
+          aliasMapper: aliasMapper,
+          filenameMapper: filenameMapper,
+        });
 
-        await zipWriter.add("aliasMapper.json", new BlobReader(aliasMapperBlob));
-        await zipWriter.add("filenameMapper.json", new BlobReader(filenameMapperBlob));
+        const metadataBlob = new Blob([metadataJsonString], {
+          type: "application/json",
+        });
+        await zipWriter.add("metadata.json", new BlobReader(metadataBlob));
+
+        // const aliasMapperJsonString = JSON.stringify(aliasMapper);
+        // const aliasMapperBlob = new Blob([aliasMapperJsonString], { type: "application/json" });
+        // const filenameMapperJsonString = JSON.stringify(filenameMapper);
+        // const filenameMapperBlob = new Blob([filenameMapperJsonString], { type: "application/json" });
+
+        // await zipWriter.add("aliasMapper.json", new BlobReader(aliasMapperBlob));
+        // await zipWriter.add("filenameMapper.json", new BlobReader(filenameMapperBlob));
 
         await zipWriter.close();
         // Retrieves the Blob object containing the zip content into `zipFileBlob`. It
@@ -182,7 +195,7 @@ export default function UploadVoiceDialog({
             "error",
             `The file is too large. Maximum allowed size: 50MB`
           );
-          console.error(`The file is too large. Maximum allowed size: 50MB`)
+          console.error(`The file is too large. Maximum allowed size: 50MB`);
           setIsUploading(false);
           return;
         }
@@ -193,7 +206,7 @@ export default function UploadVoiceDialog({
           {
             // metadata: { aliasMapper, filenameMapper, testMetadata: "testMetadata" },
             upsert: upsert,
-            contentType: "application/zip"
+            contentType: "application/zip",
           }
         );
 

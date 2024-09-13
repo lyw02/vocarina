@@ -1,5 +1,6 @@
 export class ProduceDto {
   //  TODO
+  userId: string;
   tracks: {
     trackId: number;
     trackName: string;
